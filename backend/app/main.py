@@ -9,6 +9,7 @@ from app.api.forecast import router as forecast_router
 from app.api.health import router as health_router
 from app.api.market import router as market_router
 from app.api.recommendation import router as recommendation_router
+from app.api.risk import router as risk_router
 from app.core.config import get_settings
 from app.core.error_handlers import register_error_handlers
 from app.core.logging_middleware import RequestLoggingMiddleware
@@ -42,6 +43,7 @@ app.include_router(forecast_router, prefix="/api/v1")
 app.include_router(compatibility_router, prefix="/api/v1")
 app.include_router(market_router, prefix="/api/v1")
 app.include_router(recommendation_router, prefix="/api/v1")
+app.include_router(risk_router, prefix="/api/v1")
 
 
 @app.get("/")

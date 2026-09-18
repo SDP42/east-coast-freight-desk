@@ -133,11 +133,14 @@ comparison this way.
 - **Verified live in-browser**: Paradip + 75,000t correctly ranked Indonesia cheapest ($506k, 2,700nm) through United States most expensive ($2.16m, 11,500nm), all marked Panamax-compatible, each citing a live BPI forecast (-3.14%, "softening") pulled from the real Section 5 model, not a static number.
 - Every cost figure is explicitly labeled illustrative/not-a-live-quote in both the API response and the UI, consistent with our own research finding that no live route-level freight rate data is publicly available without a paid terminal.
 
-### 9. Risk & disruption scoring module — ⬜ not started
-Composite Route Risk Score, early-warning logic, seeded disruption events.
-
-### 9. Risk & disruption scoring module — ⬜ not started
-Composite Route Risk Score, early-warning logic, seeded disruption events.
+### 9. Risk & disruption scoring module — ✅ done, wired end-to-end to the UI
+Composite Route Risk Score, early-warning logic, using the 4 real disruption
+events seeded in Section 3. Feature #6.
+- `app/services/risk.py` — combines three independent, explained factors into one 0-10 score: (1) disruption exposure — the seeded events weighted by relevance (direct region match vs. global market-wide spillover for geopolitical/canal_strait categories) and recency-decayed; (2) port congestion — from each port's real researched turnaround time or tidal-restriction flag; (3) freight volatility — the coefficient of variation of the last 90 rows of real BDI data, computed directly (not a model fit, so it's fast enough for a live request unlike the Section 5/6 backtest). Composite = 40/30/30 weighted average, labeled Low/Moderate/High/Severe.
+- `app/api/risk.py` — `GET /risk/events` (all seeded disruption events), `GET /risk/score?origin_country=&destination_port_id=`.
+- Real bug caught and fixed immediately in testing: the service returned nested dataclasses inside a dict, which Pydantic can't validate directly against nested response models — fixed by explicitly constructing each nested schema object in the endpoint rather than relying on `**result.__dict__`.
+- **Frontend fully rewired**: `frontend/src/pages/Risk.tsx` replaced the hardcoded event array with live `GET /risk/events`, and added an interactive risk-score checker (pick origin + destination, see the composite score, color-coded label, per-factor breakdown, and which real events contributed).
+- **Verified live in-browser**: Australia→Dhamra correctly scored 6.91/10 (High) — disruption exposure 7.52 (direct-matched to the Cyclone Koji event plus global Red Sea/Panama spillover), congestion 3.0 (Dhamra has no turnaround data on file, defaulted honestly rather than guessing), volatility 10.0 (BDI's real 90-day CV in our dataset is 32.4%, a genuinely volatile stretch, not a capped/fake number). Russia and Indonesia routes correctly showed lower/absent direct-match disruption weight, as expected.
 
 ### 10. Financial modeling module — ⬜ not started
 COA-vs-Spot simulator, idle-time/ballast minimizer, demurrage estimator, ROI calculator.

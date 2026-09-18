@@ -7,6 +7,67 @@ build, and things that are genuinely ours. This split is itself part of the
 pitch — it shows the judges we know exactly what's "table stakes" versus what's
 the real USP, rather than presenting everything as equally novel.
 
+**Why 16 build sections for 37 features:** the sections in `SECTIONS.md` are
+*build phases* (how the system gets implemented), not a 1:1 map to features
+(what capabilities exist). Several features are delivered together within one
+section because they share the same underlying subsystem — e.g. Section 7
+alone delivered features #1 and #2 (compatibility engine + tidal optimizer);
+Section 8 delivered #5; Section 9 delivered #6. The table below is the actual
+per-feature tracker — updated every session, not just at section boundaries.
+
+## Status tracker (all 37 features)
+
+Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not fully surfaced, or vice versa) · ⬜ not started
+
+### Baseline (10)
+
+| # | Feature | Status | Where |
+|---|---|---|---|
+| 1 | Freight rate forecasting from historical data | ✅ | Section 5/6 — ARIMA+XGBoost ensemble |
+| 2 | Dashboard showing forecast charts over time | 🔧 | `Forecast.tsx` exists but still shows a placeholder chart, not yet wired to the real `/forecast/{index}` API |
+| 3 | Basic vessel class reference data | ✅ | Section 3 seed + `/compatibility/vessel-classes` |
+| 4 | "Which vessel class fits this cargo size" | ✅ | Section 8 `pick_vessel_class` + compatibility check |
+| 5 | Historical freight-rate data visualization | 🔧 | Ticker shows current values live; a proper historical trend chart isn't wired to real data yet (same gap as #2) |
+| 6 | REST API serving model predictions | ✅ | `/forecast`, `/forecast/{index}/ensemble` |
+| 7 | User authentication / login | 🔧 | Backend fully done (Section 4: register/login/JWT); no frontend login/register screen built yet |
+| 8 | Form to input cargo details, origin, destination | ✅ | `Recommendation.tsx` live form |
+| 9 | Basic filtering/search over historical data | ⬜ | Not started |
+| 10 | Results/output page presenting the recommendation | ✅ | `Recommendation.tsx` ranked results grid |
+
+### Differentiating (27)
+
+| # | Feature | Status | Where |
+|---|---|---|---|
+| 1 | Port–Vessel Compatibility Engine | ✅ | Section 7, live checker + matrix in `Ports.tsx` |
+| 2 | Tidal-cycle-aware partial-load optimizer | ✅ | Section 7 `tidal_plan` logic |
+| 3 | Multi-horizon ensemble forecasting (7/30/90-day) | 🔧 | Ensemble API accepts any horizon up to 30 days; no side-by-side 7/30/90 view in the UI yet |
+| 4 | SHAP-based explainability panel | 🔧 | SHAP values computed and returned by `/forecast/{index}/ensemble` (`top_features`); no dedicated UI panel displaying them yet |
+| 5 | Multi-origin comparative routing | ✅ | Section 8, live in `Recommendation.tsx` |
+| 6 | Disruption/Risk Early-Warning composite score | ✅ | Section 9, live in `Risk.tsx` (on-demand score; push-style "early warning" alerting is #27, not yet built) |
+| 7 | COA-vs-Spot Simulator | ⬜ | Planned Section 10 |
+| 8 | Idle-time/ballast-leg minimizer | ⬜ | Planned Section 10 |
+| 9 | Demurrage risk estimator | ⬜ | Planned Section 10 |
+| 10 | Historical fixture ledger & benchmarking | ⬜ | `Fixture` model exists in the schema (Section 2); no ingestion/UI yet |
+| 11 | "Ask the Freight Desk" NL query assistant | ⬜ | Planned Section 15 |
+| 12 | Scenario/stress-testing sandbox | ⬜ | Planned Section 11 |
+| 13 | Monsoon/cyclone-adjusted ETA & laycan risk engine | ⬜ | Disruption events include a `weather` category (Section 9) as a building block; the ETA-shifting logic itself isn't built |
+| 14 | WhatsApp/SMS disruption alerts | ⬜ | Not started |
+| 15 | CII/carbon emissions estimator per voyage | ⬜ | Not started |
+| 16 | INR/USD hedging cost overlay | ⬜ | Not started |
+| 17 | Rail-sea-rail coastal modal-shift recommender | ⬜ | Not started |
+| 18 | Hash-chained fixture ledger (audit trail) | ⬜ | Not started |
+| 19 | AIS-lite vessel congestion heatmap | ⬜ | Synthetic vessels exist in the DB (Section 3); no map UI yet |
+| 20 | "Explain like a broker" auto-briefing narrative | ⬜ | Not started |
+| 21 | Macroeconomic Cargo Demand Estimator | ⬜ | SP500/DXY/coal prices are used as XGBoost *rate* features (Section 6); the separate GDP/production-based *demand* (tonnes) regression module itself isn't built |
+| 22 | Berth Slot Availability Forecaster | ⬜ | Not started |
+| 23 | Cross-Port Congestion Transfer / Rerouting Signal | ⬜ | Not started |
+| 24 | Model Trust / Backtest Transparency Dashboard | 🔧 | Backtest data (per-split RMSE/MAE/MAPE, Wilcoxon test) is already returned by the forecast APIs; no dedicated UI dashboard surfacing it yet |
+| 25 | Automated Retraining Pipeline with Drift Detection | ⬜ | Not started |
+| 26 | Multi-Objective Pareto-Ranked Recommendations | 🔧 | `Recommendation.tsx` ranks by cost with compatibility/time/market-direction shown per card, but doesn't yet do true multi-objective Pareto ranking across cost/time/risk together |
+| 27 | Configurable Alerting | ⬜ | Not started |
+
+**Running total: 13 done, 6 partial, 18 not started** (of 37). Sections 10-16 (financial modeling, scenario sandbox, frontend polish, NL assistant, alerting/monitoring/deployment) are where most of the remaining ⬜ items land — see `SECTIONS.md` for the section-by-section plan.
+
 ## A. Baseline features (10) — expected of any serious attempt at this problem
 
 These need to exist and work well, but they don't win the hackathon on their own.

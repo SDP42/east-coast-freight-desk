@@ -130,3 +130,46 @@ export const compareOrigins = (destinationPortId: number, cargoTonnes: number, o
       origin_countries: originCountries ?? null,
     })
     .then((r) => r.data);
+
+export interface DisruptionEvent {
+  id: number;
+  start_date: string;
+  end_date: string | null;
+  category: string;
+  region: string;
+  title: string;
+  description: string | null;
+  impact_score: number | null;
+  source_url: string | null;
+}
+
+export interface RiskFactor {
+  name: string;
+  score: number;
+  weight: number;
+  detail: string;
+}
+
+export interface RelevantEvent {
+  title: string;
+  category: string;
+  region: string;
+  start_date: string;
+  impact_score: number;
+  relevance_weight: number;
+}
+
+export interface RouteRisk {
+  origin_country: string;
+  destination_port_name: string;
+  composite_score: number;
+  risk_label: string;
+  factors: RiskFactor[];
+  relevant_events: RelevantEvent[];
+}
+
+export const getDisruptionEvents = () => api.get<DisruptionEvent[]>("/risk/events").then((r) => r.data);
+export const getRouteRisk = (originCountry: string, destinationPortId: number) =>
+  api
+    .get<RouteRisk>("/risk/score", { params: { origin_country: originCountry, destination_port_id: destinationPortId } })
+    .then((r) => r.data);

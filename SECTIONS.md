@@ -156,7 +156,15 @@ approved plan).
 - **Frontend**: new `frontend/src/pages/Financial.tsx` (routed at `/financial`, added to the sidebar) with live, working UI for the COA-vs-Spot simulator and ROI calculator. Demurrage estimator and ballast-leg minimizer are backend/API-only for now (verified via curl, not yet given a UI) — a fast follow-on, not a gap in the underlying logic.
 - **Verified live in-browser**: COA-vs-Spot (BPI, $15/t, 75,000t × 6 fixtures) correctly recommended "Stay spot" (model forecasts BPI falling 6.7% over 180 days, so locking today's rate would forgo ~$449k) — matches the curl test exactly. ROI calculator correctly computed $13.7M/year illustrative savings from BDI's real 38.2% historical CV. Noted honestly: ARIMA's point forecast flattens toward a constant for long multi-fixture horizons (expected behavior for a differenced series, not a bug) — the confidence interval still widens even though the central estimate doesn't move much fixture-to-fixture.
 
-### 11. Scenario/stress-testing backend logic — ⬜ not started
+### 11. Scenario/stress-testing engine — ✅ done, wired end-to-end to the UI
+Feature #12. Re-runs the Section 8 multi-origin comparison under user-defined
+shocks and reports what changed.
+- `app/services/scenario.py` — four shock types: `freight_spike` (multiplies all costs, e.g. "BDI +50%"), `port_closure` (destination unavailable N days; delay priced at the vessel class's Section 10 demurrage rate, and the other 6 East Coast ports are ranked as reroute alternatives), `red_sea_closure` (+3,500nm for Russia and US routes — the figure from the documented Section 3 case study), and generic `origin_disruption`. Returns per-origin baseline vs. scenario cost/rank, whether the best origin flipped, and a plain-English summary.
+- Small refactor to Section 8's `compare_origins`: now accepts a pre-computed `market_signal` (so a scenario fits ARIMA once instead of once per port — 8 comparisons would otherwise be ~20s) and an `extra_distance_nm` map for rerouting.
+- `app/api/scenario.py` — `POST /scenario/run`; unknown shock types return a clear 422.
+- **Frontend**: new `frontend/src/pages/Scenario.tsx` at `/scenario` (sidebar entry added) — toggles/sliders for freight spike (−30% to +150%), port closure (1-14 days), and Red Sea closure; before/after table with rank changes, a summary banner, and a reroute-alternatives panel.
+- **Verified**: Red Sea + 50% spike → Russia +100.0% / US +95.7% (distance effect stacked on the rate effect), Indonesia +50% and still best; 5-day Paradip closure → +$57,500 (5 × $11,500 Panamax rate) with reroute options surfaced; UI-run combined scenario $506,250 × 1.5 + 3 × $11,500 = $793,875 matched to the dollar.
+- **Known limitation, stated plainly**: route distances are seeded per origin *country* to all destination ports (Section 3), so the reroute alternatives (Vizag/Gangavaram/Dhamra) tie on cost — the ranking among alternative ports reflects compatibility only, not real port-to-port distance differences. Real per-port distances would sharpen this.
 
 ### 12. Frontend scaffolding — ✅ done (pulled forward, running alongside backend work)
 React + TypeScript + Vite + Tailwind v4, React Router, Recharts, Axios.

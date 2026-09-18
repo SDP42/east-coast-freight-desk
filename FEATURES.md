@@ -49,7 +49,7 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 9 | Demurrage risk estimator | 🔧 | Section 10 backend done (`/financial/demurrage`), no UI yet |
 | 10 | Historical fixture ledger & benchmarking | ⬜ | `Fixture` model exists in the schema (Section 2); no ingestion/UI yet |
 | 11 | "Ask the Freight Desk" NL query assistant | ⬜ | Planned Section 15 |
-| 12 | Scenario/stress-testing sandbox | ⬜ | Planned Section 11 |
+| 12 | Scenario/stress-testing sandbox | ✅ | Section 11, live in `Scenario.tsx` (freight spike, port closure with reroute alternatives, Red Sea closure) |
 | 13 | Monsoon/cyclone-adjusted ETA & laycan risk engine | ⬜ | Disruption events include a `weather` category (Section 9) as a building block; the ETA-shifting logic itself isn't built |
 | 14 | WhatsApp/SMS disruption alerts | ⬜ | Not started |
 | 15 | CII/carbon emissions estimator per voyage | ⬜ | Not started |
@@ -66,7 +66,7 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 26 | Multi-Objective Pareto-Ranked Recommendations | 🔧 | `Recommendation.tsx` ranks by cost with compatibility/time/market-direction shown per card, but doesn't yet do true multi-objective Pareto ranking across cost/time/risk together |
 | 27 | Configurable Alerting | ⬜ | Not started |
 
-**Running total: 14 done, 8 partial, 15 not started** (of 37). Sections 11-16 (scenario sandbox, frontend polish, NL assistant, alerting/monitoring/deployment) are where most of the remaining ⬜ items land — see `SECTIONS.md` for the section-by-section plan. There's also an ROI calculator (Section 10, live in `Financial.tsx`) that was part of the original 20-feature plan but isn't separately numbered in this 37-item list — a bonus beyond the tracked count.
+**Running total: 15 done, 8 partial, 14 not started** (of 37). Sections 12-16 (frontend polish, NL assistant, alerting/monitoring/deployment) are where most of the remaining ⬜ items land — see `SECTIONS.md` for the section-by-section plan. There's also an ROI calculator (Section 10, live in `Financial.tsx`) that was part of the original 20-feature plan but isn't separately numbered in this 37-item list — a bonus beyond the tracked count.
 
 ## A. Baseline features (10) — expected of any serious attempt at this problem
 

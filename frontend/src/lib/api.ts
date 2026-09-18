@@ -223,6 +223,50 @@ export const estimateDemurrage = (portId: number, vesselClassId: number, laytime
 export const estimateRoi = (body: { index_name: string; annual_cargo_tonnes: number; assumed_freight_usd_per_tonne: number; captured_pct: number }) =>
   api.post<RoiResult>("/financial/roi", body).then((r) => r.data);
 
+export interface Shock {
+  type: "freight_spike" | "port_closure" | "red_sea_closure" | "origin_disruption";
+  pct?: number;
+  days?: number;
+  origin_country?: string;
+  extra_distance_nm?: number;
+}
+
+export interface OriginDelta {
+  origin_country: string;
+  baseline_cost_usd: number | null;
+  scenario_cost_usd: number | null;
+  delta_usd: number | null;
+  delta_pct: number | null;
+  baseline_rank: number;
+  scenario_rank: number;
+  compatible: boolean;
+}
+
+export interface ReroutePort {
+  port_name: string;
+  best_origin: string;
+  estimated_total_cost_usd: number;
+  savings_vs_scenario_best_usd: number;
+}
+
+export interface ScenarioResult {
+  destination_port_name: string;
+  cargo_tonnes: number;
+  vessel_class_name: string;
+  shocks_applied: string[];
+  origins: OriginDelta[];
+  baseline_best_origin: string | null;
+  scenario_best_origin: string | null;
+  best_origin_changed: boolean;
+  reroute_alternatives: ReroutePort[];
+  summary: string;
+}
+
+export const runScenario = (destinationPortId: number, cargoTonnes: number, shocks: Shock[]) =>
+  api
+    .post<ScenarioResult>("/scenario/run", { destination_port_id: destinationPortId, cargo_tonnes: cargoTonnes, shocks })
+    .then((r) => r.data);
+
 export const getDisruptionEvents = () => api.get<DisruptionEvent[]>("/risk/events").then((r) => r.data);
 export const getRouteRisk = (originCountry: string, destinationPortId: number) =>
   api

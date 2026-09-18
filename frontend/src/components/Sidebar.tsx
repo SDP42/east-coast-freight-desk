@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Anchor, LayoutDashboard, TrendingUp, Compass, MapPinned, ShieldAlert, Calculator } from "lucide-react";
+import { Anchor, LayoutDashboard, TrendingUp, Compass, MapPinned, ShieldAlert, Calculator, FlaskConical } from "lucide-react";
 
 const links = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
@@ -8,6 +8,7 @@ const links = [
   { to: "/ports", label: "Port Compatibility", icon: MapPinned },
   { to: "/risk", label: "Risk & Disruptions", icon: ShieldAlert },
   { to: "/financial", label: "Financial Tools", icon: Calculator },
+  { to: "/scenario", label: "Scenario Sandbox", icon: FlaskConical },
 ];
 
 export default function Sidebar() {

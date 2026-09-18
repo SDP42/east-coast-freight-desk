@@ -8,6 +8,7 @@ import Recommendation from "./pages/Recommendation";
 import Ports from "./pages/Ports";
 import Risk from "./pages/Risk";
 import Financial from "./pages/Financial";
+import Scenario from "./pages/Scenario";
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/ports" element={<Ports />} />
             <Route path="/risk" element={<Risk />} />
             <Route path="/financial" element={<Financial />} />
+            <Route path="/scenario" element={<Scenario />} />
           </Routes>
         </main>
       </div>

@@ -142,8 +142,19 @@ events seeded in Section 3. Feature #6.
 - **Frontend fully rewired**: `frontend/src/pages/Risk.tsx` replaced the hardcoded event array with live `GET /risk/events`, and added an interactive risk-score checker (pick origin + destination, see the composite score, color-coded label, per-factor breakdown, and which real events contributed).
 - **Verified live in-browser**: Australia→Dhamra correctly scored 6.91/10 (High) — disruption exposure 7.52 (direct-matched to the Cyclone Koji event plus global Red Sea/Panama spillover), congestion 3.0 (Dhamra has no turnaround data on file, defaulted honestly rather than guessing), volatility 10.0 (BDI's real 90-day CV in our dataset is 32.4%, a genuinely volatile stretch, not a capped/fake number). Russia and Indonesia routes correctly showed lower/absent direct-match disruption weight, as expected.
 
-### 10. Financial modeling module — ⬜ not started
-COA-vs-Spot simulator, idle-time/ballast minimizer, demurrage estimator, ROI calculator.
+### 10. Financial modeling module — ✅ backend done for all 4 tools; 2 of 4 wired to UI
+COA-vs-Spot simulator, idle-time/ballast minimizer, demurrage estimator, ROI
+calculator. Features #7, #8, #9, plus an ROI calculator (from the original
+approved plan).
+- `app/services/financial.py` — all four tools:
+  - **COA-vs-Spot**: fits ARIMA on the target index (reusing Section 5), projects a spot-rate path for N future fixtures by scaling the user's known current $/tonne rate by the forecast/current index ratio, compares total cost against locking today's rate flat, and sizes the spot path's $ uncertainty from real historical daily-return volatility. Recommends "Lock in COA" / "Stay spot" / "Marginal" with a plain-English rationale.
+  - **Idle-time/ballast minimizer**: ranks candidate next fixtures by total idle days (ballast transit + laycan wait), reusing Section 3's route data; the ballast-leg approximation (laden-route transit time as a proxy, since we have no separate ballast-route distances) is explicitly flagged in the response.
+  - **Demurrage estimator**: `max(0, actual_turnaround − contractual_laytime) × real researched demurrage-rate benchmark` (Panamax/Capesize rates directly cited in our research; Supramax/Handysize extrapolated and flagged as such).
+  - **ROI calculator**: annual savings = cargo tonnes × assumed $/tonne × (real historical coefficient-of-variation × a user-adjustable "captured %" assumption), explicitly labeled illustrative.
+- `app/api/financial.py` — `POST /financial/coa-vs-spot`, `/financial/ballast-options`, `/financial/demurrage`, `/financial/roi`.
+- Real bug caught in testing: none this time — all four endpoints worked correctly on first test after the nested-dataclass lesson learned in Section 9 was applied proactively (explicit schema construction, not `**result.__dict__`).
+- **Frontend**: new `frontend/src/pages/Financial.tsx` (routed at `/financial`, added to the sidebar) with live, working UI for the COA-vs-Spot simulator and ROI calculator. Demurrage estimator and ballast-leg minimizer are backend/API-only for now (verified via curl, not yet given a UI) — a fast follow-on, not a gap in the underlying logic.
+- **Verified live in-browser**: COA-vs-Spot (BPI, $15/t, 75,000t × 6 fixtures) correctly recommended "Stay spot" (model forecasts BPI falling 6.7% over 180 days, so locking today's rate would forgo ~$449k) — matches the curl test exactly. ROI calculator correctly computed $13.7M/year illustrative savings from BDI's real 38.2% historical CV. Noted honestly: ARIMA's point forecast flattens toward a constant for long multi-fixture horizons (expected behavior for a differenced series, not a bug) — the confidence interval still widens even though the central estimate doesn't move much fixture-to-fixture.
 
 ### 11. Scenario/stress-testing backend logic — ⬜ not started
 

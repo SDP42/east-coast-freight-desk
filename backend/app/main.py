@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
 from app.api.compatibility import router as compatibility_router
+from app.api.financial import router as financial_router
 from app.api.forecast import router as forecast_router
 from app.api.health import router as health_router
 from app.api.market import router as market_router
@@ -44,6 +45,7 @@ app.include_router(compatibility_router, prefix="/api/v1")
 app.include_router(market_router, prefix="/api/v1")
 app.include_router(recommendation_router, prefix="/api/v1")
 app.include_router(risk_router, prefix="/api/v1")
+app.include_router(financial_router, prefix="/api/v1")
 
 
 @app.get("/")

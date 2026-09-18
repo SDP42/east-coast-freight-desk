@@ -168,6 +168,61 @@ export interface RouteRisk {
   relevant_events: RelevantEvent[];
 }
 
+export interface FixtureProjection {
+  fixture_number: number;
+  date: string;
+  forecast_index_value: number;
+  projected_spot_rate_usd_per_tonne: number;
+}
+
+export interface CoaVsSpotResult {
+  index_name: string;
+  current_index_value: number;
+  current_rate_usd_per_tonne: number;
+  coa_rate_usd_per_tonne: number;
+  fixtures: FixtureProjection[];
+  total_coa_cost_usd: number;
+  total_spot_cost_usd: number;
+  spot_cost_std_usd: number;
+  expected_savings_usd: number;
+  recommendation: string;
+  rationale: string;
+}
+
+export interface DemurrageResult {
+  port_name: string;
+  vessel_class_name: string;
+  actual_turnaround_days: number;
+  laytime_allowed_days: number;
+  demurrage_days: number;
+  demurrage_rate_usd_per_day: number;
+  expected_demurrage_usd: number;
+  notes: string[];
+}
+
+export interface RoiResult {
+  index_name: string;
+  historical_coefficient_of_variation_pct: number;
+  annual_cargo_tonnes: number;
+  assumed_freight_usd_per_tonne: number;
+  captured_pct: number;
+  estimated_annual_savings_usd: number;
+  notes: string;
+}
+
+export const simulateCoaVsSpot = (body: {
+  index_name: string; current_rate_usd_per_tonne: number; cargo_tonnes_per_fixture: number;
+  num_fixtures: number; interval_days: number;
+}) => api.post<CoaVsSpotResult>("/financial/coa-vs-spot", body).then((r) => r.data);
+
+export const estimateDemurrage = (portId: number, vesselClassId: number, laytimeAllowedDays: number) =>
+  api
+    .post<DemurrageResult>("/financial/demurrage", { port_id: portId, vessel_class_id: vesselClassId, laytime_allowed_days: laytimeAllowedDays })
+    .then((r) => r.data);
+
+export const estimateRoi = (body: { index_name: string; annual_cargo_tonnes: number; assumed_freight_usd_per_tonne: number; captured_pct: number }) =>
+  api.post<RoiResult>("/financial/roi", body).then((r) => r.data);
+
 export const getDisruptionEvents = () => api.get<DisruptionEvent[]>("/risk/events").then((r) => r.data);
 export const getRouteRisk = (originCountry: string, destinationPortId: number) =>
   api

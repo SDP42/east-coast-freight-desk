@@ -44,9 +44,9 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 4 | SHAP-based explainability panel | 🔧 | SHAP values computed and returned by `/forecast/{index}/ensemble` (`top_features`); no dedicated UI panel displaying them yet |
 | 5 | Multi-origin comparative routing | ✅ | Section 8, live in `Recommendation.tsx` |
 | 6 | Disruption/Risk Early-Warning composite score | ✅ | Section 9, live in `Risk.tsx` (on-demand score; push-style "early warning" alerting is #27, not yet built) |
-| 7 | COA-vs-Spot Simulator | ⬜ | Planned Section 10 |
-| 8 | Idle-time/ballast-leg minimizer | ⬜ | Planned Section 10 |
-| 9 | Demurrage risk estimator | ⬜ | Planned Section 10 |
+| 7 | COA-vs-Spot Simulator | ✅ | Section 10, live in `Financial.tsx` |
+| 8 | Idle-time/ballast-leg minimizer | 🔧 | Section 10 backend done (`/financial/ballast-options`), no UI yet |
+| 9 | Demurrage risk estimator | 🔧 | Section 10 backend done (`/financial/demurrage`), no UI yet |
 | 10 | Historical fixture ledger & benchmarking | ⬜ | `Fixture` model exists in the schema (Section 2); no ingestion/UI yet |
 | 11 | "Ask the Freight Desk" NL query assistant | ⬜ | Planned Section 15 |
 | 12 | Scenario/stress-testing sandbox | ⬜ | Planned Section 11 |
@@ -66,7 +66,7 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 26 | Multi-Objective Pareto-Ranked Recommendations | 🔧 | `Recommendation.tsx` ranks by cost with compatibility/time/market-direction shown per card, but doesn't yet do true multi-objective Pareto ranking across cost/time/risk together |
 | 27 | Configurable Alerting | ⬜ | Not started |
 
-**Running total: 13 done, 6 partial, 18 not started** (of 37). Sections 10-16 (financial modeling, scenario sandbox, frontend polish, NL assistant, alerting/monitoring/deployment) are where most of the remaining ⬜ items land — see `SECTIONS.md` for the section-by-section plan.
+**Running total: 14 done, 8 partial, 15 not started** (of 37). Sections 11-16 (scenario sandbox, frontend polish, NL assistant, alerting/monitoring/deployment) are where most of the remaining ⬜ items land — see `SECTIONS.md` for the section-by-section plan. There's also an ROI calculator (Section 10, live in `Financial.tsx`) that was part of the original 20-feature plan but isn't separately numbered in this 37-item list — a bonus beyond the tracked count.
 
 ## A. Baseline features (10) — expected of any serious attempt at this problem
 

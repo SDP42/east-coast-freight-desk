@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0b0f1a;
+  --color-ink: #0f1420;
+  --color-panel: #131a2b;
+  --color-panel-light: #1a2338;
+  --color-border-soft: #232d45;
+  --color-steel: #2f3c7e;
+  --color-ice: #cadcfc;
+  --color-cyan: #22d3ee;
+  --color-amber: #fbbf24;
+  --color-up: #34d399;
+  --color-down: #f87171;
+  --color-muted: #8792a8;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  background: var(--color-navy);
+  color: #e5e9f2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-soft);
+  border-radius: 8px;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+
+@keyframes radar-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-radar {
+  animation: radar-sweep 8s linear infinite;
+}
+
+@keyframes flash-up {
+  0% { background-color: rgba(52, 211, 153, 0.35); }
+  100% { background-color: transparent; }
+}
+@keyframes flash-down {
+  0% { background-color: rgba(248, 113, 113, 0.35); }
+  100% { background-color: transparent; }
+}
+.flash-up { animation: flash-up 0.9s ease-out; }
+.flash-down { animation: flash-down 0.9s ease-out; }

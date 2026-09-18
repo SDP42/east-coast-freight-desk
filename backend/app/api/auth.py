@@ -6,10 +6,17 @@ from app.api.deps import get_current_user
 from app.core.security import create_access_token
 from app.db.session import get_db
 from app.models import User
-from app.schemas.user import Token, UserCreate, UserRead
+from app.core.personas import PERSONAS, SELF_REGISTER_PERSONAS
+from app.schemas.user import PersonaOut, Token, UserCreate, UserRead
 from app.services.auth import authenticate_user, create_user, get_user_by_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+@router.get("/personas", response_model=list[PersonaOut])
+def list_personas() -> list[PersonaOut]:
+    """Personas a user can pick at sign-up (admin is excluded)."""
+    return [PersonaOut(key=k, **{f: PERSONAS[k][f] for f in ("label", "description", "focus")}) for k in SELF_REGISTER_PERSONAS]
 
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)

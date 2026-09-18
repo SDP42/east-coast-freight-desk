@@ -223,6 +223,84 @@ export const estimateDemurrage = (portId: number, vesselClassId: number, laytime
 export const estimateRoi = (body: { index_name: string; annual_cargo_tonnes: number; assumed_freight_usd_per_tonne: number; captured_pct: number }) =>
   api.post<RoiResult>("/financial/roi", body).then((r) => r.data);
 
+export interface HistoryPoint {
+  date: string;
+  value: number;
+}
+
+export interface RegionSeries {
+  index_name: string;
+  label: string;
+  unit: string;
+  date: string;
+  value: number;
+  change_pct: number | null;
+  spark: number[];
+}
+
+export interface RegionBoard {
+  region: string;
+  note: string;
+  series: RegionSeries[];
+}
+
+export const getHistory = (indexName: string, limit = 500) =>
+  api.get<HistoryPoint[]>(`/market/history/${indexName}`, { params: { limit } }).then((r) => r.data);
+export const getRegions = () => api.get<RegionBoard[]>("/market/regions").then((r) => r.data);
+
+export interface ForecastPoint {
+  date: string;
+  value: number;
+  lower_ci: number;
+  upper_ci: number;
+}
+
+export interface ForecastResult {
+  index_name: string;
+  horizon: number;
+  model: string;
+  order: [number, number, number];
+  is_stationary: boolean;
+  adf_pvalue: number;
+  forecast: ForecastPoint[];
+  backtest_mean_rmse: number;
+  backtest_mean_mae: number;
+  backtest_mean_mape: number;
+  backtest_splits: { split_index: number; train_end: string; rmse: number; mae: number; mape: number }[];
+}
+
+export interface EnsembleMetric {
+  rmse: number;
+  mae: number;
+  mape: number;
+}
+
+export interface Significance {
+  statistic: number;
+  p_value: number;
+  n: number;
+  significant_at_05: boolean;
+}
+
+export interface EnsembleResult {
+  index_name: string;
+  horizon: number;
+  arima_order: [number, number, number];
+  weights: { arima: number; xgb: number };
+  forecast: { date: string; arima_value: number; xgb_value: number; hybrid_value: number }[];
+  arima_metrics: EnsembleMetric;
+  xgb_metrics: EnsembleMetric;
+  hybrid_metrics: EnsembleMetric;
+  top_features: { feature: string; mean_abs_shap: number }[];
+  hybrid_vs_arima: Significance;
+  hybrid_vs_xgb: Significance;
+}
+
+export const getForecast = (indexName: string, horizon: number) =>
+  api.get<ForecastResult>(`/forecast/${indexName}`, { params: { horizon }, timeout: 60_000 }).then((r) => r.data);
+export const getEnsemble = (indexName: string, horizon: number) =>
+  api.get<EnsembleResult>(`/forecast/${indexName}/ensemble`, { params: { horizon }, timeout: 120_000 }).then((r) => r.data);
+
 export interface Shock {
   type: "freight_spike" | "port_closure" | "red_sea_closure" | "origin_disruption";
   pct?: number;

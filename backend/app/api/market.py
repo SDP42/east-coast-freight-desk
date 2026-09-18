@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.market import TickerItem
-from app.services.market import get_ticker_values
+from app.schemas.market import HistoryPoint, RegionBoard, TickerItem
+from app.services.market import get_history, get_region_boards, get_ticker_values
 
 router = APIRouter(prefix="/market", tags=["market"])
 
@@ -24,3 +24,16 @@ def get_ticker(db: Session = Depends(get_db)) -> list[TickerItem]:
             )
         )
     return items
+
+
+@router.get("/history/{index_name}", response_model=list[HistoryPoint])
+def history(index_name: str, limit: int = Query(default=500, ge=2, le=5000), db: Session = Depends(get_db)) -> list[HistoryPoint]:
+    rows = get_history(db, index_name.upper(), limit)
+    if not rows:
+        raise HTTPException(status_code=404, detail=f"No data for '{index_name}'")
+    return [HistoryPoint(date=d, value=v) for d, v in rows]
+
+
+@router.get("/regions", response_model=list[RegionBoard])
+def regions(db: Session = Depends(get_db)) -> list[dict]:
+    return get_region_boards(db)

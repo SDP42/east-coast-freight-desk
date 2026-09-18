@@ -9,6 +9,7 @@ from pathlib import Path
 
 SCRIPTS = [
     "seed_ports.py",
+    "seed_port_coordinates.py",
     "seed_routes.py",
     "generate_synthetic_vessels.py",
     "seed_disruption_events.py",

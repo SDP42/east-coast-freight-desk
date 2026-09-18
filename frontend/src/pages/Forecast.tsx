@@ -1,43 +1,232 @@
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { useEffect, useMemo, useState } from "react";
+import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { motion } from "framer-motion";
-import ComingSoon from "../components/ComingSoon";
+import { Brain, CheckCircle2, CircleSlash, LineChart as LineChartIcon } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
+import { getEnsemble, getForecast, getHistory, type EnsembleResult, type ForecastResult, type HistoryPoint } from "../lib/api";
 
-// Illustrative placeholder shape only (not real BDI values) — Section 5/6 will
-// replace this with live model output from the ingested Mendeley/Baltic dataset.
-const placeholderSeries = Array.from({ length: 30 }, (_, i) => ({
-  day: `D${i + 1}`,
-  bdi: 3300 + Math.round(Math.sin(i / 4) * 250 + (Math.random() - 0.5) * 100),
-}));
+const INDICES = [
+  { key: "BDI", label: "Baltic Dry Index" },
+  { key: "BCI", label: "Capesize" },
+  { key: "BPI", label: "Panamax" },
+  { key: "BSI", label: "Supramax" },
+  { key: "BHSI", label: "Handysize" },
+];
+const HORIZONS = [7, 14, 30];
+
+const prettyFeature = (f: string) =>
+  f.replace("exog_", "").replace(/_/g, " ").replace("coal aus", "Australian coal").replace("coal za", "S. African coal").replace("sp500", "S&P 500").replace("dxy", "US dollar index");
 
 export default function Forecast() {
+  const [indexKey, setIndexKey] = useState("BDI");
+  const [horizon, setHorizon] = useState(14);
+  const [history, setHistory] = useState<HistoryPoint[]>([]);
+  const [forecast, setForecast] = useState<ForecastResult | null>(null);
+  const [ensemble, setEnsemble] = useState<EnsembleResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [ensembleLoading, setEnsembleLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setEnsemble(null);
+    Promise.all([getHistory(indexKey, 90), getForecast(indexKey, horizon)])
+      .then(([h, f]) => {
+        if (cancelled) return;
+        setHistory(h);
+        setForecast(f);
+      })
+      .catch(() => !cancelled && setError("Could not load the forecast — is the backend running?"))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [indexKey, horizon]);
+
+  async function runEnsemble() {
+    setEnsembleLoading(true);
+    try {
+      setEnsemble(await getEnsemble(indexKey, Math.min(horizon, 30)));
+    } catch {
+      setError("The ensemble run failed or timed out.");
+    } finally {
+      setEnsembleLoading(false);
+    }
+  }
+
+  const chartData = useMemo(() => {
+    if (!forecast || history.length === 0) return [];
+    const lastActual = history[history.length - 1];
+    const hybridByDate = new Map(ensemble?.forecast.map((p) => [p.date, p.hybrid_value]));
+    const rows: Record<string, number | string | number[] | undefined>[] = history.map((p) => ({ date: p.date, actual: p.value }));
+    // Start the forecast line at the last real point so the two lines join.
+    rows[rows.length - 1] = { ...rows[rows.length - 1], forecast: lastActual.value, hybrid: ensemble ? lastActual.value : undefined };
+    forecast.forecast.forEach((p) =>
+      rows.push({ date: p.date, forecast: p.value, band: [p.lower_ci, p.upper_ci], hybrid: hybridByDate.get(p.date) }),
+    );
+    return rows;
+  }, [history, forecast, ensemble]);
+
+  const lastActual = history[history.length - 1]?.value;
+  const endForecast = forecast?.forecast[forecast.forecast.length - 1];
+  const moveInfo = lastActual && endForecast ? ((endForecast.value - lastActual) / lastActual) * 100 : null;
+  const maxShap = ensemble ? Math.max(...ensemble.top_features.map((f) => f.mean_abs_shap)) : 1;
+
   return (
     <div className="space-y-6">
-      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-white">
-        Freight Forecast
-      </motion.h1>
-      <ComingSoon title="Multi-horizon ensemble forecast (7 / 30 / 90-day)" section="Sections 5–6" />
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Freight Forecast</h1>
+          <p className="mt-1 text-xs text-muted">Real ARIMA model fit on the ingested series, with a 95% confidence band and walk-forward backtest.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {INDICES.map((i) => (
+            <button key={i.key} onClick={() => setIndexKey(i.key)} className={`rounded-md border px-3 py-1.5 text-xs ${indexKey === i.key ? "border-cyan/50 bg-cyan/10 text-cyan" : "border-border-soft bg-panel-light text-muted hover:text-white"}`}>
+              {i.key}
+            </button>
+          ))}
+          <span className="mx-1 w-px bg-border-soft" />
+          {HORIZONS.map((h) => (
+            <button key={h} onClick={() => setHorizon(h)} className={`rounded-md border px-3 py-1.5 text-xs ${horizon === h ? "border-amber/50 bg-amber/10 text-amber" : "border-border-soft bg-panel-light text-muted hover:text-white"}`}>
+              {h}d
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
+      {error && <p className="text-sm text-down">{error}</p>}
 
       <SpotlightCard>
         <div className="p-6">
-          <p className="mb-4 text-xs uppercase tracking-wide text-muted">
-            Placeholder chart shape — not real freight data
-          </p>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={placeholderSeries}>
-              <defs>
-                <linearGradient id="bdiGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#232d45" />
-              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#8792a8" }} axisLine={{ stroke: "#232d45" }} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "#8792a8" }} domain={["auto", "auto"]} axisLine={{ stroke: "#232d45" }} tickLine={false} />
-              <Tooltip contentStyle={{ background: "#131a2b", border: "1px solid #232d45", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "#8792a8" }} />
-              <Area type="monotone" dataKey="bdi" stroke="#22d3ee" strokeWidth={2} fill="url(#bdiGradient)" />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+              <LineChartIcon className="h-4 w-4 text-cyan" /> {INDICES.find((i) => i.key === indexKey)?.label}: last 90 observations and {horizon}-day forecast
+            </h2>
+            {moveInfo != null && (
+              <span className={`text-sm font-semibold ${moveInfo >= 0 ? "text-up" : "text-down"}`}>
+                {moveInfo >= 0 ? "▲" : "▼"} {Math.abs(moveInfo).toFixed(1)}% projected
+              </span>
+            )}
+          </div>
+          {loading ? (
+            <div className="flex h-72 items-center justify-center text-sm text-muted">Fitting the model… (about 3 seconds)</div>
+          ) : (
+            <div className="mt-4">
+              <ResponsiveContainer width="100%" height={320}>
+                <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#232d45" />
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#8792a8" }} tickLine={false} axisLine={{ stroke: "#232d45" }} minTickGap={40} />
+                  <YAxis domain={["auto", "auto"]} tick={{ fontSize: 10, fill: "#8792a8" }} tickLine={false} axisLine={false} width={48} />
+                  <Tooltip contentStyle={{ background: "#131a2b", border: "1px solid #232d45", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "#8792a8" }} />
+                  <Area dataKey="band" stroke="none" fill="#fbbf24" fillOpacity={0.15} isAnimationActive={false} name="95% band" />
+                  <Line dataKey="actual" stroke="#22d3ee" strokeWidth={2} dot={false} isAnimationActive={false} name="Actual" />
+                  <Line dataKey="forecast" stroke="#fbbf24" strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} name="ARIMA forecast" />
+                  {ensemble && <Line dataKey="hybrid" stroke="#a78bfa" strokeWidth={2} dot={false} isAnimationActive={false} name="Hybrid (ARIMA+XGBoost)" />}
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      </SpotlightCard>
+
+      {forecast && !loading && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {[
+            { label: "Backtest MAPE", value: `${forecast.backtest_mean_mape.toFixed(2)}%`, hint: "5 walk-forward splits" },
+            { label: "Backtest RMSE", value: forecast.backtest_mean_rmse.toFixed(1), hint: "index points" },
+            { label: "Backtest MAE", value: forecast.backtest_mean_mae.toFixed(1), hint: "index points" },
+            { label: "ARIMA order", value: `(${forecast.order.join(",")})`, hint: "chosen by AIC" },
+            { label: "Stationary", value: forecast.is_stationary ? "Yes" : "No", hint: `ADF p = ${forecast.adf_pvalue}` },
+          ].map((m) => (
+            <SpotlightCard key={m.label}>
+              <div className="p-4">
+                <p className="text-[11px] uppercase tracking-wide text-muted">{m.label}</p>
+                <p className="mt-1 text-xl font-bold text-white">{m.value}</p>
+                <p className="text-[10px] text-muted">{m.hint}</p>
+              </div>
+            </SpotlightCard>
+          ))}
+        </div>
+      )}
+
+      <SpotlightCard glowColor="167,139,250">
+        <div className="p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Brain className="h-4 w-4 text-violet-400" /> Ensemble and explainability
+              </h2>
+              <p className="mt-1 text-xs text-muted">
+                Adds XGBoost (with S&amp;P 500, dollar index and coal prices as features), blends the two by inverse error, tests the
+                improvement statistically, and shows what drives the forecast. Takes about 12 seconds.
+              </p>
+            </div>
+            <button onClick={runEnsemble} disabled={ensembleLoading} className="rounded-md bg-violet-400/90 px-4 py-2 text-sm font-medium text-navy transition hover:bg-violet-300 disabled:opacity-50">
+              {ensembleLoading ? "Training models…" : ensemble ? "Re-run" : "Run ensemble"}
+            </button>
+          </div>
+
+          {ensemble && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-[11px] uppercase tracking-wide text-muted">
+                      <th className="py-2">Model</th><th>RMSE</th><th>MAE</th><th>MAPE</th><th>Weight</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-soft/60 tabular-nums">
+                    {[
+                      { name: "ARIMA", m: ensemble.arima_metrics, w: ensemble.weights.arima },
+                      { name: "XGBoost", m: ensemble.xgb_metrics, w: ensemble.weights.xgb },
+                      { name: "Hybrid", m: ensemble.hybrid_metrics, w: null },
+                    ].map((r) => (
+                      <tr key={r.name} className={r.name === "Hybrid" ? "text-violet-300" : "text-ice/90"}>
+                        <td className="py-2 font-medium">{r.name}</td>
+                        <td>{r.m.rmse.toFixed(1)}</td><td>{r.m.mae.toFixed(1)}</td><td>{r.m.mape.toFixed(2)}%</td>
+                        <td>{r.w != null ? `${(r.w * 100).toFixed(0)}%` : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="mt-4 space-y-2 text-xs">
+                  {[
+                    { label: "Hybrid vs ARIMA", s: ensemble.hybrid_vs_arima },
+                    { label: "Hybrid vs XGBoost", s: ensemble.hybrid_vs_xgb },
+                  ].map(({ label, s }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      {s.significant_at_05 ? <CheckCircle2 className="h-4 w-4 shrink-0 text-up" /> : <CircleSlash className="h-4 w-4 shrink-0 text-muted" />}
+                      <span className="text-ice/90">
+                        {label}: Wilcoxon p = {s.p_value < 0.0001 ? s.p_value.toExponential(1) : s.p_value.toFixed(4)}{" "}
+                        <span className={s.significant_at_05 ? "text-up" : "text-muted"}>{s.significant_at_05 ? "(significant)" : "(not significant)"}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-[11px] uppercase tracking-wide text-muted">What drives the XGBoost forecast (SHAP)</p>
+                <div className="space-y-1.5">
+                  {ensemble.top_features.map((f) => (
+                    <div key={f.feature} className="flex items-center gap-2 text-xs">
+                      <span className="w-32 shrink-0 truncate text-ice/90">{prettyFeature(f.feature)}</span>
+                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel-light">
+                        <div className="h-full rounded-full bg-violet-400" style={{ width: `${Math.max(2, (f.mean_abs_shap / maxShap) * 100)}%` }} />
+                      </div>
+                      <span className="w-12 text-right tabular-nums text-muted">{f.mean_abs_shap.toFixed(1)}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-3 text-[11px] text-muted">
+                  Yesterday's value dominates, which is expected for a highly autocorrelated daily index; the smaller bars show what the
+                  macro and commodity features add on top.
+                </p>
+              </div>
+            </motion.div>
+          )}
         </div>
       </SpotlightCard>
     </div>

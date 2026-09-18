@@ -68,3 +68,15 @@ body {
 }
 .flash-up { animation: flash-up 0.9s ease-out; }
 .flash-down { animation: flash-down 0.9s ease-out; }
+
+/* Turns the light OpenStreetMap tiles into a dark basemap without a paid dark-tile provider. */
+.dark-tiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6);
+}
+.leaflet-container {
+  font-family: inherit;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-tooltip {
+  border-radius: 8px;
+}

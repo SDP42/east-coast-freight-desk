@@ -66,6 +66,19 @@ If you see a red/orange badge saying "Backend unreachable" in the top-right of
 the Overview page, it means the backend (step 1) isn't running or was closed —
 go back and check that terminal window.
 
+## 2b. Signing in and what to click
+
+Open **http://localhost:5173**. You'll land on the public home page.
+
+1. Click **Get started**, choose the role closest to yours (Procurement Manager, Chartering Analyst, Port & Logistics Officer or Finance & Treasury), fill in name, email and a password of at least 8 characters, and create the account. Any email works — accounts live only in your local database.
+2. You're signed in automatically and land on the dashboard. The **Overview** greets you by name and shows three quick actions for your role; the small dots in the sidebar mark the tools suggested for that role. Every role can still open every tool.
+3. Try, in this order: **Markets** (streaming price chart, click any row in the regional boards to chart it), **Freight Forecast** (click *Run ensemble* and wait about 12 seconds), **Chartering Recommendation**, **Port Map** (click a port in the list), **Scenario Sandbox**.
+4. **Sign out** is at the bottom of the sidebar. Next time use **Sign in** with the same email and password.
+
+Things to know:
+- The Port Map loads its map tiles from OpenStreetMap, so it needs an internet connection.
+- Prices are replayed real history, not a live feed; each chart says so.
+
 ## 3. Stopping everything
 
 In each terminal window, press `Ctrl + C` to stop the server. It's safe to

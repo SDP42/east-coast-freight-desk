@@ -1,9 +1,15 @@
-"""Ingest S&P 500 and the Trade-Weighted US Dollar Index (DTWEXBGS) from FRED
-(Federal Reserve, free, no API key) into `freight_rates` (shared market-series
-table). Directly motivated by Kim, Kim & Choi (2025, PLOS ONE), who found via
-SHAP — across 10 different ML models — that the S&P 500 is the single
-strongest predictor of BDI, ahead of any shipping-specific variable, with the
-US Dollar Index second. Not a guess: a literature-directed feature choice.
+"""Ingest macro/market series from FRED (Federal Reserve, free, no API key) into
+`freight_rates` (the shared market-series table).
+
+- SP500, DXY: motivated by Kim, Kim & Choi (2025, PLOS ONE), who found via SHAP
+  that the S&P 500 is the strongest single predictor of BDI, with the dollar
+  index second.
+- INR, AUD, ZAR: regional FX series for the region boards in the UI — INR/USD
+  is the destination-side rate (freight is USD-quoted, Indian budgets are INR),
+  AUD and ZAR proxy the Australian and Southern African/Mozambique origin
+  economies.
+
+Each series is ingested independently and skipped if already present.
 
 Run from the backend venv: ../backend/.venv/bin/python3 ingest_macro_indicators.py
 """
@@ -21,45 +27,45 @@ from app.models import FreightRate  # noqa: E402
 RAW_DIR = Path(__file__).resolve().parents[1] / "data" / "raw"
 SOURCE_CITATION = "FRED (Federal Reserve Bank of St. Louis)"
 
+# series name -> (file, unit)
 FILES = {
-    "SP500": RAW_DIR / "FRED_SP500.csv",
-    "DXY": RAW_DIR / "FRED_DTWEXBGS.csv",
+    "SP500": (RAW_DIR / "FRED_SP500.csv", "usd"),
+    "DXY": (RAW_DIR / "FRED_DTWEXBGS.csv", "index_points"),
+    "INR": (RAW_DIR / "FRED_DEXINUS.csv", "inr_per_usd"),
+    "AUD": (RAW_DIR / "FRED_DEXUSAL.csv", "usd_per_aud"),
+    "ZAR": (RAW_DIR / "FRED_DEXSFUS.csv", "zar_per_usd"),
 }
 
 
 def main() -> None:
     db = SessionLocal()
-    existing = db.query(FreightRate).filter(FreightRate.source == SOURCE_CITATION).count()
-    if existing:
-        print(f"Already ingested {existing} rows from FRED — skipping.")
-        db.close()
-        return
-
-    rows: list[FreightRate] = []
-    for series_name, path in FILES.items():
-        if not path.exists():
-            print(f"Skipping {series_name}: {path} not found.")
+    total = 0
+    for series_name, (path, unit) in FILES.items():
+        if db.query(FreightRate).filter(FreightRate.index_name == series_name).count():
+            print(f"{series_name}: already ingested — skipping.")
             continue
+        if not path.exists():
+            print(f"{series_name}: {path.name} not found — skipping.")
+            continue
+
         df = pd.read_csv(path)
         value_col = df.columns[1]
         df[value_col] = pd.to_numeric(df[value_col], errors="coerce")
         df = df.dropna(subset=[value_col])
 
-        for _, row in df.iterrows():
-            rows.append(
-                FreightRate(
-                    rate_date=pd.to_datetime(row["observation_date"]).date(),
-                    index_name=series_name,
-                    value=float(row[value_col]),
-                    unit="index_points" if series_name == "DXY" else "usd",
-                    source=SOURCE_CITATION,
-                )
+        rows = [
+            FreightRate(
+                rate_date=pd.to_datetime(d).date(), index_name=series_name,
+                value=float(v), unit=unit, source=SOURCE_CITATION,
             )
-        print(f"{series_name}: {len(df)} rows ({df['observation_date'].min()} to {df['observation_date'].max()})")
+            for d, v in zip(df["observation_date"], df[value_col])
+        ]
+        db.bulk_save_objects(rows)
+        db.commit()
+        total += len(rows)
+        print(f"{series_name}: {len(rows)} rows ({df['observation_date'].min()} to {df['observation_date'].max()})")
 
-    db.bulk_save_objects(rows)
-    db.commit()
-    print(f"Ingested {len(rows)} macro indicator observations total.")
+    print(f"Ingested {total} new macro observations.")
     db.close()
 
 

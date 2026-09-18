@@ -172,15 +172,27 @@ React + TypeScript + Vite + Tailwind v4, React Router, Recharts, Axios.
 - Dev proxy: `frontend/vite.config.ts` proxies `/api` → `http://127.0.0.1:8000`, so no CORS juggling locally; production points at Render via `VITE_API_BASE_URL`.
 - Verified in-browser: `/` (Overview) is genuinely live-wired to the backend's `/api/v1/health` and shows real status (DB up, cache down, latency); routing between all 5 pages works.
 
-### 13. Core dashboard UI — 🔧 in progress (placeholder screens built, not yet wired to real data)
-5 pages built as working previews, each clearly labeled with which future section
-will wire it to live data: Overview (live), Freight Forecast (placeholder chart),
-Chartering Recommendation (placeholder form), Port Compatibility (real Table 1
-data, hardcoded until Section 3/7 seed+serve it from the DB), Risk & Disruptions
-(real documented events, hardcoded until Section 9).
-- `frontend/src/pages/{Overview,Forecast,Recommendation,Ports,Risk}.tsx`
+### 13. Core dashboard UI — ✅ done (landing, auth, personas, live charts, real forecast)
+The first UI pass (Section 12) left most pages as placeholders and the app felt
+flat. This pass rebuilt the front of the product.
+- **Landing page** (`Landing.tsx`, route `/`): hero with a streaming BDI chart, a "problem in numbers" strip (figures from our research compendium: BDI -94% May→Dec 2008, -91% Oct 2021→Feb 2023; ~84% of SAIL's coking coal imported per the CAG audit), capability grid, how-it-works, persona cards pulled from the backend, and a footer that states plainly that prices are replayed real data, not a live feed.
+- **Auth pages** (`Login.tsx`, `Register.tsx`, `lib/auth.tsx`): JWT kept in localStorage and attached by an axios interceptor; `AppShell` guards everything under `/app` and redirects signed-out visitors to `/login`; clear error messages (wrong password, unreachable backend).
+- **Personas** (`app/core/personas.py`, `lib/personas.ts`): Procurement Manager, Chartering Analyst, Port & Logistics Officer, Finance & Treasury, stored in the existing `users.role` column. Chosen at sign-up; shapes the Overview greeting, three quick-action cards, and a dot on the sidebar tools suggested for that role. **`admin` cannot be chosen at self-registration** (validator rejects it, verified with a 422) so nobody can grant themselves elevated access. It is a starting point, not a permission wall — every role can use every tool.
+- **Live market charts** (`LiveChart.tsx`, `Markets.tsx`): replays real ingested history one observation at a time with play/pause and 1x/3x/8x speed. A move is flagged as a spike or drop when it exceeds 2σ of that series' own daily changes. **Honest by design**: the UI states this is a replay, not a live feed (Baltic Exchange rates are a paid subscription; our freight series end July 2019). Region boards group series by origin region with sparklines; clicking a row charts it.
+- **Regional data** (`/market/history/{index}`, `/market/regions`): added real FRED series — INR/USD, AUD/USD, ZAR/USD — alongside the coal, S&P 500 and dollar-index series. Indonesia and Russia have no free real series, so they are shown empty with a note rather than filled with invented numbers.
+- **Forecast page rewritten** (`Forecast.tsx`): real history plus the ARIMA forecast with a 95% band, five indices, 7/14/30-day horizons, real backtest metrics, and an ensemble panel (ARIMA vs XGBoost vs hybrid, weights, both Wilcoxon tests, SHAP driver bars).
+- **Verified in the browser**: register → auto sign-in → personalised Overview; wrong password shows an error; correct password lands on `/app`; sign-out clears the token and the guard redirects; Markets switches series (INR chart confirmed); Forecast renders real data (BDI 14-day: backtest MAPE 5.17%; ensemble hybrid vs ARIMA p = 0.0008).
+- `npx tsc -b` passes with no errors.
 
-### 14. Map visualization + scenario sandbox + fixture ledger UI — ⬜ not started
+### 14. Port map — ✅ done (map view; fixture ledger not started)
+Feature #19 (AIS-lite congestion view). Originally scoped together with a fixture
+ledger UI; the ledger is not built yet and stays in FEATURES.md as ⬜.
+- `app/services/portmap.py`, `app/api/portmap.py` — `GET /map/overview`: the 7 East Coast ports (real coordinates, berth fit per vessel class from Section 7, congestion score from Section 9), representative origin terminals, 18 sea-lane routes with hand-placed waypoints (Australia, Indonesia, Mozambique → six destination ports), and 15 simulated vessels positioned from the wall clock so refreshes stay consistent.
+- `scripts/seed_port_coordinates.py` — approximate coordinates for all 12 ports (also added to `run_all.py`).
+- `frontend/src/pages/PortMap.tsx` (Leaflet + react-leaflet): port rings coloured by congestion and sized by capacity, vessels animated along the lanes (coloured by class), a ports panel sorted by risk that flies the map to a port, popups with draft/turnaround/accepted classes.
+- **Simulation is labelled everywhere**: ports, berth fit and congestion are real; vessel positions and anchorage queue counts are simulated because real AIS is a paid feed. Russia and US routes run via Suez or the Cape and fall outside the map frame, so they are not animated.
+- **Tile provider decision**: the first attempt used CARTO's dark basemap, which now overlays "API KEY REQUIRED" on its free tiles. Rather than wire in a key, the map uses keyless OpenStreetMap tiles darkened with a CSS filter. OSM's tile policy suits a demo like this; a production deployment should use a paid or self-hosted tile source.
+- Verified in the browser: dark basemap with coastline, Paradip green / Haldia and Sagar red, vessels moving along lanes, ports panel populated.
 
 ### 15. NL query assistant ("Ask the Freight Desk") — ⬜ not started
 

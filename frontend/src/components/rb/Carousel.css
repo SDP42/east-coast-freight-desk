@@ -1,0 +1,139 @@
+/* Carousel from React Bits, recoloured for the light theme. */
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #dbe4ee;
+  border-radius: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  --outer-r: 24px;
+  --p-distance: 12px;
+}
+
+.carousel-track {
+  display: flex;
+}
+
+.carousel-item {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  border: 1px solid #dbe4ee;
+  border-radius: calc(var(--outer-r) - var(--p-distance));
+  background: linear-gradient(160deg, #ffffff 0%, #eef6fb 100%);
+  overflow: hidden;
+  cursor: grab;
+}
+
+.carousel-item:active {
+  cursor: grabbing;
+}
+
+.carousel-container.round {
+  border: 1px solid #dbe4ee;
+}
+
+.carousel-item.round {
+  background-color: #ffffff;
+  position: relative;
+  bottom: 0.1em;
+  border: 1px solid #dbe4ee;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.carousel-item-header.round {
+  padding: 0;
+  margin: 0;
+}
+
+.carousel-indicators-container.round {
+  position: absolute;
+  z-index: 2;
+  bottom: 3em;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.carousel-item-header {
+  margin-bottom: 16px;
+  padding: 20px;
+  padding-top: 20px;
+}
+
+.carousel-icon-container {
+  display: flex;
+  height: 36px;
+  width: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background-color: #0b2545;
+}
+
+.carousel-icon {
+  height: 18px;
+  width: 18px;
+  color: #ffffff;
+}
+
+.carousel-item-content {
+  padding: 20px;
+  padding-bottom: 20px;
+}
+
+.carousel-item-title {
+  margin-bottom: 4px;
+  font-weight: 800;
+  font-size: 18px;
+  color: #0b2545;
+}
+
+.carousel-item-description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #334e68;
+}
+
+.carousel-indicators-container {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.carousel-indicators {
+  margin-top: 16px;
+  display: flex;
+  width: 150px;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+.carousel-indicator {
+  height: 8px;
+  width: 8px;
+  border: none;
+  padding: 0;
+  appearance: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.carousel-indicator:focus-visible {
+  outline: 2px solid #0e7490;
+  outline-offset: 2px;
+}
+
+.carousel-indicator.active {
+  background-color: #0e7490;
+}
+
+.carousel-indicator.inactive {
+  background-color: #c5d3e2;
+}

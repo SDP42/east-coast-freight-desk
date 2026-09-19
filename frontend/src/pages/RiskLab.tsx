@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import Loading from "../components/Loading";
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import SpotlightCard from "../components/SpotlightCard";
 import { Field, Note, PageHeader, Stat, Tabs, btnCls, errText, inputCls } from "../components/ui";
@@ -32,7 +33,7 @@ function FanTab() {
         </div>
         {err && <p className="mt-3 text-xs text-down">{err}</p>}
         <div className="relative mt-4 h-[30rem] overflow-hidden rounded-2xl border border-border-soft bg-gradient-to-b from-sky-50 to-white">
-          {d ? <Suspense fallback={null}><FanScene className="h-full" data={d} /></Suspense> : <div className="flex h-full items-center justify-center text-sm text-muted">Simulating 400 paths…</div>}
+          {d ? <Suspense fallback={null}><FanScene className="h-full" data={d} /></Suspense> : <div className="flex h-full items-center justify-center"><Loading label="Simulating 400 paths" pattern="rain" grid={4} /></div>}
         </div>
         {d && (
           <div className="mt-4 space-y-3">

@@ -88,6 +88,16 @@ TRAINING: dict[str, list[str]] = {
         "how many administrators are there", "who are the finance users", "user accounts summary", "how many people use this",
         "who has which role", "show denied requests", "audit log summary", "who tried to access restricted data",
     ],
+    "what_if": [
+        "what if freight rises 20 percent", "what happens if the rupee falls 5%", "what if the port is delayed by 4 days", "what if the red sea closes",
+        "how much more would it cost if freight goes up 30%", "what if fuel prices jump", "run a what if on freight", "stress test the cost of a cargo",
+        "what would a cyclone delay do to the cost", "if freight spikes what do we pay", "what if there is a port strike", "simulate a 15% freight increase",
+    ],
+    "urgent": [
+        "i need coal urgently", "we need 60000 tonnes at paradip within 20 days", "urgent cargo for haldia in 15 days", "the plant is running short of coal what do we do",
+        "fastest way to get coal to vizag", "last minute fixture", "emergency coal shipment", "can we get a ship in two weeks",
+        "we have a deadline for coking coal", "need a vessel quickly", "urgent charter for dhamra", "what is the quickest source of coal",
+    ],
     "help": [
         "help", "what can you do", "hello", "hi there", "what can i ask you", "how do i use this",
         "show me what you can answer", "good morning", "who are you", "what questions do you understand", "thanks", "guide me",
@@ -118,11 +128,16 @@ class Entities:
     origin: str | None = None
     horizon_days: int | None = None
     cargo_tonnes: float | None = None
+    percent: float | None = None
+    text: str = ""
 
 
 def extract_entities(q: str) -> Entities:
     t = q.lower()
-    e = Entities()
+    e = Entities(text=t)
+    pm = re.search(r"(\d+(?:\.\d+)?)\s*(?:%|percent|per cent)", t)
+    if pm:
+        e.percent = float(pm.group(1))
     for pat, name in INDEX_WORDS:
         if re.search(pat, t):
             e.index_name = name

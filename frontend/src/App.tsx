@@ -12,6 +12,8 @@ import RiskLab from "./pages/RiskLab";
 import Terrain from "./pages/Terrain";
 import ModelLab from "./pages/ModelLab";
 import LiveDesk from "./pages/LiveDesk";
+import UrgentDesk from "./pages/UrgentDesk";
+import WhatIf from "./pages/WhatIf";
 import Report from "./pages/Report";
 import Access from "./pages/Access";
 import Profile from "./pages/Profile";
@@ -60,6 +62,8 @@ export default function App() {
         <Route path="lab" element={<ModelLab />} />
         <Route path="report" element={<Report />} />
         <Route path="live" element={<LiveDesk />} />
+        <Route path="urgent" element={<UrgentDesk />} />
+        <Route path="whatif" element={<WhatIf />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

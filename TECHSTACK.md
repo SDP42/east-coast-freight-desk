@@ -27,6 +27,7 @@ app; "offline" means it is only used on a developer machine to train or prepare 
 | react-router | Public pages (landing, sign-in, register) and the guarded `/app` area; each route declares the permission it needs. |
 | three.js (vanilla) | The Haldia port scene on the landing page and the other 3D views. Plain `three` with our own render loop, label projection and disposal; no React wrapper. |
 | framer-motion | Page and card transitions, the split-text headline. |
+| React Bits components (`components/rb/`) | ParticleText, BorderGlow, Carousel (uses the `motion` package), GlideSelect, FuseButton, LatticeLoader, Ripple; copied into the repo and restyled for the light theme. |
 | Recharts | Time-series, bar and area charts (forecast bands, backtests, drift, signals). |
 | Leaflet + react-leaflet | The port map (OpenStreetMap tiles). |
 | lucide-react | Icons. |

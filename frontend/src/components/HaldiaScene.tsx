@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { createFx } from "./HaldiaFx";
 
 interface Props {
   onPhase?: (phase: number) => void;
@@ -56,6 +57,20 @@ function makeBulker(hull: number, scale = 1): THREE.Group {
   const funnel = new THREE.Mesh(new THREE.CylinderGeometry(0.3 * scale, 0.35 * scale, 1.0 * scale, 10), new THREE.MeshStandardMaterial({ color: 0xd97706 }));
   funnel.position.set(-10.2 * scale, H * 0.45 + 3.6 * scale, 0);
   g.add(funnel);
+  // Geared deck cranes and navigation lights.
+  for (const cx of [-3.2, 0.2, 3.6]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * scale, 0.14 * scale, 1.5 * scale, 6), new THREE.MeshStandardMaterial({ color: 0xf3f4f6 }));
+    post.position.set(cx * scale, H * 0.45 + 0.9 * scale, B * 0.55);
+    const jib = new THREE.Mesh(new THREE.BoxGeometry(0.08 * scale, 0.08 * scale, 2.4 * scale), new THREE.MeshStandardMaterial({ color: 0xe0a100 }));
+    jib.position.set(cx * scale, H * 0.45 + 1.7 * scale, B * 0.2);
+    jib.rotation.x = -0.35;
+    g.add(post, jib);
+  }
+  const lightG = new THREE.Mesh(new THREE.SphereGeometry(0.16 * scale, 8, 8), new THREE.MeshBasicMaterial({ color: 0x22c55e }));
+  lightG.position.set(L / 2 - 3.2 * scale, H * 0.45 + 0.25 * scale, -B * 0.42);
+  const lightR = new THREE.Mesh(new THREE.SphereGeometry(0.16 * scale, 8, 8), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+  lightR.position.set(L / 2 - 3.2 * scale, H * 0.45 + 0.25 * scale, B * 0.42);
+  g.add(lightG, lightR);
   return g;
 }
 
@@ -107,7 +122,10 @@ export default function HaldiaScene({ onPhase, className = "" }: Props) {
     const camera = new THREE.PerspectiveCamera(30, 1, 1, 600);
     const camTarget = new THREE.Vector3(-6, 0, 12);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xcfe0ee, 1.1));
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xd6e6f2, 1.1);
+    scene.add(hemi);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
     const sun = new THREE.DirectionalLight(0xfff4e0, 1.9);
     sun.position.set(-60, 90, 50);
     sun.castShadow = true;
@@ -127,11 +145,14 @@ export default function HaldiaScene({ onPhase, className = "" }: Props) {
       fragmentShader: `
         uniform float uTime; varying vec2 vUv; varying float vH;
         void main(){
-          vec3 deep = vec3(0.12,0.53,0.70); vec3 shallow = vec3(0.50,0.82,0.88);
+          vec3 deep = vec3(0.05,0.44,0.66); vec3 shallow = vec3(0.42,0.84,0.90);
           float s1 = 0.5 + 0.5*sin(vUv.x*260.0 + vUv.y*90.0 + uTime*1.1);
           float s2 = 0.5 + 0.5*sin(vUv.x*120.0 - vUv.y*210.0 - uTime*0.8);
           float m = 0.30 + vH*2.2 + 0.07*s1 + 0.05*s2;
           vec3 col = mix(deep, shallow, clamp(m,0.0,1.0));
+          float sp = pow(max(0.0, sin(vUv.x*1100.0+uTime*1.7)*sin(vUv.y*980.0-uTime*1.3)), 14.0);
+          float sp2 = pow(max(0.0, sin(vUv.x*640.0-uTime*1.1)*sin(vUv.y*700.0+uTime*0.9)), 18.0);
+          col += vec3(1.0,0.97,0.86) * (sp*0.7 + sp2*0.5);
           gl_FragColor = vec4(col,1.0); }`,
     });
     const water = new THREE.Mesh(new THREE.PlaneGeometry(520, 420, 90, 70), waterMat);
@@ -281,6 +302,7 @@ export default function HaldiaScene({ onPhase, className = "" }: Props) {
     let hero = makeBulker(hullColors[0]);
     scene.add(hero);
     let heroColorIdx = 0;
+    const fx = createFx(scene, sun, hemi);
 
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(-130, 0.15, -23.5),
@@ -356,15 +378,22 @@ export default function HaldiaScene({ onPhase, className = "" }: Props) {
     let lastPhase = -1;
     let heroYaw = 0;
     const tmpV = new THREE.Vector3();
-    const camPos = new THREE.Vector3();
 
     const setGate = (gate: readonly [THREE.Group, THREE.Group], open: number) => {
       gate[0].rotation.y = open * (Math.PI / 2.1) * -1;
       gate[1].rotation.y = open * (Math.PI / 2.1);
     };
 
+    let lastTime = 0;
+    const look = new THREE.Vector3(-6, 0, 12);
+    const goalPos = new THREE.Vector3();
+    const goalLook = new THREE.Vector3();
+    const heroFwd = new THREE.Vector3();
+    let fov = 30;
     const frame = () => {
       const time = clock.getElapsedTime();
+      const dt = Math.min(0.1, time - lastTime);
+      lastTime = time;
       const t = reduced ? 20 : time % CYCLE;
       waterMat.uniforms.uTime.value = time;
 
@@ -382,7 +411,7 @@ export default function HaldiaScene({ onPhase, className = "" }: Props) {
       const targetYaw = Math.atan2(-tan.z, tan.x) + (inbound ? 0 : Math.PI);
       let d = targetYaw - heroYaw;
       d = Math.atan2(Math.sin(d), Math.cos(d));
-      heroYaw += d * 0.08;
+      heroYaw += d * (1 - Math.exp(-4.5 * dt));
       hero.position.set(p.x, 0.15 + Math.sin(time * 1.3) * 0.03, p.z);
       hero.rotation.y = heroYaw;
       hero.rotation.z = Math.sin(time * 0.9) * 0.008;
@@ -418,11 +447,43 @@ export default function HaldiaScene({ onPhase, className = "" }: Props) {
       bargeBoom.rotation.z = 0.5 + Math.sin(time * 0.8) * 0.12;
       tanker.position.y = 0.1 + Math.sin(time * 1.2) * 0.03;
 
-      // Camera: gentle parallax around a fixed 3/4 view.
+      // Camera director: wide establishing view, then follows the vessel through each stage.
+      heroFwd.set(Math.cos(heroYaw), 0, -Math.sin(heroYaw));
+      const side = new THREE.Vector3(-heroFwd.z, 0, heroFwd.x);
       const ang = 0.55 + mouse.x * 0.12;
-      camPos.set(Math.sin(ang) * 175 - 8, 108 - mouse.y * 10, Math.cos(ang) * 175 + 6);
-      camera.position.lerp(camPos, 0.06);
-      camera.lookAt(camTarget);
+      const wideMode = t < 3.5 || t >= 41 || reduced;
+      let goalFov = 30;
+      if (wideMode) {
+        goalPos.set(Math.sin(ang) * 175 - 8, 108 - mouse.y * 10, Math.cos(ang) * 175 + 6);
+        goalLook.copy(camTarget);
+      } else if (t < 8) {
+        goalPos.copy(hero.position).addScaledVector(heroFwd, -26).addScaledVector(side, 20).setY(15);
+        goalLook.copy(hero.position).addScaledVector(heroFwd, 10);
+        goalFov = 44;
+      } else if (t < 16) {
+        goalPos.set(48, 26, 30);
+        goalLook.set(20, 1, 3);
+        goalFov = 40;
+      } else if (t < 23) {
+        goalPos.copy(hero.position).addScaledVector(heroFwd, -20).addScaledVector(side, -18).setY(13);
+        goalLook.copy(hero.position).addScaledVector(heroFwd, 6);
+        goalFov = 44;
+      } else if (t < 33) {
+        goalPos.set(-14, 22, 78);
+        goalLook.set(6, 4, 44);
+        goalFov = 42;
+      } else {
+        goalPos.copy(hero.position).addScaledVector(heroFwd, -24).addScaledVector(side, 16).setY(16);
+        goalLook.copy(hero.position);
+        goalFov = 42;
+      }
+      camera.position.lerp(goalPos, 1 - Math.exp(-(wideMode ? 1.8 : 2.4) * dt));
+      look.lerp(goalLook, 1 - Math.exp(-3.4 * dt));
+      fov += (goalFov - fov) * (1 - Math.exp(-2.5 * dt));
+      if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+      camera.lookAt(look);
+
+      fx.update({ time, dt, t, cycle01: t / CYCLE, hero, heroYaw, unloading, phase: phaseAt(t) });
 
       // Labels follow their anchors.
       const phase = phaseAt(t);
@@ -454,6 +515,7 @@ export default function HaldiaScene({ onPhase, className = "" }: Props) {
         if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
         else mat?.dispose();
       });
+      fx.dispose();
       renderer.dispose();
       renderer.domElement.remove();
     };

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Loading from "./Loading";
 import { px } from "../lib/scale";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import SpotlightCard from "./SpotlightCard";
@@ -16,7 +17,7 @@ export default function MultiHorizon({ indexName }: { indexName: string }) {
       <div className="p-6">
         <h2 className="text-sm font-semibold text-strong">Multi-horizon outlook</h2>
         <p className="mt-1 text-xs text-muted">The same model at five horizons. Watch the band: the further out, the less the direction means.</p>
-        {!res ? <p className="mt-4 text-sm text-muted">Fitting…</p> : (
+        {!res ? <div className="mt-4"><Loading label="Fitting five horizons" pattern="dots" /></div> : (
           <div className="mt-4 space-y-4">
             <div className="h-56">
               <ResponsiveContainer>

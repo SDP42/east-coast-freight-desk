@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Anchor, Menu, X } from "lucide-react";
 import NoAccess from "./NoAccess";
+import Loading from "./Loading";
 import CommandPalette from "./CommandPalette";
 import { routeAllowed } from "../lib/personas";
 import Sidebar from "./Sidebar";
@@ -20,7 +21,7 @@ export default function AppShell() {
   useEffect(() => { setDrawer(false); }, [pathname]);
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center text-sm text-muted">Loading…</div>;
+    return <div className="flex min-h-screen items-center justify-center"><Loading label="Signing you in" pattern="orbit" /></div>;
   }
   if (!user) return <Navigate to="/login" replace />;
 

@@ -3,7 +3,7 @@
 **AI/ML freight forecasting and dry-bulk chartering decision support for SAIL's coking-coal imports to India's East Coast ports.**
 Smart India Hackathon 2026 · MVP
 
-[Tech stack](TECHSTACK.md) · [Features](FEATURES.md) · [Build log](SECTIONS.md) · [Models](MODELS.md) · [Run locally](GETTING_STARTED.md) · [Deploy](DEPLOYMENT.md) · [Demo script](DEMO_SCRIPT.md)
+[Tech stack](TECHSTACK.md) · [Features](FEATURES.md) · [Build log](SECTIONS.md) · [Models](MODELS.md) · [Run locally](GETTING_STARTED.md) · [Deploy](DEPLOYMENT.md) · [Demo script](DEMO_SCRIPT.md) · [Demo guide with ready inputs](DEMO_GUIDE.md)
 
 ---
 
@@ -39,6 +39,7 @@ A working platform, not a slide: sign in, ask a question, get a number, and see 
 | **Ask the Desk** | A chatbot and voice assistant that answers in plain English from the platform's own engines, and only with data the signed-in role may see. | Ask the Desk |
 | **Govern** | Role-based access control enforced in the API and the database queries, per-port scoping, an audit log of every request and refusal, hash-chained fixture ledger, alerts, drift monitor. | Access & Audit, Fixture Ledger, Alerts |
 | **See** | Four vanilla three.js scenes: the Haldia dock on the landing page, a trade globe with chokepoint traffic, a 3D Monte-Carlo forecast fan, and a market terrain. A layout that scales from phones to 4K projectors. | Landing, Trade Globe, Risk Lab, Market Terrain |
+| **Decide fast** | What-If Studio (eight levers, crisis playbooks, tornado, break-even, saved comparisons) and the Urgent Fixture Desk (what can arrive by the deadline, how likely, at what cost, and the walk-away price). Also askable in plain English. | What-If Studio, Urgent Fixture Desk, Ask the Desk |
 | **Quantify risk** | Cost-at-risk Monte Carlo for a cargo (P50/P95 in INR crore), Haldia lightering planner fitted to real vessel data, laycan timing coach, unusual-moves feed, a Live Desk of minute-by-minute simulated ticks. | Risk Lab, Port Signals, Markets, Live Desk |
 
 ## 3. Who it is for, and what each role sees
@@ -129,8 +130,8 @@ Measured on the Panamax index, 7-day horizon, walk-forward with 35 paired foreca
 The hybrid is significantly better than ARIMA (Wilcoxon p = 0.0019) and not significantly better than XGBoost
 (p = 0.16). Results are series-specific: on a daily Baltic Dry Index we briefly tested, the hybrid did not beat ARIMA.
 **Deep learning** on the same 35 forecasts: the deep ensemble has the lowest error (MAE 25.8 vs ARIMA 31.9) but the gap is not statistically significant (p = 0.17); the hybrid is the only model significantly better than ARIMA. A test of whether weather helps predict port traffic found no significant gain (p = 0.88). Both are reported in the Model Lab page and [MODELS.md](MODELS.md). Other measured results: the assistant's intent model scores
-77% ± 4% on held-out, hand-written questions (an in-distribution figure, not an external benchmark); every read
-endpoint has a warm p95 under 200 ms; 12+ unit tests pass.
+75% ± 6% on held-out, hand-written questions (an in-distribution figure, not an external benchmark); every read
+endpoint has a warm p95 under 200 ms; 24 unit tests pass.
 
 ## 8. Security and privacy
 

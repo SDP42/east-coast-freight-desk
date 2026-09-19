@@ -75,3 +75,10 @@ body {
   body { background: #fff !important; }
   main { padding: 0 !important; }
 }
+
+/* Ripple (React Bits): ring animation and brand colour token */
+@theme { --color-brand: #0e7490; --animate-ripple-ring: ripple-ring 3s ease-out infinite; }
+@keyframes ripple-ring {
+  0% { transform: scale(0.85); opacity: 0.9; }
+  100% { transform: scale(1.35); opacity: 0; }
+}

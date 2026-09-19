@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Loading from "../components/Loading";
 import { px } from "../lib/scale";
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 import { ArrowRight } from "lucide-react";
@@ -36,7 +37,7 @@ function SlotsTool() {
         <p className="mt-1 text-xs text-muted">Forecast dry-bulk traffic against the port's own busy level. Green days are when arriving ships are least likely to queue.</p>
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <Field label="Port"><select className={inputCls} value={port} onChange={(e) => { setPort(e.target.value); run(e.target.value); }}>{PORTS.map((p) => <option key={p}>{p}</option>)}</select></Field>
-          {busy && <span className="pb-2 text-xs text-muted">Backtesting models…</span>}
+          {busy && <span className="pb-2"><Loading label="Backtesting models" pattern="pulse" grid={4} timer={false} /></span>}
         </div>
         {err && <p className="mt-3 text-xs text-down">{err}</p>}
         {res && (
@@ -75,7 +76,7 @@ interface Transfer {
 function TransferTool() {
   const [res, setRes] = useState<Transfer | null>(null);
   useEffect(() => { api.get<Transfer>("/signals/transfer").then((r) => setRes(r.data)); }, []);
-  if (!res) return <p className="text-sm text-muted">Computing cross-port relationships…</p>;
+  if (!res) return <Loading label="Computing cross-port relationships" block />;
   return (
     <SpotlightCard>
       <div className="space-y-5 p-6">

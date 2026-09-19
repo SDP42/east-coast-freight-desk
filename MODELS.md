@@ -31,7 +31,7 @@ user-facing features.
 
 - **What**: TF-IDF (word 1-2 grams plus character 2-4 grams) with entity-marker tokens, then logistic regression (`backend/app/ml/intent.py`). It routes a question to one of 11 engines; it does not generate text.
 - **Why chosen**: with about 270 examples a linear model on sparse features is the sensible fit. Character n-grams tolerate typos and phrasings ("vizag", "capesize"), and marker tokens let it use the fact that a port or a horizon was named. A transformer or hosted LLM would need a provider, a key and data leaving the deployment.
-- **Accuracy**: 77% ± 4% on held-out hand-written questions (5-fold; 15 intents, 180 hand-written and 140 template-generated examples, templates always in training). This is an in-distribution figure on our own questions, not an external benchmark. Low-confidence questions (under 35%) get a clarification instead of a guess.
+- **Accuracy**: 75% ± 6% on held-out hand-written questions (5-fold; 17 intents, 204 hand-written and 140 template-generated examples, templates always in training). This is an in-distribution figure on our own questions, not an external benchmark. Low-confidence questions (under 35%) get a clarification instead of a guess.
 
 ### 5. Port-signal models (Section 14d)
 

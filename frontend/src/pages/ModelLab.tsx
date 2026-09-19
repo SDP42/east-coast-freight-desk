@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Loading from "../components/Loading";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Brain } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
@@ -27,7 +28,7 @@ export default function ModelLab() {
     api.get<Arima>("/forecast/BPI", { params: { horizon: 7 } }).then((r) => setArima(r.data)).catch(() => undefined);
   }, []);
   if (err) return <p className="text-sm text-muted">{err}</p>;
-  if (!lab) return <p className="text-sm text-muted">Loading the leaderboard…</p>;
+  if (!lab) return <Loading label="Loading the leaderboard" block />;
   const best = lab.leaderboard[0];
   const curveKeys = Object.keys(lab.curves);
   const maxLen = Math.max(...curveKeys.map((k) => lab.curves[k].val.length));

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import Loading from "../components/Loading";
 import { px } from "../lib/scale";
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { motion } from "framer-motion";
@@ -112,7 +113,7 @@ export default function Forecast() {
             )}
           </div>
           {loading ? (
-            <div className="flex h-72 items-center justify-center text-sm text-muted">Fitting the model… (about 3 seconds)</div>
+            <div className="flex h-72 items-center justify-center"><Loading label="Fitting the model" pattern="orbit" /></div>
           ) : (
             <div className="mt-4">
               <ResponsiveContainer width="100%" height={px(320)}>

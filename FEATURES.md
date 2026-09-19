@@ -1,13 +1,13 @@
 # Feature List — Baseline vs. Differentiating
 
-57 features (10 baseline + 47 differentiating), split deliberately into two groups: things any competent
+62 features (10 baseline + 52 differentiating), split deliberately into two groups: things any competent
 competing team (there are ~300 submissions per problem statement, and at least
 two public GitHub repos already attempting near-identical ideas) would also
 build, and things that are genuinely ours. This split is itself part of the
 pitch — it shows the judges we know exactly what's "table stakes" versus what's
 the real USP, rather than presenting everything as equally novel.
 
-**Why 16 build sections for 57 features:** the sections in `SECTIONS.md` are
+**Why 16 build sections for 62 features:** the sections in `SECTIONS.md` are
 *build phases* (how the system gets implemented), not a 1:1 map to features
 (what capabilities exist). Several features are delivered together within one
 section because they share the same underlying subsystem — e.g. Section 7
@@ -15,7 +15,7 @@ alone delivered features #1 and #2 (compatibility engine + tidal optimizer);
 Section 8 delivered #5; Section 9 delivered #6. The table below is the actual
 per-feature tracker — updated every session, not just at section boundaries.
 
-## Status tracker (all 57 features)
+## Status tracker (all 62 features)
 
 Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not fully surfaced, or vice versa) · ⬜ not started
 
@@ -85,6 +85,11 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 45 | Command palette (Ctrl/Cmd+K) | ✅ | Jump to any page the role may open, or send the text to the assistant |
 | 46 | Fluid interface scaling from phones to 4K projectors | ✅ | rem-based layout, root size 16 px to 1920 px wide then 0.8333vw (32 px at 3840), pixel chart sizes routed through a scale helper, drawer menu below 1024 px |
 | 47 | Live Desk: minute-by-minute ticks (simulated) | ✅ | `LiveDesk.tsx`, `/live/seed`: each series' last real trading day replayed as 390 one-minute Brownian-bridge steps with its real volatility; tiles, tape, chart, speed control; labelled SIMULATED everywhere. No free minute-level freight data exists; a real provider (Yahoo keyless or a Twelve Data key) can be added behind the same page if you choose one |
+| 48 | What-If Studio (last-minute price scenarios) | ✅ | `WhatIf.tsx`, `services/whatif.py`, `POST /whatif/run`: one landed-cost model with eight levers (freight, rupee, fuel, port delay, storm delay, reroute, speed, urgency premium), live recompute, cost breakdown, save and compare up to four scenarios |
+| 49 | Tornado sensitivity and break-even | ✅ | `POST /whatif/sensitivity`, `/whatif/breakeven`: ranks levers by rupee swing; finds the freight move at which two origins cost the same (Australia equals Mozambique at about -36%) |
+| 50 | One-click crisis playbooks | ✅ | Red Sea closes, cyclone, port strike, rupee fall, freight spike, need it in two weeks, perfect storm (`PLAYBOOKS`); assumed constants are named in code and returned with every result |
+| 51 | Urgent Fixture Desk | ✅ | `UrgentDesk.tsx`, `POST /whatif/urgent`: 60 options (origin x vessel x speed), 2,000-draw arrival simulation, berth-fit and coking-grade filters, walk-away price, timeline vs deadline, 5-second-undo "Fix this vessel" into the ledger |
+| 52 | What-if and urgent questions in Ask the Desk | ✅ | Two new intents (17 in total), percentage and day extraction, both gated by `financial:read`; also available by voice |
 
 **Running total: 56 done, 1 partial, 0 not started** (of 57), counted directly from the rows above. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
 
@@ -200,3 +205,7 @@ These were part of the original 20-feature plan approved before Section 1 began,
 Full rationale for each, and the underlying research citation, is in the
 approved plan file and the research compendium. See `SECTIONS.md` for what's
 actually been built so far.
+
+## G. Round 6 — decide-fast tools and interface rebuild
+
+Also delivered (not counted as features): landing page rebuilt with React Bits components (ParticleText headline, BorderGlow cards, role Carousel, GlideSelect dropdowns, FuseButton with undo, LatticeLoader for every loading and "thinking" state, Ripple for the microphone), and a much richer Haldia scene (sky and clouds, foam wakes, tug, smoke, birds, buoys, a camera that follows the ship). `DEMO_GUIDE.md` lists ready-made inputs with the expected numbers.

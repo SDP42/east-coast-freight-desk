@@ -5,6 +5,8 @@ import { routeAllowed } from "../lib/personas";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp, Bot, Lock, Mic, MicOff, Sparkles, User as UserIcon, Volume2, VolumeX } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
+import Loading from "../components/Loading";
+import { Ripple } from "../components/rb/Ripple";
 import { askDesk, getAssistantInfo, type AskAnswer, type AssistantInfo } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
@@ -145,7 +147,7 @@ export default function Ask() {
                 <div className="max-w-[88%] rounded-2xl rounded-tl-sm border border-border-soft bg-white/95 px-4 py-3 shadow-sm">
                   {t.error && <p className="text-sm text-down">{t.error}</p>}
                   {!t.answer && !t.error && (
-                    <div className="flex gap-1 py-1">{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted" style={{ animationDelay: `${i * 0.15}s` }} />)}</div>
+                    <Loading label="Thinking" pattern="orbit" />
                   )}
                   {t.answer && (
                     <>
@@ -191,6 +193,12 @@ export default function Ask() {
         <div ref={endRef} />
       </div>
 
+      {listening && (
+        <div className="relative mt-3 flex h-28 items-center justify-center overflow-hidden rounded-2xl border border-cyan/30 bg-white/70">
+          <Ripple baseSize={70} circles={5} />
+          <span className="relative flex items-center gap-2 text-sm font-medium text-cyan"><Mic className="h-4 w-4" /> Listening… say your question</span>
+        </div>
+      )}
       <form onSubmit={submit} className="mt-4 flex items-center gap-2 rounded-2xl border border-border-soft bg-white p-2 shadow-sm focus-within:border-cyan focus-within:ring-4 focus-within:ring-cyan/10">
         <button type="button" onClick={toggleMic} disabled={!speechSupported} aria-label={listening ? "Stop listening" : "Speak your question"}
           title={speechSupported ? "Speak your question" : "Voice input needs a browser with speech recognition, such as Chrome or Edge"}

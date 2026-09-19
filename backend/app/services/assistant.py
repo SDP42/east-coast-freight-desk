@@ -12,6 +12,7 @@ from app.core.permissions import PERMISSION_LABELS, ROLES, assigned_ports, has, 
 from app.ml.intent import Entities, classify, extract_entities
 from app.models import AlertEvent, AlertRule, AuditLog, LedgerEntry, Port, User, VesselClass
 from app.services import haldia as haldia_service
+from app.services import whatif as whatif_service
 from app.services.compatibility import check_compatibility
 from app.services.freight_data import load_series
 from app.services.quick_forecast import quick_forecast
@@ -297,16 +298,67 @@ def _users_admin(db: Session, e: Entities, a: list[str], user=None) -> Answer:
     return Answer("users_admin", 0, [], {}, text, [("Accounts", str(len(rows))), ("Active", str(active)), ("Denied requests", str(denied))], [("Manage users and the audit log", "/app/access")], a)
 
 
+def _what_if(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    t = e.text
+    lv = whatif_service.Levers(origin=e.origin or "Australia", port=e.port or "Haldia", cargo_tonnes=e.cargo_tonnes or 75000)
+    if not e.origin:
+        a.append("No origin named, so I assumed Australia.")
+    if not e.port:
+        a.append("No port named, so I assumed Haldia.")
+    pct = e.percent
+    days = float(e.horizon_days) if e.horizon_days else None
+    if "red sea" in t or "suez" in t:
+        lv.reroute_nm, lv.freight_shock_pct, lv.bunker_shock_pct = 3500, 12, 8
+        what = "the Red Sea closes (3,500 nm reroute, freight +12%, fuel +8%)"
+    elif any(w in t for w in ("rupee", "inr", "currency", "dollar")):
+        lv.inr_shock_pct = -(pct or 5) if any(w in t for w in ("strengthen", "gain", "rise")) and "rupee" in t and "fall" not in t and "weak" not in t else (pct or 5)
+        what = f"the rupee moves {lv.inr_shock_pct:+g}% against the dollar"
+    elif any(w in t for w in ("fuel", "bunker", "oil")):
+        lv.bunker_shock_pct = pct or 20
+        what = f"fuel prices change {lv.bunker_shock_pct:+g}%"
+    elif any(w in t for w in ("cyclone", "storm", "weather")):
+        lv.storm_delay_days = days or 3
+        what = f"a cyclone delays the ship {lv.storm_delay_days:g} days"
+    elif any(w in t for w in ("strike", "delay", "congest", "queue")):
+        lv.port_delay_days = days or 4
+        what = f"the port is delayed {lv.port_delay_days:g} days"
+    else:
+        lv.freight_shock_pct = (pct or 20) * (-1 if any(w in t for w in ("fall", "drop", "down", "decrease", "cheaper")) else 1)
+        what = f"freight rates change {lv.freight_shock_pct:+g}%"
+    r = whatif_service.what_if(db, lv)
+    b, s = r["base"], r["scenario"]
+    text = (f"If {what}, the landed cost of {lv.cargo_tonnes:,.0f} t from {lv.origin} to {lv.port} goes from ₹{b['total_inr_crore']} crore to ₹{s['total_inr_crore']} crore ({r['delta_pct']:+}%), "
+            + (f"and the trip takes {r['delta_days']:+g} days {'longer' if r['delta_days'] > 0 else 'less'}." if abs(r['delta_days']) >= 0.05 else "and the trip length is unchanged.") + " Illustrative estimates, not quotes.")
+    return Answer("what_if", 0, [], {}, text, [("Base", f"₹{b['total_inr_crore']} cr"), ("Scenario", f"₹{s['total_inr_crore']} cr"), ("Change", f"{r['delta_pct']:+}%"), ("Days", f"{r['delta_days']:+g}")],
+                  [("Open the What-If Studio", "/app/whatif")], a)
+
+
+def _urgent(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    port = e.port or "Paradip"
+    if not e.port:
+        a.append("No port named, so I assumed Paradip.")
+    cargo = e.cargo_tonnes or 60000
+    days = float(e.horizon_days) if e.horizon_days else 20.0
+    if not e.horizon_days:
+        a.append("No deadline given, so I assumed 20 days.")
+    u = whatif_service.urgent_desk(db, port, cargo, days)
+    best = u["best"] or u["fastest"]
+    figs = [("Deadline", f"{days:g} d"), ("Options", f"{u['feasible_count']} feasible")]
+    if best:
+        figs += [("Arrives in", f"{best['days']} d"), ("On time", f"{best['p_on_time']:.0%}"), ("Cost", f"₹{best['total_inr_crore']} cr")]
+    return Answer("urgent", 0, [], {}, u["verdict"], figs, [("Open the Urgent Desk", "/app/urgent")], a)
+
+
 HANDLERS = {
     "market_now": _market_now, "forecast": _forecast, "recommend_origin": _recommend, "port_fit": _port_fit, "risk": _risk, "congestion": _congestion,
-    "haldia": _haldia, "coa_vs_spot": _coa, "ledger": _ledger, "alerts_mine": _alerts_mine, "my_access": _my_access, "users_admin": _users_admin, "demand": _demand, "data_sources": _sources, "help": _help,
+    "haldia": _haldia, "coa_vs_spot": _coa, "ledger": _ledger, "alerts_mine": _alerts_mine, "my_access": _my_access, "users_admin": _users_admin, "what_if": _what_if, "urgent": _urgent, "demand": _demand, "data_sources": _sources, "help": _help,
 }
 
 
 INTENT_PERMISSION = {
     "market_now": "market:read", "forecast": "market:read", "recommend_origin": "recommend:read", "port_fit": "ports:read", "risk": "risk:read",
     "congestion": "ports:read", "haldia": None, "coa_vs_spot": "financial:read", "demand": "demand:read", "data_sources": None, "help": None,
-    "ledger": "ledger:read", "alerts_mine": "alerts:manage", "my_access": None, "users_admin": "admin:users",
+    "what_if": "financial:read", "urgent": "financial:read", "ledger": "ledger:read", "alerts_mine": "alerts:manage", "my_access": None, "users_admin": "admin:users",
 }
 
 
@@ -338,6 +390,8 @@ SUGGESTION_INTENTS = [
     ("Which port is most congested?", "congestion"),
     ("Should we use a COA or stay spot?", "coa_vs_spot"),
     ("How much coking coal does SAIL import?", "demand"),
+    ("What if freight rises 30%?", "what_if"),
+    ("We need 60000 t at Paradip within 20 days", "urgent"),
     ("Show my fixtures", "ledger"),
     ("How does the lock at Haldia work?", "haldia"),
     ("What can I access?", "my_access"),

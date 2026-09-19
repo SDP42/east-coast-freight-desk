@@ -16,6 +16,7 @@ from app.api.haldia import router as haldia_router
 from app.api.assistant import router as assistant_router
 from app.api.tools import router as tools_router
 from app.api.lab import router as lab_router
+from app.api.whatif import router as whatif_router
 from app.api.admin import router as admin_router
 from app.api.recommendation import router as recommendation_router
 from app.api.risk import router as risk_router
@@ -70,6 +71,7 @@ app.include_router(haldia_router, prefix="/api/v1")
 app.include_router(assistant_router, prefix="/api/v1")
 app.include_router(tools_router, prefix="/api/v1")
 app.include_router(lab_router, prefix="/api/v1")
+app.include_router(whatif_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 app.include_router(recommendation_router, prefix="/api/v1")
 app.include_router(risk_router, prefix="/api/v1")

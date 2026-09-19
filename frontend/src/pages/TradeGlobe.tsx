@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import Loading from "../components/Loading";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { Globe2 } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
@@ -24,10 +25,10 @@ export default function TradeGlobe() {
         <SpotlightCard className="lg:col-span-2">
           <div className="relative h-[34rem] bg-gradient-to-b from-sky-50 to-white">
             {data ? (
-              <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-muted">Loading the globe…</div>}>
+              <Suspense fallback={<div className="flex h-full items-center justify-center"><Loading label="Loading the globe" pattern="spiral" /></div>}>
                 <GlobeScene className="h-full" chokepoints={data.chokepoints} lanes={data.lanes} selected={sel} onSelect={setSel} />
               </Suspense>
-            ) : <div className="flex h-full items-center justify-center text-sm text-muted">Reading chokepoint traffic…</div>}
+            ) : <div className="flex h-full items-center justify-center"><Loading label="Reading chokepoint traffic" pattern="ripple" /></div>}
             <div className="pointer-events-none absolute bottom-3 left-3 flex flex-wrap gap-x-3 gap-y-1 rounded-xl border border-border-soft bg-white/90 px-3 py-2 text-[10px] backdrop-blur">
               {Object.entries(COLORS).map(([k, c]) => <span key={k} className="flex items-center gap-1 text-body"><span className="h-1.5 w-3 rounded-full" style={{ background: c }} />{k}</span>)}
             </div>

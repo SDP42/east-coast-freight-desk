@@ -257,3 +257,11 @@ Closes every ⬜ and 🔧 feature except WhatsApp/SMS delivery (needs a provider
 - **Tests**: 12 unit tests in `backend/tests` (password policy, admin self-registration blocked, login lockout, intent routing and entities, ledger tamper and deletion detection, CII reference line, webhook guard), all passing.
 - **Not verified**: the schema has only run on SQLite here (no local Postgres); the first Neon load is its first Postgres run. The Render 512 MB free tier has not been tried with the XGBoost/SHAP ensemble.
 - **Still needs the user**: creating the Neon, Render and Vercel accounts and pasting the connection string.
+
+### 14g. Decide-fast tools and landing rebuild — ✅ done
+- `services/whatif.py` and `api/whatif.py` (all behind `financial:read`): one deterministic landed-cost model with eight levers; `what_if`, `sensitivity` (tornado), `breakeven`, `urgent_desk` (60 options, 2,000-draw arrival Monte Carlo using real turnaround and cyclone delay, berth-fit and coking-grade filters, walk-away price = best rate x 1.12). Assumptions (fuel 35% of freight, lightering $3.5/t above a 35,000 t Haldia ceiling, 3 days prep, 2.5 days laytime) are named constants returned with each result. These are illustrative, not quotes.
+- Assistant gained `what_if` and `urgent` intents (17 intents in total).
+- Frontend: `WhatIf.tsx`, `UrgentDesk.tsx`, React Bits components in `components/rb/`, `Loading` (LatticeLoader) across the data pages, rebuilt `Landing.tsx`, richer `HaldiaScene.tsx` with `HaldiaFx.ts`.
+- Tests: `backend/tests/test_whatif.py` (8 tests; 24 in total, all passing).
+- Limits: the Urgent Desk stays inside the same illustrative cost model, so its walk-away price is guidance, not a market quote.
+

@@ -2,7 +2,7 @@
 
 Each entry's hash covers its own fields and the previous entry's hash, so editing or deleting an old
 entry invalidates every later one. Benchmarking compares each fixture's date to the freight market
-around it (real BDI) and its rate to the illustrative rate for that route."""
+around it (real Panamax index, BPI) and its rate to the illustrative rate for that route."""
 
 import hashlib
 import json
@@ -63,7 +63,7 @@ def verify_chain(db: Session) -> dict:
 
 
 def benchmark(db: Session) -> list[dict]:
-    bdi = load_series(db, "BDI")
+    bdi = load_series(db, "BPI")
     classes = db.query(VesselClass).order_by(VesselClass.dwt_min).all()
     out = []
     for r in db.query(LedgerEntry).order_by(LedgerEntry.fixture_date).all():
@@ -73,12 +73,12 @@ def benchmark(db: Session) -> list[dict]:
         window = bdi[(bdi.index >= str(r.fixture_date - timedelta(days=30))) & (bdi.index <= str(r.fixture_date + timedelta(days=30)))]
         trailing = bdi[(bdi.index >= str(r.fixture_date - timedelta(days=90))) & (bdi.index <= str(r.fixture_date))]
         if len(window) < 30 or trailing.empty or bdi.index[0] > np.datetime64(r.fixture_date) or bdi.index[-1] < d:
-            row.update({"timing": None, "note": "BDI history does not cover this date"})
+            row.update({"timing": None, "note": "BPI history does not cover this date (it ends July 2019)"})
         else:
             at = float(bdi[bdi.index <= str(r.fixture_date)].iloc[-1])
             best = float(window.min())
             row["timing"] = {
-                "bdi_at_fixture": round(at, 0), "percentile_in_trailing_90d": round(float((trailing < at).mean() * 100), 0),
+                "index_at_fixture": round(at, 0), "percentile_in_trailing_90d": round(float((trailing < at).mean() * 100), 0),
                 "best_bdi_within_30d": round(best, 0), "best_day": str(window.idxmin().date()),
                 "missed_saving_pct": round(max(0.0, (at - best) / at * 100), 1),
                 "forward_30d_change_pct": round(float((bdi[bdi.index >= str(r.fixture_date)].iloc[min(30, len(bdi[bdi.index >= str(r.fixture_date)]) - 1)] / at - 1) * 100), 1),
@@ -96,12 +96,12 @@ def benchmark(db: Session) -> list[dict]:
 
 
 SAMPLE = [
-    (date(2023, 3, 6), "MV Sample Harmony", "Australia", "Paradip", 75000, "spot", 14.2),
-    (date(2023, 10, 9), "MV Sample Dawn", "Australia", "Haldia", 33000, "spot", 17.8),
-    (date(2021, 9, 20), "MV Sample Meridian", "Mozambique", "Visakhapatnam", 70000, "spot", 22.5),
-    (date(2022, 6, 14), "MV Sample Tern", "Russia", "Paradip", 65000, "spot", 41.0),
-    (date(2024, 2, 12), "MV Sample Crest", "United States", "Gangavaram", 80000, "coa", 36.5),
-    (date(2020, 4, 6), "MV Sample Lantern", "Indonesia", "Dhamra", 55000, "spot", 6.9),
+    (date(2014, 3, 10), "MV Sample Harmony", "Australia", "Paradip", 75000, "spot", 14.2),
+    (date(2015, 11, 16), "MV Sample Dawn", "Australia", "Haldia", 33000, "spot", 17.8),
+    (date(2016, 2, 8), "MV Sample Meridian", "Mozambique", "Visakhapatnam", 70000, "spot", 22.5),
+    (date(2017, 6, 12), "MV Sample Tern", "Russia", "Paradip", 65000, "spot", 41.0),
+    (date(2018, 9, 10), "MV Sample Crest", "United States", "Gangavaram", 80000, "coa", 36.5),
+    (date(2019, 3, 4), "MV Sample Lantern", "Indonesia", "Dhamra", 55000, "spot", 6.9),
 ]
 
 

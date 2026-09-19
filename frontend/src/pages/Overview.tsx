@@ -7,7 +7,7 @@ import SpotlightCard from "../components/SpotlightCard";
 import AnimatedCounter from "../components/AnimatedCounter";
 import LiveChart from "../components/LiveChart";
 import { useAuth } from "../lib/auth";
-import { PERSONA_LABEL, personaView } from "../lib/personas";
+import { PERSONA_LABEL, personaView, routeAllowed } from "../lib/personas";
 
 const stats = [
   { label: "East Coast ports modelled", value: 7, icon: Anchor },
@@ -22,8 +22,9 @@ function greeting() {
 }
 
 export default function Overview() {
-  const { user } = useAuth();
-  const view = personaView(user?.role);
+  const { user, can } = useAuth();
+  const view = personaView(user?.persona ?? user?.role);
+  const actions = view.quickActions.filter((a) => routeAllowed(a.to, can));
   const firstName = (user?.full_name || user?.email || "").split(/[ @]/)[0];
 
   return (
@@ -31,12 +32,12 @@ export default function Overview() {
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-widest" style={{ color: `rgb(${view.accent})` }}>
-            {PERSONA_LABEL[user?.role ?? ""] ?? "Freight desk"}
+            {user?.role_label ?? PERSONA_LABEL[user?.role ?? ""] ?? "Freight desk"} · level {user?.level ?? 0}
           </p>
           <h1 className="mt-1 bg-gradient-to-r from-strong via-body to-cyan bg-clip-text text-3xl font-bold text-transparent">
             {greeting()}, {firstName}
           </h1>
-          <p className="mt-1 text-sm text-muted">{view.tagline}</p>
+          <p className="mt-1 text-sm text-muted">{user?.role_summary || view.tagline}</p>
         </div>
         <HealthBadge />
       </motion.div>
@@ -44,7 +45,7 @@ export default function Overview() {
       <div>
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">Start here</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {view.quickActions.map((a, i) => (
+          {actions.map((a, i) => (
             <motion.div key={a.to + a.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 * i }}>
               <Link to={a.to}>
                 <SpotlightCard glowColor={view.accent} className="h-full transition hover:border-cyan/30">
@@ -64,11 +65,11 @@ export default function Overview() {
 
       <BriefingCard />
 
-      <SpotlightCard>
+      {can("market:read") && <SpotlightCard>
         <div className="p-6">
-          <LiveChart indexName="BDI" label="Baltic Dry Index (BDI)" height={260} />
+          <LiveChart indexName="BPI" label="Baltic Panamax Index (BPI)" height={260} />
         </div>
-      </SpotlightCard>
+      </SpotlightCard>}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map(({ label, value, icon: Icon }, i) => (

@@ -8,22 +8,24 @@ from dataclasses import dataclass, field
 import numpy as np
 from sqlalchemy.orm import Session
 
+from app.core.permissions import PERMISSION_LABELS, ROLES, assigned_ports, has, permissions_of, port_scope, role_of
 from app.ml.intent import Entities, classify, extract_entities
-from app.models import Port, VesselClass
+from app.models import AlertEvent, AlertRule, AuditLog, LedgerEntry, Port, User, VesselClass
 from app.services import haldia as haldia_service
 from app.services.compatibility import check_compatibility
 from app.services.freight_data import load_series
 from app.services.quick_forecast import quick_forecast
 from app.services.recommendation import MarketSignal, compare_origins
+from app.services.audit import record
 from app.services.risk import _congestion_score, compute_route_risk
 
 CONFIDENCE_FLOOR = 0.35
 DEFAULT_ORIGINS = ["Australia", "United States", "Mozambique", "Russia", "Indonesia"]
-INDEX_LABEL = {"BDI": "Baltic Dry Index", "BCI": "Capesize (BCI)", "BPI": "Panamax (BPI)", "BSI": "Supramax (BSI)", "BHSI": "Handysize (BHSI)"}
+INDEX_LABEL = {"BCI": "Capesize (BCI)", "BPI": "Panamax (BPI)", "BSI": "Supramax (BSI)", "BHSI": "Handysize (BHSI)"}
 CLASS_INDEX = {"Capesize": "BCI", "Panamax": "BPI", "Supramax": "BSI", "Handysize": "BHSI"}
 
 SUGGESTIONS = [
-    "What will the Baltic Dry Index do over the next 14 days?",
+    "What will Panamax rates do over the next 14 days?",
     "Cheapest origin for 75,000 t to Paradip?",
     "How risky is Australia to Haldia?",
     "Can a Capesize berth at Haldia?",
@@ -44,12 +46,26 @@ class Answer:
     figures: list[tuple[str, str]] = field(default_factory=list)
     links: list[tuple[str, str]] = field(default_factory=list)
     assumptions: list[str] = field(default_factory=list)
+    denied: bool = False
+    scope: str = ""
 
 
-def _port(db: Session, name: str | None, assumptions: list[str], default: str = "Haldia") -> Port:
+class AccessDenied(Exception):
+    pass
+
+
+def _port(db: Session, name: str | None, assumptions: list[str], default: str = "Haldia", user=None) -> Port:
+    scope = port_scope(user) if user is not None else None
+    if scope is not None:
+        if not scope:
+            raise AccessDenied("No ports are assigned to your account yet, so there is nothing port-specific I can show. Ask an administrator to assign your ports.")
+        if name and name not in scope:
+            raise AccessDenied(f"{name} is outside the ports assigned to your account ({', '.join(scope)}), so I cannot show it.")
+        if not name:
+            default = scope[0]
     chosen = name or default
     if not name:
-        assumptions.append(f"No port named, so I assumed {default}.")
+        assumptions.append(f"No port named, so I assumed {default}" + (" (your assigned port)." if scope else "."))
     return db.query(Port).filter(Port.name == chosen, Port.is_destination.is_(True)).one()
 
 
@@ -61,8 +77,8 @@ def _pct(x: float) -> str:
     return f"{x:+.1f}%"
 
 
-def _market_now(db: Session, e: Entities, a: list[str]) -> Answer:
-    idx = e.index_name or "BDI"
+def _market_now(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    idx = e.index_name or "BPI"
     s = load_series(db, idx)
     if s.empty:
         return Answer("market_now", 0, [], {}, f"I have no data for {idx}.")
@@ -81,8 +97,8 @@ def _market_now(db: Session, e: Entities, a: list[str]) -> Answer:
                   [("Open the live board", "/app/markets")])
 
 
-def _forecast(db: Session, e: Entities, a: list[str]) -> Answer:
-    idx = e.index_name or "BDI"
+def _forecast(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    idx = e.index_name or "BPI"
     h = e.horizon_days or 14
     if not e.horizon_days:
         a.append("No horizon given, so I used 14 days.")
@@ -93,21 +109,21 @@ def _forecast(db: Session, e: Entities, a: list[str]) -> Answer:
     direction = "drift up" if f.change_pct > 1 else "drift down" if f.change_pct < -1 else "stay roughly flat"
     text = (f"ARIMA(2,1,2) has {INDEX_LABEL.get(idx, idx)} going from {f.last_value:,.0f} ({f.last_date}) to about {f.forecast_end:,.0f} in {h} days, "
             f"a move of {_pct(f.change_pct)}: it should {direction}. The 95% band runs {f.lower:,.0f} to {f.upper:,.0f} (about ±{span:.0f}%), so treat direction with caution")
-    text += ". On the real BDI our 7-day backtest error is about 3% and 14-day about 4.5%." if idx == "BDI" else "."
+    text += "."
     text += _stale(idx, f.last_date)
     return Answer("forecast", 0, [], {}, text,
                   [("Now", f"{f.last_value:,.0f}"), (f"In {h}d", f"{f.forecast_end:,.0f}"), ("Change", _pct(f.change_pct)), ("95% band", f"{f.lower:,.0f}–{f.upper:,.0f}")],
                   [("Full forecast with backtest", "/app/forecast")], a)
 
 
-def _recommend(db: Session, e: Entities, a: list[str]) -> Answer:
-    port = _port(db, e.port, a, "Paradip")
+def _recommend(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    port = _port(db, e.port, a, "Paradip", user)
     cargo = e.cargo_tonnes or 75_000
     if not e.cargo_tonnes:
         a.append("No cargo size given, so I used 75,000 t.")
     origins = [e.origin] if False else DEFAULT_ORIGINS
     cls = db.query(VesselClass).all()
-    sig = MarketSignal("BDI", None, None)
+    sig = MarketSignal("BPI", None, None)
     res = compare_origins(db, port, cargo, origins, market_signal=sig)
     ranked = [r for r in res if r.estimated_freight_usd_per_tonne is not None]
     if not ranked:
@@ -124,14 +140,14 @@ def _recommend(db: Session, e: Entities, a: list[str]) -> Answer:
                   [("Compare origins in full", "/app/recommendation")], a)
 
 
-def _port_fit(db: Session, e: Entities, a: list[str]) -> Answer:
-    port = _port(db, e.port, a)
+def _port_fit(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    port = _port(db, e.port, a, "Haldia", user)
     classes = db.query(VesselClass).order_by(VesselClass.dwt_min).all()
     ok, no = [], []
     for vc in classes:
         (ok if check_compatibility(port, vc).compatible else no).append(vc.name)
-    draft_txt = f"allows up to {port.max_draft_m} m draft" if port.max_draft_m else "has no fixed draft on file (it is tide-dependent) and"
-    text = f"{port.name} {draft_txt} allows up to {port.max_loa_m} m LOA. Classes that pass all checks: {', '.join(ok) or 'none'}. "
+    draft_txt = f"allows up to {port.max_draft_m} m draft and" if port.max_draft_m else "has no fixed draft on file (it is tide-dependent) and"
+    text = f"{port.name} {draft_txt} up to {port.max_loa_m} m LOA. Classes that pass all checks: {', '.join(ok) or 'none'}. "
     if no:
         text += f"Do not fit as designed: {', '.join(no)}."
     figs = [("Max draft", f"{port.max_draft_m} m" if port.max_draft_m else "tide-dependent"), ("Max LOA", f"{port.max_loa_m} m"), ("Accepted", ", ".join(ok) or "none")]
@@ -144,8 +160,8 @@ def _port_fit(db: Session, e: Entities, a: list[str]) -> Answer:
     return Answer("port_fit", 0, [], {}, text, figs, [("Open the berth-fit checker", "/app/ports")], a)
 
 
-def _risk(db: Session, e: Entities, a: list[str]) -> Answer:
-    port = _port(db, e.port, a)
+def _risk(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    port = _port(db, e.port, a, "Haldia", user)
     origin = e.origin or "Australia"
     if not e.origin:
         a.append("No origin named, so I assumed Australia.")
@@ -161,20 +177,29 @@ def _risk(db: Session, e: Entities, a: list[str]) -> Answer:
                   [("See the full risk breakdown", "/app/risk")], a)
 
 
-def _congestion(db: Session, e: Entities, a: list[str]) -> Answer:
+def _congestion(db: Session, e: Entities, a: list[str], user=None) -> Answer:
     ports = db.query(Port).filter(Port.is_destination.is_(True)).all()
+    scope = port_scope(user) if user is not None else None
+    if scope is not None:
+        ports = [p for p in ports if p.name in scope]
+        if not ports:
+            raise AccessDenied("No ports are assigned to your account yet.")
+        if e.port and e.port not in scope:
+            raise AccessDenied(f"{e.port} is outside the ports assigned to your account ({', '.join(scope)}).")
     scored = sorted(((_congestion_score(p, db), p) for p in ports), key=lambda t: -t[0][0])
-    if e.port:
+    if e.port and any(t[1].name == e.port for t in scored):
         (s, detail), p = next(t for t in scored if t[1].name == e.port)
         return Answer("congestion", 0, [], {}, f"{p.name} congestion scores {s:.1f}/10. {detail}.", [("Score", f"{s:.1f}/10")], [("Ports and berths", "/app/ports")], a)
     (s0, d0), p0 = scored[0]
     (s1, _), p1 = scored[-1]
+    if len(scored) == 1:
+        return Answer("congestion", 0, [], {}, f"{p0.name} congestion scores {s0:.1f}/10. {d0}.", [("Score", f"{s0:.1f}/10")], [("Port signals", "/app/signals")], a)
     text = (f"{p0.name} is the most congested at {s0:.1f}/10 ({d0}). {p1.name} is the calmest at {s1:.1f}/10. "
             "Scores blend official average turnaround with recent IMF PortWatch dry-bulk call counts; ports without official turnaround data get a default.")
     return Answer("congestion", 0, [], {}, text, [(p.name, f"{sc[0]:.1f}") for sc, p in scored[:5]], [("Open the port map", "/app/map")], a)
 
 
-def _haldia(db: Session, e: Entities, a: list[str]) -> Answer:
+def _haldia(db: Session, e: Entities, a: list[str], user=None) -> Answer:
     d = haldia_service.summary(db)
     f, o = d["facts"], d["observed"]
     text = (f"Haldia is an impounded dock: ships pass a {f['lock_length_m']} m by {f['lock_width_m']} m lock. It sits about {f['sandheads_distance_km']} km from Sandheads and "
@@ -186,8 +211,8 @@ def _haldia(db: Session, e: Entities, a: list[str]) -> Answer:
                   [("Back to the Haldia scene", "/")], a)
 
 
-def _coa(db: Session, e: Entities, a: list[str]) -> Answer:
-    idx = e.index_name or "BDI"
+def _coa(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    idx = e.index_name or "BPI"
     s = load_series(db, idx)
     f = quick_forecast(db, idx, 30)
     cv = float(s.iloc[-90:].std() / s.iloc[-90:].mean() * 100) if len(s) > 90 else 0
@@ -200,32 +225,128 @@ def _coa(db: Session, e: Entities, a: list[str]) -> Answer:
     return Answer("coa_vs_spot", 0, [], {}, text, [("30d outlook", _pct(f.change_pct)), ("90d volatility", f"{cv:.0f}%")], [("Run the COA vs spot simulator", "/app/financial")], a)
 
 
-def _demand(db: Session, e: Entities, a: list[str]) -> Answer:
+def _demand(db: Session, e: Entities, a: list[str], user=None) -> Answer:
     text = ("From SAIL's annual reports, clean coking coal use was 19.37 MT in FY24 with 16.92 MT imported (about 87%), and 18.74 MT in FY25 with 16.32 MT imported. "
             "SAIL's Q1 FY27 crude steel was 4.757 MT, so roughly 4 MT of imported coking coal a quarter, or about 120 lots of 33,000 t a quarter if it all moved in Haldia-sized parcels. "
             "The CAG audit found 94% of imported coal arrived under long-term agreements (FY17-FY23) through Visakhapatnam, Gangavaram, Paradip, Dhamra and Haldia.")
     return Answer("demand", 0, [], {}, text, [("Imported share", "~87%"), ("FY25 imported", "16.32 MT"), ("Q1 FY27 crude steel", "4.757 MT")], [], a)
 
 
-def _sources(db: Session, e: Entities, a: list[str]) -> Answer:
-    text = ("Real: Baltic Dry Index daily 2006 to Feb 2026, Baltic sub-indices to Jul 2019, coal, iron ore, FX and equity series, IMF PortWatch port calls and chokepoint transits, "
-            "the Ministry of Ports turnaround figures, and 90+ coal vessels parsed from SMP Kolkata's daily Haldia reports. Simulated and labelled: vessel positions on the map, "
-            "anchorage queues, and cost figures (illustrative, not quotes). Forecast accuracy on the real BDI: ARIMA about 3.1% MAPE at 7 days; the ARIMA+XGBoost ensemble is not significantly better than ARIMA.")
+def _sources(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    text = ("Real: Baltic Capesize, Panamax, Supramax and Handysize indices (daily, Aug 2012 to Jul 2019, Mendeley dataset, CC BY 4.0), coal, iron ore, FX and equity series, IMF PortWatch port calls and chokepoint transits, "
+            "the Ministry of Ports turnaround figures, and 90+ coal vessels parsed from SMP Kolkata's daily Haldia reports. The freight indices end in July 2019 because later data is a paid feed. Simulated and labelled: vessel positions on the map, "
+            "anchorage queues, and cost figures (illustrative, not quotes). See the Forecast and Model Monitor pages for measured forecast accuracy.")
     return Answer("data_sources", 0, [], {}, text, [], [("Model details", "/app/forecast")], a)
 
 
-def _help(db: Session, e: Entities, a: list[str]) -> Answer:
+def _help(db: Session, e: Entities, a: list[str], user=None) -> Answer:
     return Answer("help", 0, [], {}, "I can answer questions about the freight market and forecasts, origin comparison, berth fit, route risk, port congestion, Haldia operations, "
                   "COA versus spot, SAIL's coal demand and where our data comes from. Try one of the suggestions.", [], [])
 
 
+def _ledger(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    q = db.query(LedgerEntry)
+    all_rows = has(user, "ledger:read_all")
+    if not all_rows:
+        q = q.filter(LedgerEntry.created_by == user.id)  # row-level scope in the query itself
+    rows = q.order_by(LedgerEntry.fixture_date.desc()).all()
+    if not rows:
+        return Answer("ledger", 0, [], {}, "There are no fixtures in the ledger that you can see. Add one on the Fixture Ledger page.", [], [("Open the ledger", "/app/ledger")], a,
+                      scope="every entry" if all_rows else "only entries you created")
+    rated = [float(r.rate_usd_per_tonne) for r in rows if r.rate_usd_per_tonne is not None]
+    latest = rows[0]
+    text = (f"You can see {len(rows)} fixture(s) ({'every entry in the ledger' if all_rows else 'only the ones you created'}), covering {sum(float(r.cargo_tonnes) for r in rows):,.0f} t. "
+            f"The latest is {latest.vessel_name} on {latest.fixture_date}, {latest.origin_country} to {latest.destination_port}"
+            + (f". Rates average ${sum(rated) / len(rated):.2f}/t across {len(rated)} priced fixtures." if rated else "."))
+    return Answer("ledger", 0, [], {}, text, [("Fixtures", str(len(rows))), ("Tonnes", f"{sum(float(r.cargo_tonnes) for r in rows):,.0f}")] + ([("Avg rate", f"${sum(rated) / len(rated):.2f}/t")] if rated else []),
+                  [("Open the ledger", "/app/ledger")], a, scope="every entry" if all_rows else "only entries you created")
+
+
+def _alerts_mine(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    rules = db.query(AlertRule).filter(AlertRule.user_id == user.id).all()
+    events = db.query(AlertEvent).filter(AlertEvent.user_id == user.id).order_by(AlertEvent.id.desc()).limit(3).all()
+    unread = db.query(AlertEvent).filter(AlertEvent.user_id == user.id, AlertEvent.is_read.is_(False)).count()
+    text = f"You have {len(rules)} alert rule(s) and {unread} unread alert(s)."
+    if events:
+        text += " Most recent: " + "; ".join(ev.message for ev in events) + "."
+    return Answer("alerts_mine", 0, [], {}, text, [("Rules", str(len(rules))), ("Unread", str(unread))], [("Open alerts", "/app/alerts")], a, scope="only your own rules")
+
+
+def _my_access(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    r = role_of(user)
+    perms = sorted(permissions_of(user))
+    missing = [k for k in PERMISSION_LABELS if k not in perms]
+    scope = port_scope(user)
+    text = f"You are signed in as {r['label']} (authority level {r['level']} of 5). {r['summary']}"
+    if scope is not None:
+        text += f" Your ports: {', '.join(scope) if scope else 'none assigned yet'}."
+    if missing:
+        text += f" You cannot access: {'; '.join(PERMISSION_LABELS[k] for k in missing[:4])}{'…' if len(missing) > 4 else ''}. An administrator can change your role."
+    return Answer("my_access", 0, [], {}, text, [("Role", r["label"]), ("Level", f"{r['level']}/5"), ("Permissions", str(len(perms)))], [("See the full access matrix", "/app/access")], a)
+
+
+def _users_admin(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    rows = db.query(User).all()
+    by_role: dict[str, int] = {}
+    for u in rows:
+        by_role[u.role] = by_role.get(u.role, 0) + 1
+    active = sum(1 for u in rows if u.is_active)
+    denied = db.query(AuditLog).filter(AuditLog.allowed.is_(False)).count()
+    text = (f"There are {len(rows)} accounts ({active} active): " + ", ".join(f"{n} {ROLES.get(k, {'label': k})['label']}" for k, n in sorted(by_role.items(), key=lambda t: -t[1]))
+            + f". The audit log holds {denied} denied request(s).")
+    return Answer("users_admin", 0, [], {}, text, [("Accounts", str(len(rows))), ("Active", str(active)), ("Denied requests", str(denied))], [("Manage users and the audit log", "/app/access")], a)
+
+
 HANDLERS = {
     "market_now": _market_now, "forecast": _forecast, "recommend_origin": _recommend, "port_fit": _port_fit, "risk": _risk, "congestion": _congestion,
-    "haldia": _haldia, "coa_vs_spot": _coa, "demand": _demand, "data_sources": _sources, "help": _help,
+    "haldia": _haldia, "coa_vs_spot": _coa, "ledger": _ledger, "alerts_mine": _alerts_mine, "my_access": _my_access, "users_admin": _users_admin, "demand": _demand, "data_sources": _sources, "help": _help,
 }
 
 
-def ask(db: Session, question: str) -> Answer:
+INTENT_PERMISSION = {
+    "market_now": "market:read", "forecast": "market:read", "recommend_origin": "recommend:read", "port_fit": "ports:read", "risk": "risk:read",
+    "congestion": "ports:read", "haldia": None, "coa_vs_spot": "financial:read", "demand": "demand:read", "data_sources": None, "help": None,
+    "ledger": "ledger:read", "alerts_mine": "alerts:manage", "my_access": None, "users_admin": "admin:users",
+}
+
+
+def _allowed(user, intent: str) -> bool:
+    perm = INTENT_PERMISSION.get(intent)
+    if perm is None:
+        return True
+    if perm == "ledger:read":
+        return has(user, "ledger:read_all") or has(user, "ledger:read_own")
+    return has(user, perm)
+
+
+def suggestions_for(user) -> list[str]:
+    out = []
+    for text, intent in SUGGESTION_INTENTS:
+        if _allowed(user, intent):
+            out.append(text)
+    scope = port_scope(user)
+    if scope:
+        out = [t.replace("Haldia", scope[0]).replace("Paradip", scope[0]) for t in out]
+    return out[:8]
+
+
+SUGGESTION_INTENTS = [
+    ("What will Panamax rates do over the next 14 days?", "forecast"),
+    ("Cheapest origin for 75,000 t to Paradip?", "recommend_origin"),
+    ("How risky is Australia to Haldia?", "risk"),
+    ("Can a Capesize berth at Haldia?", "port_fit"),
+    ("Which port is most congested?", "congestion"),
+    ("Should we use a COA or stay spot?", "coa_vs_spot"),
+    ("How much coking coal does SAIL import?", "demand"),
+    ("Show my fixtures", "ledger"),
+    ("How does the lock at Haldia work?", "haldia"),
+    ("What can I access?", "my_access"),
+    ("How many users have accounts?", "users_admin"),
+    ("Do I have any alerts?", "alerts_mine"),
+]
+
+
+def ask(db: Session, question: str, user=None) -> Answer:
     q = question.strip()
     ranked = classify(q, top_k=3)
     intent, conf = ranked[0]
@@ -233,11 +354,30 @@ def ask(db: Session, question: str) -> Answer:
     ent_dict = {k: v for k, v in ents.__dict__.items() if v is not None}
     if conf < CONFIDENCE_FLOOR:
         alt = ", ".join(f"'{i}'" for i, _ in ranked[:2])
+        if user is not None:
+            record(db, user, "assistant_query", f"[unclear] {q}")
         return Answer("unclear", conf, ranked, ent_dict,
                       f"I am not sure what you mean (my best guesses are {alt}, but only at {conf:.0%} confidence). Try naming an index, port or origin, or pick a suggestion.")
+    if user is not None and not _allowed(user, intent):
+        perm = INTENT_PERMISSION[intent]
+        need = PERMISSION_LABELS.get(perm, "this data") if perm and perm != "ledger:read" else "the fixture ledger"
+        record(db, user, "assistant_query", f"[denied:{intent}] {q}", allowed=False)
+        r = role_of(user)
+        return Answer(intent, conf, ranked, ent_dict,
+                      f"I can't answer that for your account. Your role is {r['label']}, which does not include access to: {need}. "
+                      "Someone with a higher role (for example an administrator) can see it, or can change your role. Ask me \"What can I access?\" to see what you can use.",
+                      denied=True, scope=r["label"])
     assumptions: list[str] = []
-    ans = HANDLERS[intent](db, ents, assumptions)
+    try:
+        ans = HANDLERS[intent](db, ents, assumptions, user)
+    except AccessDenied as exc:
+        record(db, user, "assistant_query", f"[denied-scope:{intent}] {q}", allowed=False)
+        return Answer(intent, conf, ranked, ent_dict, str(exc), denied=True, scope=", ".join(port_scope(user) or []))
     ans.confidence, ans.alternatives, ans.entities = conf, ranked, ent_dict
     ans.assumptions = assumptions
-    _ = np
+    if not ans.scope and user is not None and port_scope(user) is not None:
+        ans.scope = "Your assigned ports: " + (", ".join(port_scope(user)) or "none")
+    if user is not None:
+        record(db, user, "assistant_query", f"[{intent}] {q}")
+    _ = np, assigned_ports, permissions_of
     return ans

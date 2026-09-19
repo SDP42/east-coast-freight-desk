@@ -14,7 +14,6 @@ SCRIPTS = [
     "generate_synthetic_vessels.py",
     "seed_disruption_events.py",
     "ingest_freight_rates.py",
-    "ingest_real_bdi.py",
     "ingest_commodity_prices.py",
     "ingest_macro_indicators.py",
     "ingest_portwatch.py",

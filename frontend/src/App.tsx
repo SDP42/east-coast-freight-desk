@@ -7,6 +7,12 @@ import Monitor from "./pages/Monitor";
 import Alerts from "./pages/Alerts";
 import Explorer from "./pages/Explorer";
 import Ask from "./pages/Ask";
+import TradeGlobe from "./pages/TradeGlobe";
+import RiskLab from "./pages/RiskLab";
+import Terrain from "./pages/Terrain";
+import ModelLab from "./pages/ModelLab";
+import Report from "./pages/Report";
+import Access from "./pages/Access";
 import Profile from "./pages/Profile";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -46,6 +52,12 @@ export default function App() {
         <Route path="alerts" element={<Alerts />} />
         <Route path="explorer" element={<Explorer />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="access" element={<Access />} />
+        <Route path="globe" element={<TradeGlobe />} />
+        <Route path="risklab" element={<RiskLab />} />
+        <Route path="terrain" element={<Terrain />} />
+        <Route path="lab" element={<ModelLab />} />
+        <Route path="report" element={<Report />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

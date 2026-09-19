@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     # Compute the slowest model endpoints once at start-up (in the background) so the first visitor is fast.
     PREWARM: bool = True
 
+    # One-click sign-in for the seeded demo accounts (see scripts/seed_demo_users.py). Turn off for a real deployment.
+    ALLOW_DEMO_LOGIN: bool = True
+
     @field_validator("DATABASE_URL")
     @classmethod
     def normalise_postgres_url(cls, v: str) -> str:

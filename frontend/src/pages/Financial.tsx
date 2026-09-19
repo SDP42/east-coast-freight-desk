@@ -4,7 +4,7 @@ import { Calculator, TrendingUp, TrendingDown, Anchor, PiggyBank } from "lucide-
 import SpotlightCard from "../components/SpotlightCard";
 import { simulateCoaVsSpot, estimateRoi, type CoaVsSpotResult, type RoiResult } from "../lib/api";
 
-const INDICES = ["BDI", "BCI", "BPI", "BSI", "BHSI"];
+const INDICES = ["BCI", "BPI", "BSI", "BHSI"];
 
 function CoaVsSpotTool() {
   const [indexName, setIndexName] = useState("BPI");
@@ -111,7 +111,7 @@ function CoaVsSpotTool() {
 }
 
 function RoiTool() {
-  const [indexName, setIndexName] = useState("BDI");
+  const [indexName, setIndexName] = useState("BPI");
   const [annualTonnes, setAnnualTonnes] = useState("15000000");
   const [assumedRate, setAssumedRate] = useState("12");
   const [capturedPct, setCapturedPct] = useState("20");

@@ -101,7 +101,7 @@ def compare_origins(
     vessel_classes = db.query(VesselClass).order_by(VesselClass.dwt_min).all()
     vessel_class = pick_vessel_class(vessel_classes, cargo_tonnes)
     if market_signal is None:
-        market_signal = get_market_signal(db, VESSEL_CLASS_TO_INDEX.get(vessel_class.name, "BDI"))
+        market_signal = get_market_signal(db, VESSEL_CLASS_TO_INDEX.get(vessel_class.name, "BPI"))
     extra_distance_nm = extra_distance_nm or {}
 
     results: list[OriginResult] = []
@@ -161,7 +161,7 @@ def pareto_rank(db: Session, destination_port: Port, cargo_tonnes: float, origin
     origin's three objectives, whether it is Pareto-optimal, who dominates it, and a weighted top three."""
     from app.services.risk import compute_route_risk
 
-    results = compare_origins(db, destination_port, cargo_tonnes, origins, market_signal=MarketSignal("BDI", None, None))
+    results = compare_origins(db, destination_port, cargo_tonnes, origins, market_signal=MarketSignal("BPI", None, None))
     rows = []
     for r in results:
         if r.estimated_freight_usd_per_tonne is None or not r.route or not r.route.typical_transit_days:

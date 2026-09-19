@@ -19,7 +19,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=72)
     full_name: str | None = None
-    role: str = DEFAULT_PERSONA
+    role: str = DEFAULT_PERSONA  # the persona chosen at sign-up; it never grants permissions
 
     @field_validator("password")
     @classmethod
@@ -46,8 +46,15 @@ class UserRead(BaseModel):
     email: EmailStr
     full_name: str | None
     role: str
+    persona: str | None = None
+    is_demo: bool = False
     is_active: bool
     created_at: datetime
+    role_label: str = ""
+    level: int = 0
+    permissions: list[str] = []
+    port_scope: list[str] | None = None
+    role_summary: str = ""
 
 
 class Token(BaseModel):
@@ -74,11 +81,11 @@ class ChangePassword(BaseModel):
 
 class ProfileUpdate(BaseModel):
     full_name: str | None = Field(default=None, max_length=120)
-    role: str | None = None
+    persona: str | None = None
 
-    @field_validator("role")
+    @field_validator("persona")
     @classmethod
-    def role_must_be_self_registrable(cls, v: str | None) -> str | None:
+    def persona_must_be_known(cls, v: str | None) -> str | None:
         if v is not None and v not in SELF_REGISTER_PERSONAS:
-            raise ValueError(f"role must be one of {SELF_REGISTER_PERSONAS}")
+            raise ValueError(f"persona must be one of {SELF_REGISTER_PERSONAS}")
         return v

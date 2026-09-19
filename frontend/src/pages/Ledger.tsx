@@ -8,7 +8,7 @@ interface Entry { id: number; fixture_date: string; vessel_name: string; origin_
 interface Chain { valid: boolean; entries: number; head_hash?: string; first_broken_id: number | null; reason: string | null }
 interface Bench {
   id: number; date: string; vessel: string; route: string; rate: number | null; is_sample: boolean; illustrative_rate?: number; rate_vs_illustrative_pct?: number; note?: string;
-  timing: { bdi_at_fixture: number; percentile_in_trailing_90d: number; best_bdi_within_30d: number; best_day: string; missed_saving_pct: number; forward_30d_change_pct: number } | null;
+  timing: { index_at_fixture: number; percentile_in_trailing_90d: number; best_bdi_within_30d: number; best_day: string; missed_saving_pct: number; forward_30d_change_pct: number } | null;
 }
 const ORIGINS = ["Australia", "United States", "Mozambique", "Russia", "Indonesia"];
 const PORTS = ["Paradip", "Visakhapatnam", "Gangavaram", "Dhamra", "Gopalpur", "Haldia"];
@@ -82,12 +82,12 @@ export default function Ledger() {
             </div>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
-                <thead><tr className="text-xs text-muted"><th className="py-1">Date</th><th>Route</th><th>BDI then</th><th>vs 90-day range</th><th>Cheaper day within 30 d</th><th>Missed</th><th>Next 30 d</th><th>Rate check</th></tr></thead>
+                <thead><tr className="text-xs text-muted"><th className="py-1">Date</th><th>Route</th><th>Index then</th><th>vs 90-day range</th><th>Cheaper day within 30 d</th><th>Missed</th><th>Next 30 d</th><th>Rate check</th></tr></thead>
                 <tbody>{bench.rows.map((r) => (
                   <tr key={r.id} className="border-t border-border-soft align-top">
                     <td className="py-1.5 text-strong">{r.date}{r.is_sample && <span className="ml-1 rounded bg-amber/10 px-1 text-[9px] text-amber">sample</span>}</td>
                     <td>{r.route}</td>
-                    <td>{r.timing ? r.timing.bdi_at_fixture.toLocaleString() : "n/a"}</td>
+                    <td>{r.timing ? r.timing.index_at_fixture.toLocaleString() : "n/a"}</td>
                     <td>{r.timing ? `${r.timing.percentile_in_trailing_90d}th pct` : "n/a"}</td>
                     <td>{r.timing ? `${r.timing.best_day} (${r.timing.best_bdi_within_30d.toLocaleString()})` : "n/a"}</td>
                     <td className={r.timing && r.timing.missed_saving_pct > 10 ? "font-semibold text-down" : ""}>{r.timing ? `${r.timing.missed_saving_pct}%` : "n/a"}</td>

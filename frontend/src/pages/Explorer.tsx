@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { px } from "../lib/scale";
 import { Download, Search } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
 import Sparkline from "../components/Sparkline";
@@ -11,7 +12,7 @@ interface Search { series: Series[]; events: { title: string; category: string; 
 
 export default function Explorer() {
   const [series, setSeries] = useState<Series[]>([]);
-  const [idx, setIdx] = useState("BDI");
+  const [idx, setIdx] = useState("BPI");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [min, setMin] = useState("");
@@ -74,7 +75,7 @@ export default function Explorer() {
                 <Stat label="Max" value={res.summary ? res.summary.max.toLocaleString(undefined, { maximumFractionDigits: 2 }) : "n/a"} />
                 <div className="flex items-end"><a href={csvUrl} className={btnCls + " flex w-full items-center justify-center gap-2"}><Download className="h-4 w-4" /> CSV</a></div>
               </div>
-              {res.rows.length > 1 && <div className="h-16"><Sparkline width={640} height={64} values={[...res.rows].reverse().map((r) => r.value)} up={res.rows[0].value >= res.rows[res.rows.length - 1].value} /></div>}
+              {res.rows.length > 1 && <div className="h-16"><Sparkline width={px(640)} height={px(64)} values={[...res.rows].reverse().map((r) => r.value)} up={res.rows[0].value >= res.rows[res.rows.length - 1].value} /></div>}
               <div className="max-h-96 overflow-y-auto rounded-xl border border-border-soft">
                 <table className="w-full text-left text-sm">
                   <thead className="sticky top-0 bg-white"><tr className="text-xs text-muted"><th className="px-3 py-2">Date</th><th>Value</th><th>Unit</th></tr></thead>

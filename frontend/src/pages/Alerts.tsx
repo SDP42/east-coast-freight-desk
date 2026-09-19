@@ -3,25 +3,28 @@ import { Bell, Trash2 } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
 import { Field, Note, PageHeader, btnCls, errText, inputCls } from "../components/ui";
 import { api } from "../lib/api";
+import { useAuth } from "../lib/auth";
 
 interface Rule { id: number; name: string; kind: string; param_a: string | null; param_b: string | null; threshold: number; webhook_url: string | null; last_fired_at: string | null }
 interface Ev { id: number; rule_id: number; fired_at: string; message: string; delivery: string; is_read: boolean }
 interface Data { kinds: Record<string, string>; rules: Rule[]; events: Ev[]; unread: number; channels: { sms_whatsapp: string } }
 
 const TEMPLATES: Record<string, { a?: string; b?: string; th: string; hint: string }> = {
-  bdi_move_pct: { a: "BDI", th: "3", hint: "Series, percent move" },
-  forecast_change_pct: { a: "BDI", b: "14", th: "-5", hint: "Series, horizon days, percent (negative = fall)" },
+  index_move_pct: { a: "BPI", th: "3", hint: "Series, percent move" },
+  forecast_change_pct: { a: "BPI", b: "14", th: "-5", hint: "Series, horizon days, percent (negative = fall)" },
   port_congestion: { a: "Visakhapatnam", th: "7", hint: "Port, score 0-10" },
   route_risk: { a: "Australia", b: "Haldia", th: "6", hint: "Origin, port, score 0-10" },
-  model_drift: { a: "BDI", th: "0", hint: "Series" },
+  model_drift: { a: "BPI", th: "0", hint: "Series" },
   cyclone_probability: { a: "Paradip", th: "0.2", hint: "Port, probability 0-1" },
 };
 
 export default function Alerts() {
+  const { user } = useAuth();
+  const scoped = user?.port_scope != null;
   const [d, setD] = useState<Data | null>(null);
-  const [kind, setKind] = useState("bdi_move_pct");
+  const [kind, setKind] = useState(scoped ? "port_congestion" : "index_move_pct");
   const [name, setName] = useState("");
-  const [a, setA] = useState("BDI");
+  const [a, setA] = useState("BPI");
   const [b, setB] = useState("");
   const [th, setTh] = useState("3");
   const [hook, setHook] = useState("");
@@ -30,7 +33,11 @@ export default function Alerts() {
 
   const load = useCallback(async () => setD((await api.get<Data>("/alerts")).data), []);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { const t = TEMPLATES[kind]; setA(t.a ?? ""); setB(t.b ?? ""); setTh(t.th); }, [kind]);
+  useEffect(() => {
+    const t = TEMPLATES[kind];
+    const p = user?.port_scope?.[0];
+    setA(scoped && p ? (kind === "route_risk" ? t.a ?? "" : p) : t.a ?? ""); setB(scoped && p && kind === "route_risk" ? p : t.b ?? ""); setTh(t.th);
+  }, [kind]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function create() {
     setMsg("");
@@ -50,7 +57,7 @@ export default function Alerts() {
         <div className="p-6">
           <h2 className="text-sm font-semibold text-strong">New rule</h2>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-6">
-            <div className="col-span-2 sm:col-span-2"><Field label="Condition"><select className={inputCls} value={kind} onChange={(e) => setKind(e.target.value)}>{Object.keys(d?.kinds ?? { [kind]: "" }).map((k) => <option key={k} value={k}>{k.replace(/_/g, " ")}</option>)}</select></Field></div>
+            <div className="col-span-2 sm:col-span-2"><Field label="Condition"><select className={inputCls} value={kind} onChange={(e) => setKind(e.target.value)}>{Object.keys(d?.kinds ?? { [kind]: "" }).filter((k) => !scoped || ["port_congestion", "route_risk", "cyclone_probability"].includes(k)).map((k) => <option key={k} value={k}>{k.replace(/_/g, " ")}</option>)}</select></Field></div>
             <Field label="Name"><input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} placeholder="optional" /></Field>
             <Field label="Parameter 1"><input className={inputCls} value={a} onChange={(e) => setA(e.target.value)} /></Field>
             <Field label="Parameter 2"><input className={inputCls} value={b} onChange={(e) => setB(e.target.value)} /></Field>

@@ -41,7 +41,7 @@ def main() -> None:
     db = SessionLocal()
     existing = db.query(FreightRate).filter(FreightRate.source == SOURCE_CITATION).count()
     if existing:
-        print(f"Already ingested {existing} rows from this source — skipping (delete them first to re-run). BDI itself comes from ingest_real_bdi.py.")
+        print(f"Already ingested {existing} rows from this source — skipping (delete them first to re-run).")
         db.close()
         return
 

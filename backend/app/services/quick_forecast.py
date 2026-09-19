@@ -1,5 +1,5 @@
 """Fast ARIMA forecast for interactive use (the assistant). Fits a fixed ARIMA(2,1,2) on the last
-~3 years of the series (the order the AIC grid selected for the BDI) and caches the result per
+~3 years of the series (the order the AIC grid typically selects for these indices) and caches the result per
 series end date, so a chat question does not pay for the full order search."""
 
 from dataclasses import dataclass

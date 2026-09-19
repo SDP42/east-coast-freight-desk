@@ -3,16 +3,16 @@
 All three have free tiers and no Docker. Do the steps in this order. You create the accounts and paste the
 secrets yourself; nobody else needs your passwords or connection strings.
 
-## Before you start: two things to decide
+## Before you start
 
-1. **The Baltic Dry Index data.** The daily BDI series came from an Investing.com export via a public GitHub
-   mirror with no licence. It is fine for private research, but loading it into a hosted database and serving it
-   from a public API redistributes it. Options: (a) keep the hosted demo but accept that, (b) deploy without
-   the BDI (the forecast pages will be empty), or (c) switch to a licensed source. This is your call; the code
-   works either way.
-2. **Free-tier limits.** Render's free web service has 512 MB of memory and sleeps after ~15 minutes idle
-   (the first request after a sleep takes about 30-60 seconds). The heaviest model call (the ARIMA + XGBoost
-   ensemble) may be slow or run out of memory there. If that happens, the rest of the app still works.
+**Free-tier limits.** Render's free web service has 512 MB of memory and sleeps after about 15 minutes idle
+(the first request after a sleep takes about 30-60 seconds). The heaviest model call (the ARIMA + XGBoost
+ensemble) may be slow or run out of memory there. If that happens, the rest of the app still works.
+
+**Data licences.** The datasets loaded into the database are the Mendeley Baltic sub-indices (CC BY 4.0), World Bank
+and FRED series, IMF PortWatch, Ministry of Ports figures and public port-trust reports. The Baltic Dry Index has been
+removed from the project. Keep the attribution in the sources list on the landing page. PortWatch's licence terms
+should be confirmed on its website before a public launch.
 
 ## Step 1: Neon (database)
 

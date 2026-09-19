@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { px } from "../lib/scale";
 import { Area, AreaChart, CartesianGrid, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Pause, Play, TrendingDown, TrendingUp } from "lucide-react";
 import { getHistory, type HistoryPoint } from "../lib/api";
@@ -69,7 +70,7 @@ export default function LiveChart({ indexName, label, height = 300, compact = fa
   }, [data, cursor, threshold]);
 
   if (error) return <p className="text-sm text-down">Could not load {indexName} history — is the backend running?</p>;
-  if (visible.length < 2) return <div className="flex items-center justify-center text-sm text-muted" style={{ height }}>Loading {indexName}…</div>;
+  if (visible.length < 2) return <div className="flex items-center justify-center text-sm text-muted" style={{ height: px(height) }}>Loading {indexName}…</div>;
 
   const last = visible[visible.length - 1];
   const first = visible[0];
@@ -123,7 +124,7 @@ export default function LiveChart({ indexName, label, height = 300, compact = fa
       </div>
 
       <div className="mt-3">
-        <ResponsiveContainer width="100%" height={height}>
+        <ResponsiveContainer width="100%" height={px(height)}>
           <AreaChart data={visible} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
@@ -132,9 +133,9 @@ export default function LiveChart({ indexName, label, height = 300, compact = fa
               </linearGradient>
             </defs>
             {!compact && <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />}
-            <XAxis dataKey="date" hide={compact} tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={{ stroke: "#dbe4ee" }} minTickGap={40} />
-            <YAxis hide={compact} domain={[(min: number) => min * 0.97, (max: number) => max * 1.03]} tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} width={48} tickFormatter={(v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })} />
-            {!compact && <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #dbe4ee", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "#64748b" }} />}
+            <XAxis dataKey="date" hide={compact} tick={{ fontSize: px(10), fill: "#64748b" }} tickLine={false} axisLine={{ stroke: "#dbe4ee" }} minTickGap={40} />
+            <YAxis hide={compact} domain={[(min: number) => min * 0.97, (max: number) => max * 1.03]} tick={{ fontSize: px(10), fill: "#64748b" }} tickLine={false} axisLine={false} width={48} tickFormatter={(v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })} />
+            {!compact && <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #dbe4ee", borderRadius: 8, fontSize: px(12) }} labelStyle={{ color: "#64748b" }} />}
             <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill={`url(#${gradId})`} isAnimationActive={false} />
             {events.map((e) => (
               <ReferenceDot key={e.date} x={e.date} y={e.value} r={5} fill={e.event === "spike" ? "#059669" : "#dc2626"} stroke="#f3f7fb" strokeWidth={2} />

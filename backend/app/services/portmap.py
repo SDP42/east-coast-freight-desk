@@ -65,10 +65,12 @@ def _simulated_queue(port: Port, now: float) -> int:
     return max(0, round(base + wobble))
 
 
-def build_map_overview(db: Session) -> dict:
+def build_map_overview(db: Session, scope: list[str] | None = None) -> dict:
     now = time.time()
     vessel_classes = db.query(VesselClass).order_by(VesselClass.dwt_min).all()
     ports = db.query(Port).filter(Port.latitude.isnot(None)).all()
+    if scope is not None:
+        ports = [p for p in ports if p.name in scope]
 
     pins: list[PortPin] = []
     for p in ports:
@@ -103,12 +105,15 @@ def build_map_overview(db: Session) -> dict:
             })
 
     vessels_db = db.query(Vessel).order_by(Vessel.id).limit(MAX_VESSELS).all()
+    allowed_routes = {r["key"] for r in routes}
     classes_by_id = {vc.id: vc.name for vc in vessel_classes}
     vessels = []
     for i, v in enumerate(vessels_db):
         country = ORIGIN_COUNTRIES[i % len(ORIGIN_COUNTRIES)]
         dest_name = LANE_DESTINATIONS[(i // len(ORIGIN_COUNTRIES) + i) % len(LANE_DESTINATIONS)]
         route_key = f"{country}->{dest_name}"
+        if route_key not in allowed_routes:
+            continue
         transit_real_seconds = LANE_TRANSIT_DAYS[country] / SIM_DAYS_PER_REAL_SECOND
         progress = ((now / transit_real_seconds) + i * 0.137) % 1.0
         vessels.append({

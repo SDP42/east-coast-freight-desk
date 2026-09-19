@@ -65,7 +65,7 @@ class DemurrageResponse(BaseModel):
 
 
 class RoiRequest(BaseModel):
-    index_name: str = "BDI"
+    index_name: str = "BPI"
     annual_cargo_tonnes: float
     assumed_freight_usd_per_tonne: float
     captured_pct: float = 20.0

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import { px } from "../lib/scale";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { RefreshCw } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
 import { Note, PageHeader, Stat, btnCls, errText } from "../components/ui";
 import { api } from "../lib/api";
+import { useAuth } from "../lib/auth";
 
 interface Report {
   index_name: string; data_through: string; frozen_model_trained_through: string; reference_mape: number; recent_mape: number; error_ratio: number; mann_whitney_p: number;
@@ -13,7 +15,8 @@ interface Report {
 }
 
 export default function Monitor() {
-  const [idx, setIdx] = useState("BDI");
+  const { can } = useAuth();
+  const [idx, setIdx] = useState("BPI");
   const [rep, setRep] = useState<Report | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -25,8 +28,8 @@ export default function Monitor() {
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader title="Model monitor" subtitle="Is the forecast model still behaving as it did when it was trained? Frozen parameters are scored on newer data; drift is flagged and the model can be retrained." />
       <div className="flex items-center gap-3">
-        <select value={idx} onChange={(e) => setIdx(e.target.value)} className="rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-strong">{["BDI", "BCI", "BPI", "BSI", "BHSI"].map((i) => <option key={i}>{i}</option>)}</select>
-        <button onClick={retrain} disabled={busy} className={btnCls + " flex items-center gap-2"}><RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} /> {busy ? "Retraining…" : "Retrain now"}</button>
+        <select value={idx} onChange={(e) => setIdx(e.target.value)} className="rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-strong">{["BCI", "BPI", "BSI", "BHSI"].map((i) => <option key={i}>{i}</option>)}</select>
+        {can("monitor:retrain") && <button onClick={retrain} disabled={busy} className={btnCls + " flex items-center gap-2"}><RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} /> {busy ? "Retraining…" : "Retrain now"}</button>}
       </div>
       {err && <p className="text-xs text-down">{err}</p>}
       {rep && (
@@ -51,9 +54,9 @@ export default function Monitor() {
                 <ResponsiveContainer>
                   <LineChart data={rep.rolling_mape}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
-                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#64748b" }} minTickGap={50} />
-                    <YAxis tick={{ fontSize: 11, fill: "#64748b" }} width={40} unit="%" />
-                    <ReferenceLine y={rep.reference_mape} stroke="#94a3b8" strokeDasharray="4 4" label={{ value: "reference", fontSize: 10, fill: "#64748b", position: "insideTopLeft" }} />
+                    <XAxis dataKey="date" tick={{ fontSize: px(10), fill: "#64748b" }} minTickGap={50} />
+                    <YAxis tick={{ fontSize: px(11), fill: "#64748b" }} width={px(40)} unit="%" />
+                    <ReferenceLine y={rep.reference_mape} stroke="#94a3b8" strokeDasharray="4 4" label={{ value: "reference", fontSize: px(10), fill: "#64748b", position: "insideTopLeft" }} />
                     <Tooltip formatter={(v) => [`${v}%`, "MAPE (30d)"]} />
                     <Line dataKey="mape_30d" stroke="#0e7490" strokeWidth={2} dot={false} isAnimationActive={false} />
                   </LineChart>

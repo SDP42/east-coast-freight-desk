@@ -12,26 +12,26 @@ user-facing features.
 
 - **What**: classical AutoRegressive Integrated Moving Average, order selected by an AIC grid search (p≤2, d≤1, q≤2) after an Augmented Dickey-Fuller stationarity test — `backend/app/ml/arima_model.py`.
 - **Why chosen**: every reviewed paper (Baghel 2025; Sahu & Patil 2017; the arXiv empty-container paper; Su, Bae & Park 2025) uses ARIMA/SARIMA as the baseline every other model must beat. It's fast, well-understood, and — per Sahu & Patil (2017) — SARIMA outperformed OLS regression on Indian port cargo demand (avg. error 8% vs. 6-20%).
-- **Accuracy achieved (real daily BDI, 2006-2026, 7-day horizon, 5 walk-forward splits)**: **3.08% MAPE**, RMSE ≈62 (14-day: 4.54% MAPE, RMSE ≈107). Comparable to Luo et al. (2026)'s transformer-hybrid result of 5.26% MAPE on the same index, with the caveat that the test windows differ. *(An earlier 4.68% figure was measured on a BDI we had computed from sub-indices, which ran ~15% above the published BDI; it was replaced by the real series and all figures re-measured.)*
+- **Accuracy achieved (real daily Baltic Panamax index, BPI, Aug 2012 to Jul 2019, 5 walk-forward splits)**: **6.54% MAPE** at 7 days (RMSE ≈69) and **14.2%** at 14 days (RMSE ≈146). The early splits are 3.6% to 5.1%; the later ones include the 2015-16 collapse and the 2016 recovery, where the 14-day error reaches 18% and 35%, which is what a random-walk-like market does to a linear model. Published comparison points (Luo et al. 2026, 5.26% MAPE on the BDI) are on a different index and window, so they are context, not a like-for-like benchmark.
 
 ### 2. XGBoost (primary ensemble partner)
 
 - **What**: gradient-boosted trees on engineered features — lag (1/2/3/7/14-day), rolling-window mean/std (7/30-day), calendar (month/day-of-week/year), and exogenous macro features (S&P 500, US Dollar Index, Australian & South African coal prices) — `backend/app/ml/xgboost_model.py`, `features.py`. Hyperparameters (max_depth/learning_rate/n_estimators) selected via a small `TimeSeriesSplit` grid search.
 - **Why chosen**: Baghel (2025) found XGBoost handles non-linear, short-term fluctuations in cargo data better than ARIMA, particularly around seasonal peaks. Kim, Kim & Choi (2025, PLOS ONE) — read in full — tested 10 ML models on BDI and found tree-ensemble methods (Extra Trees, CatBoost, Random Forest) substantially outperformed both classical models and XGBoost/LightGBM/AdaBoost/KNN/Elastic Net in their study (see "Models considered and rejected" below for why we picked XGBoost over their top pick, Extra Trees).
-- **Accuracy achieved (real BDI, ensemble backtest, 7-day, 35 paired forecasts)**: **4.10% MAPE**, RMSE ≈144. On the real series XGBoost is *worse* than ARIMA (2.88% MAPE on the same folds); an earlier result showing it narrowly ahead came from the computed, smoother BDI.
+- **Accuracy achieved (BPI, paired ensemble backtest, 7-day, 35 paired forecasts)**: **3.75% MAPE**, RMSE ≈47, against ARIMA 3.90% on the same forecasts. (These 35 forecasts are a different, smaller sample than the 5-split figure above, which is why the MAPE differs.)
 - **Real bug found and fixed**: exogenous features (S&P 500 from FRED only covers 2016+, but our BDI history starts 2012) were silently producing all-NaN columns for early training folds, causing XGBoost to train on zero rows and predict a flat 0.0 (RMSE 830 before the fix). Full detail in `SECTIONS.md` Section 6.
 
 ### 3. ARIMA + XGBoost Ensemble (inverse-RMSE weighted)
 
 - **What**: `hybrid = w_arima × arima_forecast + w_xgb × xgb_forecast`, where `w_m = (1/RMSE_m) / Σ(1/RMSE_k)` — models with lower backtest error get proportionally more weight. Exact formula and validation approach from Baghel (2025) — `backend/app/ml/ensemble.py`.
 - **Why chosen**: this is the one architecture in the literature we reviewed that is *proven statistically significant*, not just "seemed to work." Baghel validated it with a Wilcoxon signed-rank test (p=0.016 vs. ARIMA alone on Indian port cargo). We replicated that exact test on our own data.
-- **Accuracy achieved (real BDI, 7-day)**: hybrid **3.17% MAPE** (weights 56.7% ARIMA / 43.3% XGBoost), against ARIMA 2.88% and XGBoost 4.10%. **Wilcoxon hybrid vs. ARIMA: p = 0.998, not significant. The hybrid does not beat ARIMA on the real BDI**; it does beat XGBoost alone (p = 8×10⁻⁸). At 14 days the picture is the same (hybrid 6.30%, ARIMA 5.64%, XGBoost 7.71%). We do not reproduce Baghel's significance result on this series; the earlier p = 5.4×10⁻⁶ came from the computed BDI and is withdrawn. The likely reason is that daily BDI is close to a random walk (lag_1 carries almost all the SHAP weight), so ARIMA is hard to beat at short horizons. The ensemble stays in the product as the model that carries SHAP explanations and exogenous inputs, and its error is reported as measured.
+- **Accuracy achieved (BPI, 7-day)**: hybrid **3.52% MAPE** (weights 51.4% ARIMA / 48.6% XGBoost), against ARIMA 3.90% and XGBoost 3.75%. **Wilcoxon hybrid vs. ARIMA: p = 0.0019, significant**, replicating Baghel's finding on this index; hybrid vs. XGBoost alone is not significant (p = 0.16), the honest expectation when one base model is already strong. Note this result is series-specific: an earlier run on the daily Baltic Dry Index (since removed from the project) found the hybrid not better than ARIMA, so the ensemble's advantage should not be assumed to carry over to other series.
 
 ### 4. Intent classifier for "Ask the Freight Desk"
 
 - **What**: TF-IDF (word 1-2 grams plus character 2-4 grams) with entity-marker tokens, then logistic regression (`backend/app/ml/intent.py`). It routes a question to one of 11 engines; it does not generate text.
 - **Why chosen**: with about 270 examples a linear model on sparse features is the sensible fit. Character n-grams tolerate typos and phrasings ("vizag", "capesize"), and marker tokens let it use the fact that a port or a horizon was named. A transformer or hosted LLM would need a provider, a key and data leaving the deployment.
-- **Accuracy**: 75% ± 9% on held-out hand-written questions (5-fold; 132 hand-written and 140 template-generated examples, templates always in training). This is an in-distribution figure on our own questions, not an external benchmark. Low-confidence questions (under 35%) get a clarification instead of a guess.
+- **Accuracy**: 77% ± 4% on held-out hand-written questions (5-fold; 15 intents, 180 hand-written and 140 template-generated examples, templates always in training). This is an in-distribution figure on our own questions, not an external benchmark. Low-confidence questions (under 35%) get a clarification instead of a guess.
 
 ### 5. Port-signal models (Section 14d)
 
@@ -40,6 +40,27 @@ user-facing features.
 - **Cyclone exposure**: empirical frequency from IBTrACS, not a model; expected delay uses two assumed parameters.
 - **Demand estimator**: a single ratio (imported coking coal / crude steel = 0.865) from two annual points. No fitted model; the band is two standard deviations of two numbers.
 - **Drift monitor**: ARIMA(2,1,2) trained on 800 days, then applied with frozen parameters; one-sided Mann-Whitney U on recent vs reference one-step errors, and PSI on daily returns.
+
+### 6. Deep learning: LSTM, GRU, TCN, Transformer (`scripts/train_dl.py`, Model Lab page)
+
+- **Why it was not in the first version**: the freight series are short (2,556 daily observations, Aug 2012 to Jul 2019), which is small for neural networks, and the free-tier deployment cannot hold PyTorch. It was added afterwards as an experiment, run offline, so we can say what deep learning does here rather than guess.
+- **Setup**: 60-day windows of BPI log-returns plus S&P 500, dollar index and two coal-price returns; each model outputs the seven cumulative log-returns for the next week; Huber loss, AdamW, early stopping on the last 15% of each training set; 3 seeds per model, averaged; retrained at each of 5 walk-forward splits on data available at that point. The classical models ran through the *same* splits (`scripts/dl_baselines.py`, run in a separate process because PyTorch and XGBoost bundle conflicting OpenMP runtimes on macOS), so all 35 forecast errors are paired.
+- **Results (7-day BPI, 35 paired forecasts, lower is better)**:
+
+| Model | MAE | MAPE | vs ARIMA (one-sided Wilcoxon p) |
+|---|---|---|---|
+| Deep ensemble (mean of 4) | 25.8 | 2.79% | 0.17 |
+| GRU | 26.0 | 3.01% | 0.16 |
+| Transformer | 26.7 | 2.81% | 0.22 |
+| LSTM | 26.8 | 3.01% | 0.41 |
+| ARIMA + XGBoost hybrid | 29.0 | 3.52% | 0.0019 (significant) |
+| XGBoost | 31.6 | 3.75% | 0.31 |
+| ARIMA(2,1,2) | 31.9 | 3.90% | baseline |
+| TCN | 37.6 | 4.01% | 0.39 |
+
+- **Reading it honestly**: the deep ensemble has about 19% lower MAE than ARIMA and 11% lower than the hybrid, but with 35 highly autocorrelated forecasts that difference is *not* statistically significant (p = 0.17), while the hybrid's advantage over ARIMA is. The TCN is worst. The right conclusion is "promising, not proven": more data or more series would be needed to settle it.
+- **Serving**: the LSTM and GRU are refitted on all data and exported as NumPy weights (`backend/app/ml/artifacts`); the API evaluates them with a hand-written NumPy forward pass (`app/ml/dl_infer.py`), so the deployed API needs no deep-learning framework. `GET /forecast-deep/BPI` returns their 7-day paths.
+- **Does weather help? (`scripts/weather_experiment.py`)**: ridge regression for the next 14 days of port calls, with and without Open-Meteo wind, rain and wave height, over 12 walk-forward windows for each of five ports. Weather did **not** significantly help (pooled p = 0.88; it helped at Dhamra and Visakhapatnam and hurt at Haldia, Paradip and Gopalpur). We report that instead of shipping a weather feature that does not earn its place.
 
 ## Models considered and explicitly rejected (with reasons)
 

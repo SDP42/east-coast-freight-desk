@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { px } from "../lib/scale";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import SpotlightCard from "../components/SpotlightCard";
 import { Field, Note, PageHeader, Stat, Tabs, btnCls, errText, inputCls } from "../components/ui";
+import { useAuth } from "../lib/auth";
 import { api, estimateDemurrage, getPorts, getVesselClasses, type DemurrageResult, type Port, type VesselClass } from "../lib/api";
 
 type Tab = "carbon" | "hedge" | "modal" | "demurrage";
@@ -53,8 +55,8 @@ function CarbonTool() {
               <ResponsiveContainer>
                 <BarChart data={res.speed_sweep}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
-                  <XAxis dataKey="speed_knots" tickFormatter={(v) => `${v} kn`} tick={{ fontSize: 11, fill: "#64748b" }} />
-                  <YAxis tick={{ fontSize: 11, fill: "#64748b" }} width={50} />
+                  <XAxis dataKey="speed_knots" tickFormatter={(v) => `${v} kn`} tick={{ fontSize: px(11), fill: "#64748b" }} />
+                  <YAxis tick={{ fontSize: px(11), fill: "#64748b" }} width={px(50)} />
                   <Tooltip formatter={(v, n) => [String(v), n === "co2_t" ? "CO₂ (t)" : String(n)]} labelFormatter={(v) => `${v} knots`} />
                   <Bar isAnimationActive={false} dataKey="co2_t" fill="#0e7490" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -156,8 +158,8 @@ function ModalTool() {
               <ResponsiveContainer>
                 <BarChart data={res.options} layout="vertical" margin={{ left: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11, fill: "#64748b" }} unit="$" />
-                  <YAxis type="category" dataKey="port" tick={{ fontSize: 11, fill: "#334e68" }} width={110} />
+                  <XAxis type="number" tick={{ fontSize: px(11), fill: "#64748b" }} unit="$" />
+                  <YAxis type="category" dataKey="port" tick={{ fontSize: px(11), fill: "#334e68" }} width={px(110)} />
                   <Tooltip />
                   <Bar isAnimationActive={false} dataKey="sea_usd_per_t" stackId="a" fill="#0e7490" name="Sea" />
                   <Bar isAnimationActive={false} dataKey="handling_usd_per_t" stackId="a" fill="#94a3b8" name="Handling" />
@@ -232,11 +234,13 @@ function DemurrageTool() {
 }
 
 export default function Voyage() {
+  const { can } = useAuth();
   const [tab, setTab] = useState<Tab>("carbon");
+  const tabs: { key: Tab; label: string }[] = [{ key: "carbon", label: "Carbon (CII)" }, ...(can("treasury:read") ? [{ key: "hedge" as Tab, label: "INR/USD hedge" }] : []), { key: "modal", label: "Rail-sea-rail" }, ...(can("financial:read") ? [{ key: "demurrage" as Tab, label: "Demurrage & idle time" }] : [])];
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Voyage economics" subtitle="Carbon, currency, inland logistics and demurrage: the costs around the freight rate that decide which fixture is actually cheapest." />
-      <Tabs<Tab> tabs={[{ key: "carbon", label: "Carbon (CII)" }, { key: "hedge", label: "INR/USD hedge" }, { key: "modal", label: "Rail-sea-rail" }, { key: "demurrage", label: "Demurrage & idle time" }]} value={tab} onChange={setTab} />
+      <Tabs<Tab> tabs={tabs} value={tab} onChange={setTab} />
       {tab === "carbon" && <CarbonTool />}
       {tab === "hedge" && <HedgeTool />}
       {tab === "modal" && <ModalTool />}

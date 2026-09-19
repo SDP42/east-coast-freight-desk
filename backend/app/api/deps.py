@@ -30,3 +30,30 @@ def get_current_user(
         raise credentials_error
 
     return user
+
+
+def require(permission: str):
+    """Dependency factory: the caller must be signed in and hold `permission`, otherwise HTTP 403."""
+    from app.core.permissions import PERMISSION_LABELS, has, role_of
+    from app.services.audit import record
+
+    def dependency(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> User:
+        if not has(user, permission):
+            record(db, user, "denied", f"missing {permission}", allowed=False)
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Your role ({role_of(user)['label']}) cannot access this: {PERMISSION_LABELS.get(permission, permission)}.",
+            )
+        return user
+
+    return dependency
+
+
+def require_port(user: User, port_name: str, db: Session) -> None:
+    """403 unless the user may see `port_name` (port-scoped roles see only their assigned ports)."""
+    from app.core.permissions import can_see_port, role_of
+    from app.services.audit import record
+
+    if not can_see_port(user, port_name):
+        record(db, user, "denied", f"port {port_name} outside assignment", allowed=False)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"{port_name} is outside the ports assigned to your account ({role_of(user)['label']}).")

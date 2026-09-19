@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.deps import require
 from app.db.session import get_db
 from app.models import Port
 from app.schemas.scenario import OriginDeltaOut, ReroutePortOut, ScenarioRequest, ScenarioResponse
 from app.services.scenario import Shock, run_scenario
 
-router = APIRouter(prefix="/scenario", tags=["scenario"])
+router = APIRouter(prefix="/scenario", tags=["scenario"], dependencies=[Depends(require("recommend:read"))])
 
 DEFAULT_ORIGINS = ["Australia", "United States", "Mozambique", "Russia", "Indonesia"]
 VALID_SHOCKS = {"freight_spike", "port_closure", "red_sea_closure", "origin_disruption"}

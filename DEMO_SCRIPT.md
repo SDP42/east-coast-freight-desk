@@ -10,8 +10,8 @@ Each step says what to click and the one sentence to say.
 3. **Ask the Desk (60 s).** Click "How risky is Australia to Haldia?", then type "Should we use a COA or stay spot?".
    "A local intent model, 75% accurate on held-out questions, routes each question to the same engines the dashboard uses.
    Nothing is sent to an outside service."
-4. **Freight Forecast (60 s).** Open BDI, 14 days, click Run ensemble. "ARIMA backtests at about 3% error over a week on
-   twenty years of real BDI. The blended model is not significantly better than ARIMA, and we say so." Point at the
+4. **Freight Forecast (60 s).** Open the Panamax index (BPI), 14 days, click Run ensemble. "ARIMA is off by about 4% to 7% over a week on
+   seven years of real daily data, and the blended model is significantly better than ARIMA here (p = 0.002), but not on every series." Point at the
    per-split table and the widening bands under Multi-horizon.
 5. **Chartering Recommendation (45 s).** Rank origins, then the trade-off card. "Cost, time and risk together; Pareto-optimal
    origins are marked. It also refuses a vessel that will not fit the berth."
@@ -24,7 +24,7 @@ Each step says what to click and the one sentence to say.
    retrains on drift."
 
 Questions to expect and honest answers:
-- *Is the price feed live?* No. Real history replayed; the BDI ends 20 Feb 2026 and the Baltic sub-indices end July 2019 because the live feed is paid.
+- *Is the price feed live?* No. Real history replayed; the Baltic freight indices end July 2019 because the live feed is paid, and the pages say so.
 - *Are the costs real quotes?* No. They are labelled illustrative distance-based estimates.
 - *Where are the real fixtures?* None are public; the ledger takes your own entries.
 - *Why is the demand estimate rough?* It rests on two annual data points.

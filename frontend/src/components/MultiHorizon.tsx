@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { px } from "../lib/scale";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import SpotlightCard from "./SpotlightCard";
 import { Note } from "./ui";
@@ -21,8 +22,8 @@ export default function MultiHorizon({ indexName }: { indexName: string }) {
               <ResponsiveContainer>
                 <ComposedChart data={res.horizons.map((h) => ({ ...h, name: `${h.horizon}d`, range: [h.lower, h.upper] }))}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} />
-                  <YAxis domain={["auto", "auto"]} tick={{ fontSize: 11, fill: "#64748b" }} width={48} />
+                  <XAxis dataKey="name" tick={{ fontSize: px(11), fill: "#64748b" }} />
+                  <YAxis domain={["auto", "auto"]} tick={{ fontSize: px(11), fill: "#64748b" }} width={px(48)} />
                   <Tooltip />
                   <Bar isAnimationActive={false} dataKey="range" fill="#d97706" fillOpacity={0.25} name="95% band" radius={4} />
                   <Line dataKey="value" stroke="#0e7490" strokeWidth={2} name="Forecast" isAnimationActive={false} />

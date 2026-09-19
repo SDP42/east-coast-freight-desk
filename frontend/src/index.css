@@ -20,6 +20,13 @@
   --color-sand: #f6efe2;
 }
 
+/* Fluid interface scale. Everything is sized in rem, so raising the root size grows the whole layout.
+   16px up to 1920 px wide (phones, laptops, 1080p monitors); then 0.8333vw, which is 21px at 2560 (QHD),
+   26px at 3200, 32px at 3840 (4K TV or projector) and capped at 44px (about 5K). Below 380 px, 15px. */
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+@media (max-width: 380px) { html { font-size: 15px; } }
+@media (min-width: 1921px) { html { font-size: clamp(16px, 0.8333vw, 44px); } }
+
 html, body, #root { height: 100%; }
 
 body {
@@ -62,3 +69,9 @@ body {
 
 .leaflet-container { font-family: inherit; }
 .leaflet-popup-content-wrapper, .leaflet-tooltip { border-radius: 8px; }
+
+@media print {
+  aside, .no-print, .leaflet-control-container { display: none !important; }
+  body { background: #fff !important; }
+  main { padding: 0 !important; }
+}

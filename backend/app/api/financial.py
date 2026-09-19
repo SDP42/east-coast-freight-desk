@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.deps import require
 from app.db.session import get_db
 from app.models import Port, VesselClass
 from app.schemas.financial import (
@@ -16,7 +17,7 @@ from app.schemas.financial import (
 )
 from app.services.financial import estimate_demurrage, estimate_roi, rank_ballast_options, simulate_coa_vs_spot
 
-router = APIRouter(prefix="/financial", tags=["financial"])
+router = APIRouter(prefix="/financial", tags=["financial"], dependencies=[Depends(require("financial:read"))])
 
 
 @router.post("/coa-vs-spot", response_model=CoaVsSpotResponse)

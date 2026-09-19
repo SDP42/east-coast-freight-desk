@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.models import DisruptionEvent, FreightRate
 
 META = {
-    "BDI": ("Baltic Dry Index", "points"), "BCI": ("Capesize index", "points"), "BPI": ("Panamax index", "points"), "BSI": ("Supramax index", "points"),
+    "BCI": ("Capesize index", "points"), "BPI": ("Panamax index", "points"), "BSI": ("Supramax index", "points"),
     "BHSI": ("Handysize index", "points"), "COAL_AUS": ("Australian coal", "usd/t"), "COAL_ZA": ("South African coal", "usd/t"), "SP500": ("S&P 500", "usd"),
     "DXY": ("US dollar index", "pts"), "INR": ("INR per USD", "inr"), "AUD": ("USD per AUD", "usd"), "ZAR": ("ZAR per USD", "zar"),
 }

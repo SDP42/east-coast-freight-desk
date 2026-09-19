@@ -94,7 +94,7 @@ export default function PortMap() {
       {error && <p className="text-sm text-down">Could not load map data — is the backend running?</p>}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="overflow-hidden rounded-xl border border-border-soft lg:col-span-2" style={{ height: 560 }}>
+        <div className="overflow-hidden rounded-xl border border-border-soft lg:col-span-2" style={{ height: "35rem" }}>
           <MapContainer center={[14, 88]} zoom={5} style={{ height: "100%", width: "100%", background: "#f3f7fb" }} scrollWheelZoom>
             {/* Keyless OpenStreetMap tiles (CARTO's free tiles now require an API key),
                 shown as-is on the light theme. */}

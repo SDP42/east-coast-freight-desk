@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 from app.models import FreightRate
 
 TICKER_SERIES = [
-    ("BDI", "Baltic Dry Index", "points"),
     ("BCI", "Capesize", "points"),
     ("BPI", "Panamax", "points"),
     ("BSI", "Supramax", "points"),
@@ -29,13 +28,13 @@ TICKER_SERIES = [
 # than filled with invented numbers.
 REGION_BOARDS = [
     {"region": "Global Freight", "note": "Baltic Exchange sub-indices (Mendeley dataset, ends Jul 2019)",
-     "series": [("BDI", "Baltic Dry Index", "points"), ("BCI", "Capesize", "points"), ("BPI", "Panamax", "points"),
+     "series": [("BCI", "Capesize", "points"), ("BPI", "Panamax", "points"),
                 ("BSI", "Supramax", "points"), ("BHSI", "Handysize", "points")]},
     {"region": "Australia", "note": "Newcastle coal (World Bank) and the Australian dollar (FRED)",
      "series": [("COAL_AUS", "Australian coal", "usd/t"), ("AUD", "AUD / USD", "usd")]},
     {"region": "Southern Africa / Mozambique", "note": "South African coal is the nearest real price proxy for Mozambique",
      "series": [("COAL_ZA", "South African coal", "usd/t"), ("ZAR", "ZAR per USD", "zar")]},
-    {"region": "United States", "note": "S&P 500 was the strongest BDI predictor in Kim et al. (2025)",
+    {"region": "United States", "note": "S&P 500 was the strongest freight-index predictor in Kim et al. (2025)",
      "series": [("SP500", "S&P 500", "pts"), ("DXY", "US Dollar Index", "pts")]},
     {"region": "India (destination)", "note": "Freight is USD-quoted; Indian budgets are INR",
      "series": [("INR", "INR per USD", "inr")]},

@@ -366,6 +366,7 @@ export const getHaldiaSummary = () => api.get<HaldiaSummary>("/haldia/summary").
 export interface AskAnswer {
   intent: string; confidence: number; alternatives: { intent: string; confidence: number }[]; entities: Record<string, string | number>;
   text: string; figures: { label: string; value: string }[]; links: { label: string; to: string }[]; assumptions: string[];
+  denied: boolean; scope: string;
 }
 export interface AssistantInfo {
   model: { algorithm: string; intents: number; training_examples: number; cv_accuracy_mean: number; cv_accuracy_std: number; note: string };

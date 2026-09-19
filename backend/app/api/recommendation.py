@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.deps import require
 from app.db.session import get_db
 from app.models import Port
 from app.schemas.compatibility import CompatibilityResultOut, ConstraintCheckOut, TidalLoadPlanOut
 from app.schemas.recommendation import OriginRecommendation, RecommendationRequest, RecommendationResponse
 from app.services.recommendation import compare_origins
 
-router = APIRouter(prefix="/recommendation", tags=["recommendation"])
+router = APIRouter(prefix="/recommendation", tags=["recommendation"], dependencies=[Depends(require("recommend:read"))])
 
 DEFAULT_ORIGINS = ["Australia", "United States", "Mozambique", "Russia", "Indonesia"]
 

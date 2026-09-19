@@ -5,7 +5,7 @@ from app.models import FreightRate
 
 
 def load_series(db: Session, index_name: str) -> pd.Series:
-    """Load a market series (BDI/BCI/BPI/BSI/BHSI or a commodity price series)
+    """Load a market series (BCI/BPI/BSI/BHSI or a commodity price series)
     as a date-indexed pandas Series, sorted chronologically. Returns an empty
     Series if the index_name has no data."""
     rows = (

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { px } from "../lib/scale";
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { motion } from "framer-motion";
 import { Brain, CheckCircle2, CircleSlash, LineChart as LineChartIcon } from "lucide-react";
@@ -7,7 +8,6 @@ import SpotlightCard from "../components/SpotlightCard";
 import { getEnsemble, getForecast, getHistory, type EnsembleResult, type ForecastResult, type HistoryPoint } from "../lib/api";
 
 const INDICES = [
-  { key: "BDI", label: "Baltic Dry Index" },
   { key: "BCI", label: "Capesize" },
   { key: "BPI", label: "Panamax" },
   { key: "BSI", label: "Supramax" },
@@ -19,7 +19,7 @@ const prettyFeature = (f: string) =>
   f.replace("exog_", "").replace(/_/g, " ").replace("coal aus", "Australian coal").replace("coal za", "S. African coal").replace("sp500", "S&P 500").replace("dxy", "US dollar index");
 
 export default function Forecast() {
-  const [indexKey, setIndexKey] = useState("BDI");
+  const [indexKey, setIndexKey] = useState("BPI");
   const [horizon, setHorizon] = useState(14);
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [forecast, setForecast] = useState<ForecastResult | null>(null);
@@ -115,12 +115,12 @@ export default function Forecast() {
             <div className="flex h-72 items-center justify-center text-sm text-muted">Fitting the model… (about 3 seconds)</div>
           ) : (
             <div className="mt-4">
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={px(320)}>
                 <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
-                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={{ stroke: "#dbe4ee" }} minTickGap={40} />
-                  <YAxis domain={["auto", "auto"]} tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} width={48} />
-                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #dbe4ee", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "#64748b" }} />
+                  <XAxis dataKey="date" tick={{ fontSize: px(10), fill: "#64748b" }} tickLine={false} axisLine={{ stroke: "#dbe4ee" }} minTickGap={40} />
+                  <YAxis domain={["auto", "auto"]} tick={{ fontSize: px(10), fill: "#64748b" }} tickLine={false} axisLine={false} width={px(48)} />
+                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #dbe4ee", borderRadius: 8, fontSize: px(12) }} labelStyle={{ color: "#64748b" }} />
                   <Area dataKey="band" stroke="none" fill="#d97706" fillOpacity={0.15} isAnimationActive={false} name="95% band" />
                   <Line dataKey="actual" stroke="#0e7490" strokeWidth={2} dot={false} isAnimationActive={false} name="Actual" />
                   <Line dataKey="forecast" stroke="#d97706" strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} name="ARIMA forecast" />

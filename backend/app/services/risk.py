@@ -125,7 +125,7 @@ def _congestion_score(port: Port, db: Session | None = None) -> tuple[float, str
     return score, detail
 
 
-def _volatility_score(db: Session, index_name: str = "BDI") -> tuple[float, str]:
+def _volatility_score(db: Session, index_name: str = "BPI") -> tuple[float, str]:
     series = load_series(db, index_name)
     if series.empty or len(series) < 90:
         return 3.0, f"Insufficient {index_name} history for volatility estimate; defaulted to moderate risk"

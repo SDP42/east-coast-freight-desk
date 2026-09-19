@@ -50,6 +50,16 @@ export const PERSONA_VIEW: Record<string, PersonaView> = {
       { label: "Stress-test the budget", to: "/app/scenario", hint: "What a 50% freight spike does to cost" },
     ],
   },
+  viewer: {
+    icon: ShieldCheck,
+    accent: "100,116,139",
+    tagline: "Public market data. An administrator can assign you a role with more access.",
+    quickActions: [
+      { label: "Watch the live market", to: "/app/markets", hint: "Prices, spikes and regional boards" },
+      { label: "Ask the desk", to: "/app/ask", hint: "Questions answered within your access" },
+      { label: "See what you can access", to: "/app/access", hint: "Your role and the access matrix" },
+    ],
+  },
   admin: {
     icon: ShieldCheck,
     accent: "220,38,38",
@@ -64,7 +74,7 @@ export const PERSONA_VIEW: Record<string, PersonaView> = {
 
 export const GENERIC_VIEW: PersonaView = PERSONA_VIEW.chartering_analyst;
 
-export const personaView = (role: string | undefined): PersonaView => PERSONA_VIEW[role ?? ""] ?? GENERIC_VIEW;
+export const personaView = (role: string | undefined | null): PersonaView => PERSONA_VIEW[role ?? ""] ?? GENERIC_VIEW;
 
 export const PERSONA_LABEL: Record<string, string> = {
   procurement_manager: "Procurement Manager",
@@ -72,5 +82,37 @@ export const PERSONA_LABEL: Record<string, string> = {
   port_ops: "Port & Logistics Officer",
   finance_head: "Finance & Treasury",
   admin: "Administrator",
+  viewer: "Viewer",
   analyst: "Analyst",
+};
+
+
+/** Permission each app route needs. A route not listed here needs nothing beyond signing in. */
+export const ROUTE_PERMISSION: Record<string, string | string[]> = {
+  "/app/ask": "assistant:use",
+  "/app/recommendation": "recommend:read",
+  "/app/financial": "financial:read",
+  "/app/voyage": "recommend:read",
+  "/app/scenario": "recommend:read",
+  "/app/markets": "market:read",
+  "/app/forecast": "market:read",
+  "/app/ports": "ports:read",
+  "/app/signals": "ports:read",
+  "/app/risk": "risk:read",
+  "/app/map": "ports:read",
+  "/app/explorer": "market:read",
+  "/app/ledger": ["ledger:read_own", "ledger:read_all"],
+  "/app/alerts": "alerts:manage",
+  "/app/monitor": "monitor:read",
+  "/app/risklab": "market:read",
+  "/app/lab": "market:read",
+  "/app/terrain": "market:read",
+  "/app/globe": "ports:read",
+  "/app/report": "assistant:use",
+};
+
+export const routeAllowed = (path: string, has: (p: string) => boolean): boolean => {
+  const need = ROUTE_PERMISSION[path];
+  if (!need) return true;
+  return Array.isArray(need) ? need.some(has) : has(need);
 };

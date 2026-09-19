@@ -21,8 +21,8 @@ import { personaView } from "../lib/personas";
 const HaldiaScene = lazy(() => import("../components/HaldiaScene"));
 
 const PROBLEM_STATS = [
-  { value: 94, prefix: "−", suffix: "%", label: "BDI collapse, May → Dec 2008", detail: "11,793 → 663 points in seven months" },
-  { value: 91, prefix: "−", suffix: "%", label: "BDI fall, Oct 2021 → Feb 2023", detail: "5,650 → 530 points" },
+  { value: 86, prefix: "−", suffix: "%", label: "Panamax index fall, Dec 2013 → Feb 2016", detail: "2,096 → 282 points in 26 months (our data)" },
+  { value: 94, prefix: "", suffix: "%", label: "of SAIL's imported coal on long-term deals", detail: "CAG audit FY17–FY23: 12 agreements, no global tender" },
   { value: 87, prefix: "~", suffix: "%", label: "of SAIL's coking coal is imported", detail: "FY24 annual report: 16.92 of 19.37 MT" },
   { value: 58.3, prefix: "", suffix: " h", decimals: 1, label: "average major-port turnaround, FY25", detail: "Ministry of Ports; Visakhapatnam 69 h, Paradip 45 h" },
 ];
@@ -30,7 +30,7 @@ const PROBLEM_STATS = [
 const CAPABILITIES = [
   { icon: MessageSquareText, title: "Ask the Freight Desk", text: "Type a question in plain English. A local intent model routes it to the forecast, risk or berth engine and answers with the numbers." },
   { icon: Activity, title: "Live market boards", text: "Freight indices, coal, FX and equities by region, replayed so spikes and collapses play out on screen." },
-  { icon: LineChart, title: "Forecasts with proof", text: "ARIMA and XGBoost backtested on 20 years of real BDI, with confidence bands and an honest significance test." },
+  { icon: LineChart, title: "Forecasts with proof", text: "ARIMA and XGBoost backtested on seven years of real daily freight indices, with confidence bands and an honest significance test." },
   { icon: MapPinned, title: "Berth-fit engine", text: "Draft, length, beam and tidal windows for all seven East Coast ports, checked against real Haldia coal calls." },
   { icon: Compass, title: "Five origins, one cargo", text: "Australia, the US, Mozambique, Russia and Indonesia ranked together on cost, fit and market direction." },
   { icon: ShieldAlert, title: "Route risk scoring", text: "Disruptions, PortWatch congestion and freight volatility combined into one explained score per route." },
@@ -38,7 +38,7 @@ const CAPABILITIES = [
   { icon: Calculator, title: "COA vs spot", text: "Simulate locking a contract against staying spot, with the savings case for finance." },
 ];
 
-const SOURCES = ["Baltic Dry Index 2006–2026", "IMF PortWatch", "SMP Kolkata daily positions", "Ministry of Ports", "SAIL annual reports", "CAG audit 2025", "World Bank Pink Sheet", "FRED", "IBTrACS cyclones", "UN Comtrade"];
+const SOURCES = ["Baltic freight indices 2012–2019", "IMF PortWatch", "SMP Kolkata daily positions", "Ministry of Ports", "SAIL annual reports", "CAG audit 2025", "World Bank Pink Sheet", "FRED", "IBTrACS cyclones", "UN Comtrade"];
 
 const STEPS = [
   { n: "1", title: "Read the market", text: "See where every relevant price is heading and how violently it has moved." },
@@ -120,8 +120,8 @@ export default function Landing() {
         </motion.div>
 
         <div className="relative mt-10 overflow-hidden rounded-3xl border border-border-soft bg-gradient-to-b from-sky-50 to-white shadow-[0_30px_80px_-30px_rgba(11,37,69,0.35)]">
-          <Suspense fallback={<div className="flex h-[520px] items-center justify-center text-sm text-muted">Loading Haldia…</div>}>
-            <HaldiaScene className="h-[420px] sm:h-[560px]" onPhase={setPhase} />
+          <Suspense fallback={<div className="flex h-[32rem] items-center justify-center text-sm text-muted">Loading Haldia…</div>}>
+            <HaldiaScene className="h-[26rem] sm:h-[35rem]" onPhase={setPhase} />
           </Suspense>
 
           <div className="pointer-events-none absolute left-4 top-4 rounded-xl border border-border-soft bg-white/90 px-3 py-2 backdrop-blur">
@@ -166,14 +166,14 @@ export default function Landing() {
           <div className="lg:col-span-2">
             <h2 className="text-2xl font-bold text-strong">The market moves faster than a lock cycle</h2>
             <p className="mt-3 text-sm leading-relaxed text-body">
-              Dry bulk freight has lost ninety percent of its value in as little as seven months. Buying coal on single spot voyages means every fixture is priced
-              on whatever the market is doing that day. Watch the real Baltic Dry Index replay below.
+              Dry bulk freight can lose most of its value within two years: the Panamax index fell 86% between December 2013 and February 2016. Buying coal on single spot voyages means every fixture is priced
+              on whatever the market is doing that day. Watch the real Baltic Panamax Index replay below.
             </p>
           </div>
           <div className="lg:col-span-3">
             <TiltCard>
               <SpotlightCard>
-                <div className="p-5"><LiveChart indexName="BDI" label="Baltic Dry Index" height={230} compact /></div>
+                <div className="p-5"><LiveChart indexName="BPI" label="Baltic Panamax Index (BPI)" height={230} compact /></div>
               </SpotlightCard>
             </TiltCard>
           </div>
@@ -263,8 +263,7 @@ export default function Landing() {
       <footer className="border-t border-border-soft bg-white/70">
         <div className="mx-auto max-w-6xl px-6 py-8 text-xs leading-relaxed text-muted">
           <p>
-            Prices shown are real ingested data, replayed rather than streamed live. The Baltic Dry Index runs to February 2026 and the sub-indices end in July 2019
-            (the live feed is a paid subscription); coal, currency and equity series run to 2024–2026. Cost figures in the tools are labelled illustrative estimates, not live quotes.
+            Prices shown are real ingested data, replayed rather than streamed live. The Baltic freight indices end in July 2019 (the live feed is a paid subscription); coal, currency and equity series run to 2024–2026. Cost figures in the tools are labelled illustrative estimates, not live quotes.
             The Haldia scene is a schematic built from public port-trust figures.
           </p>
           <p className="mt-3">Built for the Smart India Hackathon 2026.</p>

@@ -1,13 +1,13 @@
 # Feature List — Baseline vs. Differentiating
 
-42 features (10 baseline + 32 differentiating), split deliberately into two groups: things any competent
+46 features (10 baseline + 36 differentiating), split deliberately into two groups: things any competent
 competing team (there are ~300 submissions per problem statement, and at least
 two public GitHub repos already attempting near-identical ideas) would also
 build, and things that are genuinely ours. This split is itself part of the
 pitch — it shows the judges we know exactly what's "table stakes" versus what's
 the real USP, rather than presenting everything as equally novel.
 
-**Why 16 build sections for 42 features:** the sections in `SECTIONS.md` are
+**Why 16 build sections for 46 features:** the sections in `SECTIONS.md` are
 *build phases* (how the system gets implemented), not a 1:1 map to features
 (what capabilities exist). Several features are delivered together within one
 section because they share the same underlying subsystem — e.g. Section 7
@@ -15,7 +15,7 @@ alone delivered features #1 and #2 (compatibility engine + tidal optimizer);
 Section 8 delivered #5; Section 9 delivered #6. The table below is the actual
 per-feature tracker — updated every session, not just at section boundaries.
 
-## Status tracker (all 42 features)
+## Status tracker (all 46 features)
 
 Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not fully surfaced, or vice versa) · ⬜ not started
 
@@ -47,7 +47,7 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 7 | COA-vs-Spot Simulator | ✅ | Section 10, live in `Financial.tsx` |
 | 8 | Idle-time/ballast-leg minimizer | ✅ | `Voyage.tsx` Demurrage & idle time tab: origins ranked by ballast plus laycan wait
 | 9 | Demurrage risk estimator | ✅ | `Voyage.tsx`: expected demurrage from the port's real turnaround against your laytime
-| 10 | Historical fixture ledger & benchmarking | ✅ | `Ledger.tsx`: add fixtures, benchmark timing against the real BDI (percentile, cheaper day within 30 days, forward move) and rate against the illustrative rate. No public fixture data exists, so only the six sample entries (marked) and your own entries are shown
+| 10 | Historical fixture ledger & benchmarking | ✅ | `Ledger.tsx`: add fixtures, benchmark timing against the real Panamax index, BPI (percentile, cheaper day within 30 days, forward move) and rate against the illustrative rate. No public fixture data exists, so only the six sample entries (marked) and your own entries are shown
 | 11 | "Ask the Freight Desk" NL query assistant | ✅ | `Ask.tsx` + `/assistant/ask`: local TF-IDF + logistic-regression intent model (11 intents, 75% held-out accuracy on hand-written questions) routes to the forecast, origin, berth, risk, congestion, Haldia, COA and demand engines. No external LLM. |
 | 12 | Scenario/stress-testing sandbox | ✅ | Section 11, live in `Scenario.tsx` (freight spike, port closure with reroute alternatives, Red Sea closure) |
 | 13 | Monsoon/cyclone-adjusted ETA & laycan risk engine | ✅ | `Signals.tsx` Cyclone tab: IBTrACS 1990-2025 storm-day probability within 400 km of each port by month, expected delay for a laycan window (delay per storm day is an assumed parameter)
@@ -70,8 +70,22 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 30 | Haldia digital-twin landing scene (three.js) | ✅ | `HaldiaScene.tsx`: anchorage and lightering, river transit, the 330 x 39 m lock with animated gates, berth 4A unloaders, coal pile and rail, with labels and a step caption. Schematic, built from public port-trust figures |
 | 31 | Real Haldia coal-vessel ledger from port-trust reports | ✅ | `ingest_haldia_positions.py` parses SMP Kolkata's daily morning-position PDFs into 90+ distinct coal vessels (LOA, draft, cargo, importer); served at `/haldia/summary` and shown on the landing page |
 | 32 | Account security: password policy, login lockout, change password, session expiry | ✅ | Backend policy (8+ chars, letter and number), 5-failure 10-minute lockout, `PATCH /auth/me`, `POST /auth/change-password`; frontend strength meter, show/hide, profile page, automatic sign-out on expired token |
+| 33 | Role-based access control with per-port and per-row scoping | ✅ | `core/permissions.py`, `require()` on every route; port officers see only assigned ports (filtered in the query), analysts see only their own ledger rows. Roles are assigned by an admin, never chosen at sign-up |
+| 34 | One-click demo accounts for every role | ✅ | `scripts/seed_demo_users.py`, `/auth/demo-login` (passwordless, demo-flagged accounts only, switchable off) |
+| 35 | Chatbot and voice assistant that answer only within the caller's permissions | ✅ | 15 intents; refusals are explained and logged; ledger/alerts/access/user-admin intents query the database under the user's scope; browser voice input, spoken answers, voice navigation ("open the port map") |
+| 36 | Access matrix, user administration and audit log | ✅ | `Access.tsx`, `/admin/*`: role matrix, assign roles and ports, denied-request log |
+| 37 | Model Lab: deep learning vs classical models | ✅ | `scripts/train_dl.py` (LSTM, GRU, TCN, Transformer on the same walk-forward splits), NumPy serving, leaderboard, training curves, weather experiment (a reported negative result) |
+| 38 | Trade Globe (three.js) and chokepoint monitor | ✅ | `TradeGlobe.tsx`, `/lab/chokepoints`: sea lanes, Suez/Bab el-Mandeb/Malacca/Cape/Lombok traffic against the pre-Oct-2023 level from PortWatch |
+| 39 | Risk Lab: 3D forecast fan (three.js) and cost-at-risk Monte Carlo | ✅ | `RiskLab.tsx`: 400 bootstrap paths in 3D; 5,000-draw landed-cost distribution in INR crore with P50/P95 and variance shares |
+| 40 | Market Terrain (three.js) | ✅ | `Terrain.tsx`: eight series over seven years as an interactive 3D landscape |
+| 41 | Haldia lightering planner | ✅ | `/lab/lightering`: fitted to 87 real Haldia coal vessels; the fit is weak (R² 0.10), so the plan uses the observed 95th-percentile cargo as the ceiling and says so |
+| 42 | Laycan timing coach | ✅ | `/lab/timing`: 60-day calendar of storm risk in the arrival week for a port and origin; freight direction is not scored because the indices end in 2019 |
+| 43 | Unusual-moves feed | ✅ | `/lab/anomalies` on Markets: series whose latest move is 2 or more standard deviations out |
+| 44 | Board pack (print-ready briefing, role-scoped) | ✅ | `Report.tsx` |
+| 45 | Command palette (Ctrl/Cmd+K) | ✅ | Jump to any page the role may open, or send the text to the assistant |
+| 46 | Fluid interface scaling from phones to 4K projectors | ✅ | rem-based layout, root size 16 px to 1920 px wide then 0.8333vw (32 px at 3840), pixel chart sizes routed through a scale helper, drawer menu below 1024 px |
 
-**Running total: 41 done, 1 partial, 0 not started** (of 42), counted directly from the rows above. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
+**Running total: 55 done, 1 partial, 0 not started** (of 56), counted directly from the rows above. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
 
 ## A. Baseline features (10) — expected of any serious attempt at this problem
 

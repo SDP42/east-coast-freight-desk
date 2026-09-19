@@ -27,7 +27,7 @@ def _psi(ref: np.ndarray, new: np.ndarray, bins: int = 10) -> float:
     return float(np.sum((n - r) * np.log(n / r)))
 
 
-def drift_report(db: Session, index_name: str = "BDI") -> dict:
+def drift_report(db: Session, index_name: str = "BPI") -> dict:
     s = load_series(db, index_name)
     if len(s) < FIT_DAYS + RECENT_DAYS + REFERENCE_DAYS:
         raise ValueError(f"Not enough {index_name} history for monitoring")
@@ -58,7 +58,7 @@ def drift_report(db: Session, index_name: str = "BDI") -> dict:
     }
 
 
-def retrain(db: Session, index_name: str = "BDI", trigger: str = "manual") -> ModelRun:
+def retrain(db: Session, index_name: str = "BPI", trigger: str = "manual") -> ModelRun:
     before = drift_report(db, index_name)
     s = load_series(db, index_name)
 
@@ -76,7 +76,7 @@ def retrain(db: Session, index_name: str = "BDI", trigger: str = "manual") -> Mo
     return run
 
 
-def history(db: Session, index_name: str = "BDI", limit: int = 20) -> list[dict]:
+def history(db: Session, index_name: str = "BPI", limit: int = 20) -> list[dict]:
     rows = db.query(ModelRun).filter(ModelRun.index_name == index_name).order_by(ModelRun.id.desc()).limit(limit).all()
     return [{"id": r.id, "trained_at": str(r.trained_at), "trigger": r.trigger, "order": r.order, "train_rows": r.train_rows, "train_end": str(r.train_end),
              "holdout_mape": round(float(r.holdout_mape), 3) if r.holdout_mape is not None else None, "drift_before": r.drift_before} for r in rows]

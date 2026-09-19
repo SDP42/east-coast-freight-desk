@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from statsmodels.tsa.arima.model import ARIMA
 
 from app.core.cache import cached, data_version
+from app.api.deps import require
 from app.db.session import get_db
 from app.ml.arima_model import fit_best_arima, forecast, forecast_with_ci
 from app.ml.backtesting import walk_forward_backtest
@@ -21,7 +22,7 @@ from app.schemas.ensemble import (
 from app.schemas.forecast import BacktestSplitMetric, ForecastPoint, ForecastResponse
 from app.services.freight_data import available_index_names, load_series
 
-router = APIRouter(prefix="/forecast", tags=["forecast"])
+router = APIRouter(prefix="/forecast", tags=["forecast"], dependencies=[Depends(require("market:read"))])
 
 EXOGENOUS_CANDIDATES = ["SP500", "DXY", "COAL_AUS", "COAL_ZA"]
 

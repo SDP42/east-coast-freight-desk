@@ -12,7 +12,7 @@ export default function Profile() {
   const { user, updateProfile, changePassword } = useAuth();
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [fullName, setFullName] = useState(user?.full_name ?? "");
-  const [role, setRole] = useState(user?.role ?? "chartering_analyst");
+  const [role, setRole] = useState(user?.persona ?? "chartering_analyst");
   const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -55,14 +55,15 @@ export default function Profile() {
             Full name
             <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} />
           </label>
-          {user?.role !== "admin" && (
+          {(
             <label className="mt-4 block text-xs font-medium text-body">
-              Role
+              Interface persona
               <select value={role} onChange={(e) => setRole(e.target.value)} className={inputClass}>
                 {personas.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
               </select>
             </label>
           )}
+          <p className="mt-3 text-xs text-muted">Your access role is <b className="text-body">{user?.role_label}</b> (level {user?.level} of 5). It is assigned by an administrator; the persona only changes greetings and shortcuts.</p>
           <button type="submit" className="mt-5 rounded-xl bg-strong px-5 py-2.5 text-sm font-medium text-on-accent hover:bg-cyan">Save profile</button>
           <Msg m={profileMsg} />
         </form>

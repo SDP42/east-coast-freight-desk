@@ -20,7 +20,8 @@ cd /Users/swayampanchal/Desktop/SAIL/backend
 source .venv/bin/activate
 alembic upgrade head          # creates the database tables
 cd ../scripts
-python run_all.py             # loads all the real/seed data — takes a few seconds
+python run_all.py             # loads all the real/seed data
+python seed_demo_users.py     # demo accounts (one per role) with sample fixtures — takes a few seconds
                               # (optional datasets in data/raw are skipped if the files are missing)
 ```
 

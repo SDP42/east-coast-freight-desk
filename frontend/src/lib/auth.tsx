@@ -6,8 +6,17 @@ export interface User {
   email: string;
   full_name: string | null;
   role: string;
+  persona: string | null;
+  is_demo: boolean;
   is_active: boolean;
+  role_label: string;
+  level: number;
+  permissions: string[];
+  port_scope: string[] | null;
+  role_summary: string;
 }
+
+export interface DemoAccount { email: string; full_name: string; role: string; role_label: string; level: number; summary: string; port_scope: string[] | null }
 
 export interface Persona {
   key: string;
@@ -22,7 +31,9 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName: string, role: string) => Promise<void>;
   logout: () => void;
-  updateProfile: (fullName: string, role: string) => Promise<void>;
+  updateProfile: (fullName: string, persona: string) => Promise<void>;
+  demoLogin: (email: string) => Promise<void>;
+  can: (permission: string) => boolean;
   changePassword: (current: string, next: string) => Promise<void>;
   sessionExpired: boolean;
 }
@@ -47,6 +58,8 @@ api.interceptors.response.use(
     return Promise.reject(err);
   },
 );
+
+export const getDemoAccounts = () => api.get<DemoAccount[]>("/auth/demo-accounts").then((r) => r.data);
 
 export const getPersonas = () => api.get<Persona[]>("/auth/personas").then((r) => r.data);
 
@@ -112,18 +125,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
-  const updateProfile = useCallback(async (fullName: string, role: string) => {
-    const { data } = await api.patch<User>("/auth/me", { full_name: fullName, role });
+  const updateProfile = useCallback(async (fullName: string, persona: string) => {
+    const { data } = await api.patch<User>("/auth/me", { full_name: fullName, persona });
     setUser(data);
   }, []);
+
+  const demoLogin = useCallback(
+    async (email: string) => {
+      const { data } = await api.post<{ access_token: string }>("/auth/demo-login", { email });
+      localStorage.setItem(TOKEN_KEY, data.access_token);
+      setSessionExpired(false);
+      await loadUser();
+    },
+    [loadUser],
+  );
+
+  const can = useCallback((permission: string) => !!user?.permissions.includes(permission), [user]);
 
   const changePassword = useCallback(async (current: string, next: string) => {
     await api.post("/auth/change-password", { current_password: current, new_password: next });
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout, updateProfile, changePassword, sessionExpired }),
-    [user, loading, login, register, logout, updateProfile, changePassword, sessionExpired],
+    () => ({ user, loading, login, register, logout, updateProfile, demoLogin, can, changePassword, sessionExpired }),
+    [user, loading, login, register, logout, updateProfile, demoLogin, can, changePassword, sessionExpired],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

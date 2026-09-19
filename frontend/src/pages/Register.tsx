@@ -44,7 +44,7 @@ export default function Register() {
     <AuthShell wide>
       <motion.form onSubmit={submit} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-3xl font-bold text-strong">Create your account</h1>
-        <p className="mt-1 text-sm text-muted">Choose the role closest to yours. The desk opens on the tools that role uses most, and you can still use everything.</p>
+        <p className="mt-1 text-sm text-muted">Choose the persona closest to yours: the desk opens on the tools that persona uses most. New accounts start as <b>Viewer</b> (public market data); an administrator then assigns your access role.</p>
 
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {personas.map((p) => {

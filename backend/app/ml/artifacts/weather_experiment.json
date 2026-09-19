@@ -1,0 +1,49 @@
+{
+  "horizon_days": 14,
+  "windows_per_port": 12,
+  "ports": [
+    {
+      "port": "Paradip",
+      "windows": 12,
+      "mae_naive": 0.435,
+      "mae_calls_only": 0.576,
+      "mae_with_weather": 0.63,
+      "weather_gain_pct": -9.4
+    },
+    {
+      "port": "Visakhapatnam",
+      "windows": 12,
+      "mae_naive": 0.53,
+      "mae_calls_only": 0.569,
+      "mae_with_weather": 0.555,
+      "weather_gain_pct": 2.5
+    },
+    {
+      "port": "Haldia",
+      "windows": 12,
+      "mae_naive": 0.333,
+      "mae_calls_only": 0.277,
+      "mae_with_weather": 0.312,
+      "weather_gain_pct": -12.9
+    },
+    {
+      "port": "Dhamra",
+      "windows": 12,
+      "mae_naive": 0.345,
+      "mae_calls_only": 0.27,
+      "mae_with_weather": 0.248,
+      "weather_gain_pct": 8.1
+    },
+    {
+      "port": "Gopalpur",
+      "windows": 12,
+      "mae_naive": 0.06,
+      "mae_calls_only": 0.083,
+      "mae_with_weather": 0.097,
+      "weather_gain_pct": -17.5
+    }
+  ],
+  "pooled_p_weather_better": 0.882,
+  "verdict": "Adding weather did not significantly improve 14-day port-call forecasts.",
+  "note": "Ridge regression on recent calls (with and without wind, rain, wave height and season) predicting the mean calls over the next 14 days; last 12 walk-forward windows per port; pooled one-sided Wilcoxon test across ports."
+}

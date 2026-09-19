@@ -4,7 +4,7 @@ changed: each origin's cost and rank, whether the best pick flipped, and — for
 a port closure — which alternative discharge port would have been cheaper.
 
 Shock types:
-- freight_spike: multiplies all freight costs (e.g. "what if BDI spikes 50%").
+- freight_spike: multiplies all freight costs (e.g. "what if freight rates spike 50%").
 - port_closure: the destination port is unavailable for N days; delay is priced
   at the vessel class's demurrage rate (Section 10 benchmarks) and other ports
   are ranked as reroute alternatives.
@@ -90,7 +90,7 @@ def run_scenario(
 ) -> ScenarioResult:
     vessel_classes = db.query(VesselClass).order_by(VesselClass.dwt_min).all()
     vessel_class = pick_vessel_class(vessel_classes, cargo_tonnes)
-    market_signal = get_market_signal(db, VESSEL_CLASS_TO_INDEX.get(vessel_class.name, "BDI"))
+    market_signal = get_market_signal(db, VESSEL_CLASS_TO_INDEX.get(vessel_class.name, "BPI"))
 
     freight_multiplier = 1.0
     delay_days = 0.0

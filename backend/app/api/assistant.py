@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import require
 from app.db.session import get_db
 from app.ml.intent import model_info
 from app.models import User
@@ -39,18 +39,20 @@ class AskResponse(BaseModel):
     figures: list[Figure]
     links: list[Link]
     assumptions: list[str]
+    denied: bool = False
+    scope: str = ""
 
 
 @router.post("/ask", response_model=AskResponse)
-def ask(payload: AskRequest, db: Session = Depends(get_db), _: User = Depends(get_current_user)) -> AskResponse:
-    a = assistant.ask(db, payload.question)
+def ask(payload: AskRequest, db: Session = Depends(get_db), user: User = Depends(require("assistant:use"))) -> AskResponse:
+    a = assistant.ask(db, payload.question, user)
     return AskResponse(
         intent=a.intent, confidence=round(a.confidence, 3),
         alternatives=[Alt(intent=i, confidence=round(c, 3)) for i, c in a.alternatives], entities=a.entities, text=a.text,
-        figures=[Figure(label=l, value=v) for l, v in a.figures], links=[Link(label=l, to=t) for l, t in a.links], assumptions=a.assumptions,
+        figures=[Figure(label=l, value=v) for l, v in a.figures], links=[Link(label=l, to=t) for l, t in a.links], assumptions=a.assumptions, denied=a.denied, scope=a.scope,
     )
 
 
 @router.get("/info")
-def info(_: User = Depends(get_current_user)) -> dict:
-    return {"model": model_info(), "suggestions": assistant.SUGGESTIONS}
+def info(user: User = Depends(require("assistant:use"))) -> dict:
+    return {"model": model_info(), "suggestions": assistant.suggestions_for(user)}

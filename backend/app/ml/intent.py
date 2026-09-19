@@ -19,13 +19,13 @@ from sklearn.pipeline import FeatureUnion, Pipeline
 
 TRAINING: dict[str, list[str]] = {
     "market_now": [
-        "what is the baltic dry index today", "how is the freight market right now", "current BDI level", "where is capesize trading",
+        "what are freight rates today", "how is the freight market right now", "current panamax level", "where is capesize trading",
         "is the market up or down this week", "how are dry bulk rates doing", "give me a market snapshot", "what are panamax rates at the moment",
         "latest supramax index value", "is freight expensive now compared to history", "how volatile is the market lately", "market update please",
     ],
     "forecast": [
-        "what will BDI be next week", "forecast capesize for the next 14 days", "predict freight rates for the next month", "where is the baltic index heading",
-        "will freight go up or down", "give me a 30 day forecast", "projected panamax rate in two weeks", "expected BDI in 7 days",
+        "what will panamax be next week", "forecast capesize for the next 14 days", "predict freight rates for the next month", "where is the baltic index heading",
+        "will freight go up or down", "give me a 30 day forecast", "projected panamax rate in two weeks", "expected capesize rate in 7 days",
         "what is the outlook for dry bulk freight", "is now a good time to fix or should I wait for rates to fall", "should i wait for the market to drop", "will rates rise next week",
     ],
     "recommend_origin": [
@@ -68,6 +68,26 @@ TRAINING: dict[str, list[str]] = {
         "how were the models trained", "how accurate is the forecast", "what is the forecast accuracy", "can i trust these numbers",
         "which parts are simulated", "what are your data sources", "how good is the model", "how was this trained",
     ],
+    "ledger": [
+        "show my fixtures", "how many fixtures do we have", "list the fixtures in the ledger", "what did we charter recently",
+        "show the fixture ledger", "what is the average rate we paid", "how many tonnes have we fixed", "latest fixture",
+        "show past charters", "which vessels have we fixed", "fixture history", "what fixtures have been recorded",
+    ],
+    "alerts_mine": [
+        "do i have any alerts", "show my alerts", "what alerts fired", "any notifications for me",
+        "which alert rules do i have", "have any of my rules triggered", "list my alert rules", "unread alerts",
+        "did anything trigger", "what are my alert settings", "any warnings for me", "check my notifications",
+    ],
+    "my_access": [
+        "what can i access", "what is my role", "what permissions do i have", "why can't i see this data",
+        "which data am i allowed to see", "what is my access level", "which ports am i assigned", "who am i",
+        "what are my permissions", "which pages can i open", "what am i allowed to ask", "explain my access",
+    ],
+    "users_admin": [
+        "how many users have accounts", "list the users", "who has access to the platform", "show all accounts",
+        "how many administrators are there", "who are the finance users", "user accounts summary", "how many people use this",
+        "who has which role", "show denied requests", "audit log summary", "who tried to access restricted data",
+    ],
     "help": [
         "help", "what can you do", "hello", "hi there", "what can i ask you", "how do i use this",
         "show me what you can answer", "good morning", "who are you", "what questions do you understand", "thanks", "guide me",
@@ -76,7 +96,7 @@ TRAINING: dict[str, list[str]] = {
 
 INDEX_WORDS = [
     (r"\bcape(size)?\b|\bbci\b", "BCI"), (r"\bpanamax\b|\bbpi\b", "BPI"), (r"\bsupramax\b|\bbsi\b", "BSI"), (r"\bhandy(size)?\b|\bbhsi\b", "BHSI"),
-    (r"\bbaltic\b|\bbdi\b|\bdry index\b", "BDI"),
+    (r"\bbaltic\b|\bbdi\b|\bdry index\b", "BPI"),
 ]
 ORIGINS = [
     (r"australia|aussie|queensland|hay point|gladstone|abbot point|dalrymple", "Australia"),
@@ -144,7 +164,7 @@ def tag(q: str) -> str:
     return q + " " + " ".join(extra)
 
 
-IDX = ["BDI", "capesize", "panamax", "supramax", "handysize", "the baltic index"]
+IDX = ["BPI", "capesize", "panamax", "supramax", "handysize", "the baltic index"]
 PORTS = ["Haldia", "Paradip", "Vizag", "Gangavaram", "Dhamra", "Gopalpur", "Sagar Sandheads"]
 ORIG = ["Australia", "Russia", "Mozambique", "Indonesia", "the US"]
 TEMPLATES: dict[str, list[str]] = {

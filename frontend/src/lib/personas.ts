@@ -105,6 +105,7 @@ export const ROUTE_PERMISSION: Record<string, string | string[]> = {
   "/app/alerts": "alerts:manage",
   "/app/monitor": "monitor:read",
   "/app/risklab": "market:read",
+  "/app/live": "market:read",
   "/app/lab": "market:read",
   "/app/terrain": "market:read",
   "/app/globe": "ports:read",

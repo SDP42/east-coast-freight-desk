@@ -39,7 +39,7 @@ A working platform, not a slide: sign in, ask a question, get a number, and see 
 | **Ask the Desk** | A chatbot and voice assistant that answers in plain English from the platform's own engines, and only with data the signed-in role may see. | Ask the Desk |
 | **Govern** | Role-based access control enforced in the API and the database queries, per-port scoping, an audit log of every request and refusal, hash-chained fixture ledger, alerts, drift monitor. | Access & Audit, Fixture Ledger, Alerts |
 | **See** | Four vanilla three.js scenes: the Haldia dock on the landing page, a trade globe with chokepoint traffic, a 3D Monte-Carlo forecast fan, and a market terrain. A layout that scales from phones to 4K projectors. | Landing, Trade Globe, Risk Lab, Market Terrain |
-| **Quantify risk** | Cost-at-risk Monte Carlo for a cargo (P50/P95 in INR crore), Haldia lightering planner fitted to real vessel data, laycan timing coach, unusual-moves feed. | Risk Lab, Port Signals, Markets |
+| **Quantify risk** | Cost-at-risk Monte Carlo for a cargo (P50/P95 in INR crore), Haldia lightering planner fitted to real vessel data, laycan timing coach, unusual-moves feed, a Live Desk of minute-by-minute simulated ticks. | Risk Lab, Port Signals, Markets, Live Desk |
 
 ## 3. Who it is for, and what each role sees
 

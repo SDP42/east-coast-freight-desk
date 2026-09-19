@@ -238,6 +238,7 @@ Closes every ⬜ and 🔧 feature except WhatsApp/SMS delivery (needs a provider
 - **Three.js scenes** (vanilla, shared `components/three/stage.ts`): Trade Globe (6,029 land dots, animated lanes, pulsing chokepoints coloured by traffic), 3D Monte-Carlo forecast fan, Market Terrain. The Haldia scene is the fourth.
 - **New engines** (`services/lab.py`): chokepoint monitor, anomaly feed, cost-at-risk Monte Carlo, forecast fan paths, Haldia lightering planner (regression R² 0.10, so a weak fit that the page states), laycan timing coach, terrain data.
 - **Responsive**: root font size 16 px up to 1920 px wide, then 0.8333vw (21 px at QHD, 32 px at 4K, capped at 44 px); charts scale through `px()`; below 1024 px the sidebar is a drawer with a top bar. Checked at 390, 1366, 2560 and 3840 px.
+- **Live Desk** (`LiveDesk.tsx`, `/live/seed`): minute-by-minute ticks, simulated as Brownian bridges between each series' last two real closes with its real volatility, labelled SIMULATED. Chosen over a real provider at the project owner's decision; no free minute-level freight rates exist.
 - **Docs**: README restructured for reviewers, `TECHSTACK.md` added, `FLOW.md` (demo running order, kept out of git).
 
 ### 15. NL query assistant ("Ask the Freight Desk") — ✅ done

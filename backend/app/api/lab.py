@@ -109,3 +109,24 @@ def lab_cost_at_risk(origin: str, port: str, cargo_tonnes: float = 75000, vessel
         return lab_service.cost_at_risk(db, origin, port, cargo_tonnes, vessel_class)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+
+
+LIVE_SERIES = [("BPI", "Panamax index", "points"), ("BCI", "Capesize index", "points"), ("BSI", "Supramax index", "points"), ("COAL_AUS", "Australian coal", "usd/t"),
+               ("INR", "INR per USD", "inr"), ("SP500", "S&P 500", "usd"), ("DXY", "US dollar index", "pts")]
+
+
+@router.get("/live/seed", dependencies=MARKET)
+def live_seed(db: Session = Depends(get_db)) -> dict:
+    """Real anchors for the simulated minute ticks: last two closes and daily volatility per series."""
+    import numpy as np
+
+    out = []
+    for key, label, unit in LIVE_SERIES:
+        s = load_series(db, key)
+        if len(s) < 300:
+            continue
+        r = np.log(s.where(s > 0)).diff().dropna()
+        out.append({"key": key, "label": label, "unit": unit, "prev_close": round(float(s.iloc[-2]), 4), "last_close": round(float(s.iloc[-1]), 4),
+                    "prev_date": str(s.index[-2].date()), "last_date": str(s.index[-1].date()), "daily_vol": round(float(r.iloc[-250:].std()), 6)})
+    return {"series": out, "simulated": True,
+            "note": "SIMULATED minute ticks. Each series replays its last real trading day as 390 one-minute steps (a Brownian bridge between the two real closes, with the series' real daily volatility). This is not a market feed: no free source of minute-level freight rates exists."}

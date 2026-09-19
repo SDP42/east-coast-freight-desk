@@ -22,3 +22,5 @@ services:
         sync: false
       - key: PREWARM
         value: "true"
+      - key: ALLOW_DEMO_LOGIN
+        value: "true"

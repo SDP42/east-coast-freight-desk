@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, TrendingUp, Compass, MapPinned, ShieldAlert, Calculator, FlaskConical, Activity, Map, MessageSquareText, KeyRound, Leaf, Radar,
-  Database, BookLock, Bell, Gauge, Globe2, Mountain, Dices, Brain, FileText, type LucideIcon,
+  Database, BookLock, Bell, Gauge, Globe2, Mountain, Dices, Brain, FileText, Zap, type LucideIcon,
 } from "lucide-react";
 
 export interface NavLinkDef { to: string; key: string; label: string; icon: LucideIcon; hint?: string }
@@ -18,6 +18,7 @@ export const NAV_GROUPS: NavGroup[] = [
   ] },
   { title: "Analyse", links: [
     { to: "/app/markets", key: "markets", label: "Markets", icon: Activity },
+    { to: "/app/live", key: "live", label: "Live Desk", icon: Zap, hint: "Minute-by-minute ticks (simulated)" },
     { to: "/app/forecast", key: "forecast", label: "Freight Forecast", icon: TrendingUp },
     { to: "/app/lab", key: "lab", label: "Model Lab", icon: Brain, hint: "Deep learning vs classical models" },
     { to: "/app/terrain", key: "terrain", label: "Market Terrain", icon: Mountain, hint: "3D landscape of the series" },

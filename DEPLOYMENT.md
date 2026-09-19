@@ -31,6 +31,7 @@ export DATABASE_URL='paste-the-neon-connection-string-here'
 alembic upgrade head            # creates the tables in Neon
 cd ../scripts
 python run_all.py               # loads all the data into Neon (a few minutes over the internet)
+python seed_demo_users.py       # the six demo accounts and sample fixtures (skip for a real launch)
 ```
 
 Watch for red error text. The tables were built and tested on SQLite; this is their first run on Postgres, so if
@@ -60,6 +61,14 @@ something fails, copy the message to me and I will fix it.
 In Render, open the service, then **Environment**, and change `CORS_ORIGINS` to
 `["https://freight-desk.vercel.app"]` (your real Vercel address, in that exact JSON list format). Save; Render
 redeploys. Then open the Vercel address, register an account and click around.
+
+## Demo accounts on the live site
+
+The sign-in page offers one-click demo accounts (one per role) when `ALLOW_DEMO_LOGIN` is `true` (the default). They hold
+sample data only, but the demo Administrator can see the audit log and user list, so for a real launch set
+`ALLOW_DEMO_LOGIN` to `false` in Render's Environment tab and assign roles to real users with
+`python scripts/set_role.py you@example.com admin` (run against the Neon database as in Step 2). The deep-learning
+training (`scripts/train_dl.py`) is done on a laptop; the deployed API only needs the small weight files already in the repository.
 
 ## If something goes wrong
 

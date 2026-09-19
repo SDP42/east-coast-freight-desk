@@ -1,13 +1,13 @@
 # Feature List — Baseline vs. Differentiating
 
-46 features (10 baseline + 36 differentiating), split deliberately into two groups: things any competent
+47 features (10 baseline + 37 differentiating), split deliberately into two groups: things any competent
 competing team (there are ~300 submissions per problem statement, and at least
 two public GitHub repos already attempting near-identical ideas) would also
 build, and things that are genuinely ours. This split is itself part of the
 pitch — it shows the judges we know exactly what's "table stakes" versus what's
 the real USP, rather than presenting everything as equally novel.
 
-**Why 16 build sections for 46 features:** the sections in `SECTIONS.md` are
+**Why 16 build sections for 47 features:** the sections in `SECTIONS.md` are
 *build phases* (how the system gets implemented), not a 1:1 map to features
 (what capabilities exist). Several features are delivered together within one
 section because they share the same underlying subsystem — e.g. Section 7
@@ -15,7 +15,7 @@ alone delivered features #1 and #2 (compatibility engine + tidal optimizer);
 Section 8 delivered #5; Section 9 delivered #6. The table below is the actual
 per-feature tracker — updated every session, not just at section boundaries.
 
-## Status tracker (all 46 features)
+## Status tracker (all 47 features)
 
 Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not fully surfaced, or vice versa) · ⬜ not started
 
@@ -84,8 +84,9 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 44 | Board pack (print-ready briefing, role-scoped) | ✅ | `Report.tsx` |
 | 45 | Command palette (Ctrl/Cmd+K) | ✅ | Jump to any page the role may open, or send the text to the assistant |
 | 46 | Fluid interface scaling from phones to 4K projectors | ✅ | rem-based layout, root size 16 px to 1920 px wide then 0.8333vw (32 px at 3840), pixel chart sizes routed through a scale helper, drawer menu below 1024 px |
+| 47 | Live Desk: minute-by-minute ticks (simulated) | ✅ | `LiveDesk.tsx`, `/live/seed`: each series' last real trading day replayed as 390 one-minute Brownian-bridge steps with its real volatility; tiles, tape, chart, speed control; labelled SIMULATED everywhere. No free minute-level freight data exists; a real provider (Yahoo keyless or a Twelve Data key) can be added behind the same page if you choose one |
 
-**Running total: 55 done, 1 partial, 0 not started** (of 56), counted directly from the rows above. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
+**Running total: 56 done, 1 partial, 0 not started** (of 57), counted directly from the rows above. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
 
 ## A. Baseline features (10) — expected of any serious attempt at this problem
 

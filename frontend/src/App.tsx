@@ -11,6 +11,7 @@ import TradeGlobe from "./pages/TradeGlobe";
 import RiskLab from "./pages/RiskLab";
 import Terrain from "./pages/Terrain";
 import ModelLab from "./pages/ModelLab";
+import LiveDesk from "./pages/LiveDesk";
 import Report from "./pages/Report";
 import Access from "./pages/Access";
 import Profile from "./pages/Profile";
@@ -58,6 +59,7 @@ export default function App() {
         <Route path="terrain" element={<Terrain />} />
         <Route path="lab" element={<ModelLab />} />
         <Route path="report" element={<Report />} />
+        <Route path="live" element={<LiveDesk />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

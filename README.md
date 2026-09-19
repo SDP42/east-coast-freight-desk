@@ -47,6 +47,7 @@ A working platform, not a slide: sign in, ask a question, get a number, and see 
 | **Govern** | Role-based access control enforced in the API and the database queries, per-port scoping, an audit log of every request and refusal, hash-chained fixture ledger, alerts, drift monitor. | Access & Audit, Fixture Ledger, Alerts |
 | **See** | Four vanilla three.js scenes: the Haldia dock on the landing page, a trade globe with chokepoint traffic, a 3D Monte-Carlo forecast fan, and a market terrain. A layout that scales from phones to 4K projectors. | Landing, Trade Globe, Risk Lab, Market Terrain |
 | **Decide fast** | What-If Studio (eight levers, crisis playbooks, tornado, break-even, saved comparisons) and the Urgent Fixture Desk (what can arrive by the deadline, how likely, at what cost, and the walk-away price). Also askable in plain English. | What-If Studio, Urgent Fixture Desk, Ask the Desk |
+| **Optimise and plan** | A sourcing optimiser (linear program with shadow prices: cheapest origin, port and plant mix), a live seven-day weather window per port, and a track record for the verdict's rules. | Sourcing Optimiser, Weather Window, The Verdict |
 | **The verdict** | One plain call: when to rent a ship and which one (rent now, within a week, wait, split, or cannot meet the date), with the reasons and what would change it. Rule-based decision support, not a trained model. | The Verdict, Ask the Desk |
 | **Ship availability and claims** | Ship Supply Radar (named bulk carriers arriving at Newcastle's coal berths, from a live public feed), part-laden berth fit, laytime and demurrage claim calculator, Market Pulse of current public data, and Data Health for the administrator. | Ship Supply Radar, Laytime, Market Pulse, Data Health |
 | **Quantify risk** | Cost-at-risk Monte Carlo for a cargo (P50/P95 in INR crore), Haldia lightering planner fitted to real vessel data, laycan timing coach, unusual-moves feed, a Live Desk of minute-by-minute simulated ticks. | Risk Lab, Port Signals, Markets, Live Desk |
@@ -139,7 +140,7 @@ Measured on the Panamax index, 7-day horizon, walk-forward with 35 paired foreca
 The hybrid is significantly better than ARIMA (Wilcoxon p = 0.0019) and not significantly better than XGBoost
 (p = 0.16). Results are series-specific: on a daily Baltic Dry Index we briefly tested, the hybrid did not beat ARIMA.
 **Deep learning** on the same 35 forecasts: the deep ensemble has the lowest error (MAE 25.8 vs ARIMA 31.9) but the gap is not statistically significant (p = 0.17); the hybrid is the only model significantly better than ARIMA. A test of whether weather helps predict port traffic found no significant gain (p = 0.88). Both are reported in the Model Lab page and [MODELS.md](MODELS.md). Other measured results: the assistant's intent model scores
-75% ± 6% on held-out, hand-written questions (an in-distribution figure, not an external benchmark); every read
+87% ± 4% on held-out, hand-written questions (an in-distribution figure, not an external benchmark); every read
 endpoint has a warm p95 under 200 ms; 24 unit tests pass.
 
 ## 8. Security and privacy

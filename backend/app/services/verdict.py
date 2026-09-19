@@ -74,8 +74,8 @@ def build(db: Session, port_name: str, cargo_tonnes: float, need_by_days: float 
     cards = {c["series"]: c for c in p["cards"]}
     if "OCEAN_GULF_JAPAN" in cards and cards["OCEAN_GULF_JAPAN"]["change_3m_pct"] is not None:
         ch = cards["OCEAN_GULF_JAPAN"]["change_3m_pct"]
-        votes.append(_vote("Dry-bulk freight momentum", 2.0, ch / 15, f"USDA grain ocean rate {ch:+.1f}% over 3 months (to {cards['OCEAN_GULF_JAPAN']['as_of']})",
-                           "Rising dry-bulk rates mean a dearer ship later: rent sooner. Falling rates favour waiting. It tracks Baltic Supramax and Panamax moves closely (monthly-change correlation about 0.7 in 2012 to 2019), but it is a grain-route proxy, not a coal rate."))
+        votes.append(_vote("Dry-bulk freight momentum", 1.0, ch / 15, f"USDA grain ocean rate {ch:+.1f}% over 3 months (to {cards['OCEAN_GULF_JAPAN']['as_of']})",
+                           "Rising dry-bulk rates mean a dearer ship later: rent sooner. It tracks Baltic Supramax and Panamax moves closely (monthly-change correlation about 0.7 in 2012 to 2019), but momentum itself has only a weak record (see the evidence below), so it carries a small weight."))
     if "COAL_AUS" in cards and cards["COAL_AUS"]["change_3m_pct"] is not None:
         ch = cards["COAL_AUS"]["change_3m_pct"]
         votes.append(_vote("Coal price momentum", 1.0, ch / 15, f"Australian coal {ch:+.1f}% over 3 months", "Rising coal prices lift demand for ships; falling prices ease it. A weak, indirect signal."))
@@ -129,7 +129,13 @@ def build(db: Session, port_name: str, cargo_tonnes: float, need_by_days: float 
         flips.append("Newcastle showing more ships leaving than arriving turns it towards RENT NOW.")
     if verdict != "WAIT AND RECHECK":
         flips.append("Two weeks of falling traffic at the port and a stronger rupee would turn this towards WAIT.")
+    from app.services import verdict_eval
+    try:
+        ev = verdict_eval.evidence(db)
+    except Exception:  # noqa: BLE001
+        ev = None
     return {
+        "evidence": ev,
         "verdict": verdict, "headline": headline, "score": round(score, 2), "confidence": confidence, "act_by": act.isoformat(),
         "port": port_name, "cargo_tonnes": cargo_tonnes, "need_by_days": need_by_days,
         "ship": ship, "walk_away_usd_per_t": desk["walk_away_usd_per_t"], "safe_options": desk["feasible_count"], "options_evaluated": desk["options_evaluated"],

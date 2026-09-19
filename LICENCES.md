@@ -14,7 +14,7 @@ The rule for this project: **only free sources with clear terms**. This is every
 | IMF iron-ore price, via FRED | IMF data terms: reuse and derivative works allowed with attribution; commercial reuse needs IMF permission | Context series | Clear for a non-commercial prototype; attribute "Source: International Monetary Fund" |
 | IMF PortWatch (port calls, chokepoints) | IMF data terms (not Creative Commons): use, copy and derive with attribution and without altering meaning; commercial reuse needs IMF permission | Port and chokepoint traffic. AIS-derived estimates | Clear for a non-commercial prototype; attribute "Source: International Monetary Fund, PortWatch" |
 | NOAA IBTrACS cyclone tracks | US government, public domain | Storm exposure by port and month | Clear |
-| Open-Meteo weather | CC BY 4.0 for non-commercial use | Weather experiment only | Clear for non-commercial use |
+| Open-Meteo weather and marine forecast | CC BY 4.0, free for non-commercial use, attribution required | Weather experiment and the live weather-window planner (fetched live, not stored) | Clear for non-commercial use; attribute "Weather data by Open-Meteo.com" |
 | SMP Kolkata (Haldia) daily vessel position reports | Public government reports; no reuse licence stated | We extract facts (vessel, cargo, draft) and do not republish the documents; raw files are not in the repository | Low risk; do not redistribute the PDFs |
 | Port Authority of NSW, Newcastle Harbour vessel movements | **Reuse terms not found** (its copyright and terms pages returned "not found") | Optional live view, **off by default** (`LIVE_SHIP_FEED=false`), rows cached 30 minutes and not stored | **Unconfirmed: keep off in any public deployment until the Port Authority confirms** |
 | Natural Earth land dots | Public domain | Map dots | Clear |
@@ -32,5 +32,7 @@ Baltic Dry Index: removed, because no freely licensed daily source exists. The l
 | React Bits components (ParticleText, BorderGlow, Carousel, GlideSelect, FuseButton, LatticeLoader, Ripple) | MIT with the Commons Clause | Free for personal and commercial use in an application; not for reselling the components on their own |
 | FastAPI, SQLAlchemy, Alembic, pandas, NumPy, SciPy, statsmodels, scikit-learn, XGBoost, SHAP | MIT / BSD / Apache 2.0 | |
 | PyTorch (offline training only) | BSD | |
+| fastembed (ONNX runtime for embeddings) | Apache 2.0 | Optional |
+| BAAI/bge-small-en-v1.5 sentence-embedding model (Hugging Face) | MIT | Downloaded once, then runs locally; no API or key |
 
 No code was copied from other teams' public repositories for this problem statement.

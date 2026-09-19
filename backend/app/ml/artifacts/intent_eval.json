@@ -1,0 +1,15 @@
+{
+ "evaluated_at": "2026-09-19T15:08:37",
+ "model": "BAAI/bge-small-en-v1.5",
+ "folds": 15,
+ "questions": 216,
+ "intents": 18,
+ "tfidf_accuracy": 0.735,
+ "embeddings_accuracy": 0.866,
+ "combined_accuracy": 0.869,
+ "tfidf_std": 0.064,
+ "embeddings_std": 0.049,
+ "combined_std": 0.039,
+ "p_combined_vs_tfidf": 0.0007,
+ "note": "Held-out hand-written questions, in-distribution; not an external benchmark."
+}

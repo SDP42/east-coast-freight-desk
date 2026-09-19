@@ -31,7 +31,7 @@ user-facing features.
 
 - **What**: TF-IDF (word 1-2 grams plus character 2-4 grams) with entity-marker tokens, then logistic regression (`backend/app/ml/intent.py`). It routes a question to one of 11 engines; it does not generate text.
 - **Why chosen**: with about 270 examples a linear model on sparse features is the sensible fit. Character n-grams tolerate typos and phrasings ("vizag", "capesize"), and marker tokens let it use the fact that a port or a horizon was named. A transformer or hosted LLM would need a provider, a key and data leaving the deployment.
-- **Accuracy**: 74% ± 7% on held-out hand-written questions (5-fold; 18 intents, 216 hand-written and 140 template-generated examples, templates always in training). This is an in-distribution figure on our own questions, not an external benchmark. Low-confidence questions (under 35%) get a clarification instead of a guess.
+- **Accuracy**: 87% ± 4% on held-out hand-written questions (5-fold; 18 intents, 216 hand-written and 140 template-generated examples, templates always in training). This is an in-distribution figure on our own questions, not an external benchmark. Low-confidence questions (under 35%) get a clarification instead of a guess.
 
 ### 5. Port-signal models (Section 14d)
 
@@ -117,4 +117,16 @@ No model is significantly better than assuming no change (best is Ridge at 1 mon
 | Capesize | 0.41 | too weak: no figures shown |
 
 The estimates show the 2020 slump and the 2021 surge, but they are **estimates**, not Baltic Exchange data: the relationship is fitted on 2012 to 2019 and applied to a different market, so the interface shows a wide band (about ±37% for Supramax, ±70% for Panamax). No post-2019 Baltic values were available to check them against.
+
+## Hugging Face embeddings in the assistant
+
+Model: BAAI/bge-small-en-v1.5 (MIT, 384 dimensions), run locally through fastembed. Protocol: the 216 hand-written questions, 5-fold, three seeds, the 140 template questions always in training (`scripts/eval_intent_embeddings.py`, results in `intent_eval.json`).
+
+| Method | Accuracy |
+|---|---|
+| TF-IDF + logistic regression (previous) | 73.5% ± 6.4% |
+| Sentence embeddings + logistic regression | 86.6% ± 4.9% |
+| Both, probabilities averaged (used) | **86.9% ± 3.9%** (p = 0.0007 vs TF-IDF) |
+
+In-distribution on our own questions, not an external benchmark. The first question after a cold start takes a few seconds while the model loads; start-up warms it.
 

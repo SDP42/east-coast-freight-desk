@@ -1,13 +1,13 @@
 # Feature List — Baseline vs. Differentiating
 
-75 features (10 baseline + 65 differentiating), split deliberately into two groups: things any competent
+80 features (10 baseline + 70 differentiating), split deliberately into two groups: things any competent
 competing team (there are ~300 submissions per problem statement, and at least
 two public GitHub repos already attempting near-identical ideas) would also
 build, and things that are genuinely ours. This split is itself part of the
 pitch — it shows the judges we know exactly what's "table stakes" versus what's
 the real USP, rather than presenting everything as equally novel.
 
-**Why 16 build sections for 75 features:** the sections in `SECTIONS.md` are
+**Why 16 build sections for 80 features:** the sections in `SECTIONS.md` are
 *build phases* (how the system gets implemented), not a 1:1 map to features
 (what capabilities exist). Several features are delivered together within one
 section because they share the same underlying subsystem — e.g. Section 7
@@ -15,7 +15,7 @@ alone delivered features #1 and #2 (compatibility engine + tidal optimizer);
 Section 8 delivered #5; Section 9 delivered #6. The table below is the actual
 per-feature tracker — updated every session, not just at section boundaries.
 
-## Status tracker (all 75 features)
+## Status tracker (all 80 features)
 
 Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not fully surfaced, or vice versa) · ⬜ not started
 
@@ -103,6 +103,11 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 63 | Laytime claims for port officers | ✅ | The laytime calculator now needs `ports:read`, so Port and Logistics Officers (who hold the statement of facts) can use it, not only Finance |
 | 64 | Current dry-bulk freight signal (USDA ocean rate) | ✅ | `scripts/ingest_usda_ocean.py`: the US government's monthly grain ocean rate to 2026, shown in Market Pulse and used as a freight-momentum vote in the Verdict. Tracked the Baltic indices closely in 2012 to 2019 (0.76 and 0.72 monthly-change correlation) |
 | 65 | Models retrained on current data | ✅ | `scripts/train_current.py`, `train_current_dl.py`, `services/current.py`, `GET /lab/current`: rate forecasts (ARIMA, Ridge, XGBoost, hybrid, GRU) with walk-forward tests, and a Baltic Supramax and Panamax nowcast to 2026 with bands. Honest results: no model beats "no change" on the rate; the nowcast is usable for Supramax and Panamax and not for Capesize |
+| 66 | Sourcing allocation optimiser | ✅ | `services/optimiser.py`, `POST /sourcing/optimise`, `Optimiser.tsx`: a linear program (HiGHS) picks origin, port and plant for each tonne to minimise sea + port + rail cost within plant demand, port capacity and origin-share caps, and returns **shadow prices** (what one more kt of a port's capacity or an origin's cap is worth). Under assumed inputs it saves about 3% (₹11 crore a month) against the fixed current mix. Cost-only: coal quality and price differences are not modelled; every input is an assumption to replace |
+| 67 | Weather-window planner | ✅ | `services/weather.py`, `GET /weather/window`, `WeatherWindow.tsx`: live seven-day waves, wind and rain at a port (Open-Meteo, free, keyless) turned into working days, lost days and the best three-day window. Port-scoped for port officers. Thresholds are assumed planning values |
+| 68 | Verdict track record | ✅ | `services/verdict_eval.py`, `GET /verdict/evidence`, also inside every verdict: a test of the freight-momentum rule on history. Result reported as it is: a borderline edge in 30 years of USDA rates (p = 0.04), none in Baltic Panamax 2012 to 2019 (p = 0.46), so the signal carries a small weight |
+| 69 | Hugging Face embeddings in the assistant | ✅ | `app/ml/embed.py`: BAAI/bge-small-en-v1.5 (MIT), run locally through fastembed, averaged with the TF-IDF model. Intent accuracy 73.5% to 86.9% (15 held-out folds, p = 0.0007). Falls back to TF-IDF automatically; `INTENT_EMBEDDINGS=0` switches it off |
+| 70 | Cross-checked feature honesty | ✅ | Every new feature ships with its limits: assumptions returned in the response, and negative results (GRU, deep-sea PPI, Capesize nowcast, momentum) kept in the documentation |
 
 **Running total: 56 done, 1 partial, 0 not started** (of 57), counted directly from the rows above. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
 
@@ -229,9 +234,9 @@ Also delivered (not counted as features): landing page rebuilt with React Bits c
 |---|---|---|---|
 | Administrator | Cannot tell whether the data behind a recommendation is current; users and access need governing | Data Health (#56), usage and refusal analytics (#62), Access & Audit | none |
 | Finance & Treasury | Cost surprises: demurrage claims, rupee and freight moves | Annual programme planner (#60), laytime calculator (#55), What-If Studio, hedge overlay, cost at risk | Actual-versus-budget tracking against ledger entries |
-| Procurement Manager | Is any ship actually available for this laycan, and will it fit the berth? | The Verdict (#58), Ship Supply Radar (#53), Urgent Desk, part-laden fit (#54), sourcing resilience (#61) | Named-vessel matching by size (needs a licensed fleet register); Hay Point and Richards Bay feeds |
+| Procurement Manager | Is any ship actually available for this laycan, and will it fit the berth? What is the cheapest mix of origin, port and plant? | The Verdict (#58), sourcing optimiser (#66), Ship Supply Radar (#53), Urgent Desk, part-laden fit (#54), sourcing resilience (#61) | Named-vessel matching by size (needs a licensed fleet register); Hay Point and Richards Bay feeds |
 | Chartering Analyst | Market context that is current, not 2019 | Market Pulse (#57), Forecast, Model Lab, model proof (#59) | A licensed live Baltic feed (Supramax and Panamax now have a validated nowcast; Capesize does not) |
-| Port & Logistics Officer | Berth and queue risk for their own port | Port Signals, berth-slot forecast, cyclone risk, laytime claims (#63), port scoping | Berth-allocation planner (no berth counts are public) |
+| Port & Logistics Officer | Berth and queue risk for their own port | Port Signals, berth-slot forecast, cyclone risk, laytime claims (#63), port scoping | Berth-allocation planner (no berth counts are public); weather window (#67) covers the next seven days |
 | Viewer | Public market context | Markets, Market Pulse | none |
 
 Ship availability is the weakest link and is stated plainly: real public feeds name the ships arriving at Newcastle but give no size or

@@ -1,1 +1,2 @@
 torch==2.14.0
+fastembed>=0.3   # optional: Hugging Face sentence embeddings for the assistant (MIT model, runs locally)

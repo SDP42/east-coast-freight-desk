@@ -64,7 +64,7 @@ Base case (Australia → Haldia, 75,000 t, Panamax, everything at zero): **₹9.
 
 ## 4. Ask the Desk: chat, voice, and role-aware answers
 
-**What it does:** a local intent model (75% ± 6% accuracy on held-out questions, 17 intents) routes plain English to the engines. It answers with the figures used, states its assumptions, and **refuses anything the signed-in role may not see**, logging the refusal.
+**What it does:** a local intent model (87% ± 4% accuracy on held-out questions, 18 intents; Hugging Face sentence embeddings plus TF-IDF) routes plain English to the engines. It answers with the figures used, states its assumptions, and **refuses anything the signed-in role may not see**, logging the refusal.
 
 **Type or say these as Finance & Treasury:**
 
@@ -172,4 +172,16 @@ Say: "Every bar is a reason. The desk shows what would flip the call. It is rule
 ## 12. "Are the models real?": the proof page
 
 Call `GET /lab/proof/BPI` (or add the page): it refits ARIMA and XGBoost live on ten walk-forward origins (about two seconds for twenty fits) and lists the deep-model weight files with SHA-256 fingerprints. Say: "Forecast pages are quick because results are cached for six hours and the deep networks were trained offline; this proves the work is real. The honest result is that the models beat a naive forecast only modestly, and the deep ensemble is not significantly better than ARIMA."
+
+## 13. Sourcing optimiser (Procurement or Finance)
+
+Open **Sourcing Optimiser**. It solves the month's allocation of 1,400 kt of coking coal to five plants (Bhilai, Bokaro, Rourkela, Durgapur, IISCO) through five ports and four origins. On the build date and the assumed inputs: about **₹361 crore a month**, **₹11 crore (3%) cheaper** than keeping the current origin mix, about ₹132 crore a year. Point at the "What each limit costs you" table: the Mozambique cap is worth about ₹20 lakh per extra kt a month, Australia's cap about ₹16 lakh. Say: "Every input is an assumption on screen; replace them with SAIL's and the plan updates. It optimises logistics, not coal quality."
+
+## 14. Weather window (any role with ports)
+
+Open **Weather Window**, choose Paradip: seven coloured days from a live forecast. As **Port Officer, Haldia** the list is limited to Haldia. Say: "Thresholds are planning values, not the port's rules, and river berths have no open-water wave data."
+
+## 15. Verdict evidence
+
+Under every verdict: "momentum has a borderline record in 30 years of USDA rates and none in Baltic Panamax 2012 to 2019, so it carries a small weight." Point at it when someone asks why the desk does not just follow the trend.
 

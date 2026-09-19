@@ -95,3 +95,36 @@ class MixIn(BaseModel):
 def sourcing_resilience(p: MixIn, db: Session = Depends(get_db)) -> dict:
     from app.services import insights
     return insights.resilience(db, p.mix or None, p.port, p.cargo_tonnes)
+
+
+@router.get("/verdict/evidence", dependencies=[Depends(require("financial:read"))])
+def verdict_evidence(db: Session = Depends(get_db)) -> dict:
+    from app.services import verdict_eval
+    return verdict_eval.evidence(db)
+
+
+@router.get("/weather/window")
+def weather_window(port: str, db: Session = Depends(get_db), user=Depends(require("ports:read"))) -> dict:
+    from fastapi import HTTPException
+    from app.api.deps import require_port
+    from app.services import weather
+    require_port(user, port, db)
+    try:
+        return weather.window(db, port)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:  # noqa: BLE001 - network or upstream error
+        raise HTTPException(status_code=502, detail=f"Weather service unavailable: {type(e).__name__}")
+
+
+class OptimiseIn(BaseModel):
+    demand_kt: dict[str, float] = {}
+    port_cap_kt: dict[str, float] = {}
+    max_share: dict[str, float] = {}
+    vessel_class: str = "Panamax"
+
+
+@router.post("/sourcing/optimise", dependencies=[Depends(require("financial:read"))])
+def sourcing_optimise(p: OptimiseIn, db: Session = Depends(get_db)) -> dict:
+    from app.services import optimiser
+    return optimiser.optimise(db, p.demand_kt or None, p.port_cap_kt or None, p.max_share or None, p.vessel_class)

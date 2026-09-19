@@ -50,6 +50,9 @@ def _prewarm_once() -> None:
         forecast_api.get_forecast("BPI", 14, db)
         tools.forecast_multi("BPI", db)
         tools.transfer(db)
+        from app.ml import intent
+
+        intent.classify("warm up")  # builds the intent models, including the embedding model if available
         log.info("prewarm finished")
     finally:
         db.close()

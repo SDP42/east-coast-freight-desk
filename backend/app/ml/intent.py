@@ -9,7 +9,9 @@ in-distribution figure, not an external benchmark.
 
 import re
 from dataclasses import dataclass
+import json
 from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -241,9 +243,32 @@ def model() -> Pipeline:
     return _pipeline().fit(x, y)
 
 
+@lru_cache(maxsize=1)
+def _embed_model():
+    """Logistic regression on sentence embeddings of the same training set, or None if embeddings are unavailable."""
+    from app.ml import embed
+
+    if not embed.available():
+        return None
+    try:
+        hx, hy = _handwritten()
+        ax, ay = augmented()
+        return LogisticRegression(C=20, max_iter=3000).fit(embed.embed(hx + ax), hy + ay)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def classify(question: str, top_k: int = 3) -> list[tuple[str, float]]:
     m = model()
     probs = m.predict_proba([tag(question)])[0]
+    em = _embed_model()
+    if em is not None:
+        from app.ml import embed
+
+        try:
+            probs = (probs + em.predict_proba(embed.embed([question]))[0]) / 2  # same class order: both fitted on sorted labels
+        except Exception:  # noqa: BLE001
+            pass
     order = np.argsort(probs)[::-1][:top_k]
     return [(str(m.classes_[i]), float(probs[i])) for i in order]
 
@@ -259,8 +284,18 @@ def model_info() -> dict:
         m = _pipeline().fit(xt, yt)
         pred = m.predict([tag(hx[i]) for i in te])
         accs.append(float(np.mean(pred == np.array([hy[i] for i in te]))))
+    from app.ml import embed
+
+    combined = embed.available()
+    ev = None
+    f = Path(__file__).resolve().parent / "artifacts" / "intent_eval.json"
+    if combined and f.exists():
+        ev = json.loads(f.read_text())
     return {
-        "algorithm": "TF-IDF (word 1-2 grams + char 2-4 grams) + entity marker tokens + logistic regression",
+        "algorithm": ("TF-IDF (word and character n-grams) + entity markers + logistic regression, averaged with a logistic regression on "
+                      f"{embed.MODEL_NAME} sentence embeddings (Hugging Face, local)") if combined else "TF-IDF (word 1-2 grams + char 2-4 grams) + entity marker tokens + logistic regression",
+        "embeddings_active": combined,
+        "embedding_evaluation": ev,
         "intents": len(TRAINING),
         "training_examples": len(hx) + len(ax),
         "handwritten_examples": len(hx),

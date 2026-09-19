@@ -39,6 +39,8 @@ class Settings(BaseSettings):
 
     # One-click sign-in for the seeded demo accounts (see scripts/seed_demo_users.py). Turn off for a real deployment.
     ALLOW_DEMO_LOGIN: bool = True
+    # Live ship feed from a public web page whose reuse terms we could not confirm. Off unless you decide otherwise.
+    LIVE_SHIP_FEED: bool = False
 
     @field_validator("DATABASE_URL")
     @classmethod

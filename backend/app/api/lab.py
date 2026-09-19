@@ -130,3 +130,13 @@ def live_seed(db: Session = Depends(get_db)) -> dict:
                     "prev_date": str(s.index[-2].date()), "last_date": str(s.index[-1].date()), "daily_vol": round(float(r.iloc[-250:].std()), 6)})
     return {"series": out, "simulated": True,
             "note": "SIMULATED minute ticks. Each series replays its last real trading day as 390 one-minute steps (a Brownian bridge between the two real closes, with the series' real daily volatility). This is not a market feed: no free source of minute-level freight rates exists."}
+
+
+@router.get("/lab/proof/{index_name}", dependencies=MARKET)
+def model_proof(index_name: str, db: Session = Depends(get_db)) -> dict:
+    """Live, uncached refit with timings, plus fingerprints of the saved deep-model weights."""
+    from app.services import mlproof
+    try:
+        return mlproof.proof(db, index_name.upper())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))

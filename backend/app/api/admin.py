@@ -86,3 +86,9 @@ def audit(limit: int = Query(100, ge=1, le=500), denied_only: bool = False, db: 
 def data_health(db: Session = Depends(get_db), _: User = Depends(require("admin:users"))) -> dict:
     from app.services.datahealth import data_health as build
     return build(db)
+
+
+@router.get("/admin/analytics")
+def analytics(days: int = Query(14, ge=1, le=90), db: Session = Depends(get_db), _: User = Depends(require("admin:users"))) -> dict:
+    from app.services.insights import admin_analytics
+    return admin_analytics(db, days)

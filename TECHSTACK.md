@@ -88,11 +88,12 @@ The Baltic Dry Index itself is **not** used: no freely licensed daily source was
 | Render Blueprint (`render.yaml`) | One-file deployment of the API. |
 | `vercel.json` | Single-page-app rewrites for the frontend. |
 
-### Added data sources (current data)
+### Added data sources (current data). Every licence is listed in [LICENCES.md](LICENCES.md)
 | Source | Used for | Licence note |
 |---|---|---|
 | FRED (St. Louis Fed): BLS deep-sea freight PPI `WPU30130101`, iron ore `PIORECRUSDM`, exchange rates | Current market context | BLS data is public domain; the IMF-origin series carries IMF terms |
 | World Bank Commodity Markets "Pink Sheet" | Australian and South African coal to Aug 2026 | CC BY 4.0 |
 | IMF PortWatch (ArcGIS REST) | Daily port calls and chokepoint capacity to last week | AIS-derived estimates; confirm terms before redistribution |
 | Port Authority of NSW, Newcastle Harbour daily vessel movements | Ship availability at the main Australian coal port | Public page; reuse terms not confirmed, so shown live and cached, not stored |
-
+| cobe (MIT) | The landing-page globe of supply lanes | MIT |
+| three.js `Water` example (MIT) | Reflective sea in the Haldia scene | MIT |

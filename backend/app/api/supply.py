@@ -33,7 +33,7 @@ class LaytimeIn(BaseModel):
     stoppages: list[StoppageIn] = []
 
 
-@router.post("/laytime", dependencies=[Depends(require("financial:read"))])
+@router.post("/laytime", dependencies=[Depends(require("ports:read"))])
 def laytime_claim(p: LaytimeIn) -> dict:
     return laytime.laytime_statement(
         p.cargo_tonnes, p.rate_tonnes_per_day, p.hours_nor_to_complete, p.notice_hours, p.demurrage_usd_per_day,
@@ -41,6 +41,57 @@ def laytime_claim(p: LaytimeIn) -> dict:
     )
 
 
-@router.get("/laytime/defaults", dependencies=[Depends(require("financial:read"))])
+@router.get("/laytime/defaults", dependencies=[Depends(require("ports:read"))])
 def laytime_defaults() -> dict:
     return {"demurrage_usd_per_day": DEMURRAGE_RATE_USD_PER_DAY, "note": "Benchmark demurrage rates by vessel class from the research compendium; use the charter party rate for a real claim."}
+
+
+class VerdictIn(BaseModel):
+    port: str = "Paradip"
+    cargo_tonnes: float = Field(60000, ge=5000, le=400000)
+    need_by_days: float = Field(45, ge=7, le=90)
+
+
+@router.post("/verdict", dependencies=[Depends(require("financial:read"))])
+def verdict_call(p: VerdictIn, db: Session = Depends(get_db)) -> dict:
+    from app.core.cache import cached
+    from app.services import verdict
+    try:
+        return cached(f"verdict:{p.port}:{p.cargo_tonnes}:{p.need_by_days}", 600, lambda: verdict.build(db, p.port, p.cargo_tonnes, p.need_by_days))
+    except ValueError as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+class ParcelIn(BaseModel):
+    origin: str = "Australia"
+    port: str = "Paradip"
+    cargo_tonnes: float = Field(75000, ge=5000, le=400000)
+    vessel_class: str = "Panamax"
+    count: int = Field(1, ge=1, le=200)
+
+
+class ProgrammeIn(BaseModel):
+    parcels: list[ParcelIn] = []
+
+
+@router.post("/finance/programme", dependencies=[Depends(require("financial:read"))])
+def programme(p: ProgrammeIn, db: Session = Depends(get_db)) -> dict:
+    from fastapi import HTTPException
+    from app.services import insights
+    try:
+        return insights.programme_plan(db, [x.model_dump() for x in p.parcels] or None)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+class MixIn(BaseModel):
+    mix: dict[str, float] = {}
+    port: str = "Paradip"
+    cargo_tonnes: float = Field(75000, ge=5000, le=400000)
+
+
+@router.post("/sourcing/resilience", dependencies=[Depends(require("demand:read"))])
+def sourcing_resilience(p: MixIn, db: Session = Depends(get_db)) -> dict:
+    from app.services import insights
+    return insights.resilience(db, p.mix or None, p.port, p.cargo_tonnes)

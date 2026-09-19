@@ -13,6 +13,7 @@ import AnimatedCounter from "../components/AnimatedCounter";
 import Magnet from "../components/Magnet";
 import Marquee from "../components/Marquee";
 import Loading from "../components/Loading";
+import SupplyGlobe from "../components/SupplyGlobe";
 import ParticleTextRaw from "../components/rb/ParticleText";
 import BorderGlowRaw from "../components/rb/BorderGlow";
 import CarouselRaw from "../components/rb/Carousel";
@@ -204,6 +205,23 @@ export default function Landing() {
               </div>
             </div>
           </BorderGlow>
+        </div>
+      </section>
+
+      {/* Supply lanes */}
+      <section id="lanes" className="mx-auto max-w-6xl px-6 pb-16">
+        <div className="grid items-center gap-10 lg:grid-cols-2">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-cyan">Where the coal comes from</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-strong">Five origins, one coast, and a ship for every parcel.</h2>
+            <p className="mt-4 text-sm leading-relaxed text-body">More than half of India's coking coal comes from Australia; Mozambique, the US and Russia fill the rest, and the mix is shifting. Every lane has its own distance, weather and canal risk, and each East Coast port takes a different ship. The desk prices each combination and tells you when to rent and which ship to take.</p>
+            <ul className="mt-5 space-y-2 text-sm text-body">
+              <li>• Ships available now at the main loading port, read from a live public feed</li>
+              <li>• Part-laden calls, tide-timed locks and lightering handled per port</li>
+              <li>• One verdict: rent now, wait, or split the parcel</li>
+            </ul>
+          </div>
+          <div className="flex justify-center"><SupplyGlobe size={520} /></div>
         </div>
       </section>
 

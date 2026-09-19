@@ -3,7 +3,7 @@
 **AI/ML freight forecasting and dry-bulk chartering decision support for SAIL's coking-coal imports to India's East Coast ports.**
 Smart India Hackathon 2026 · MVP
 
-[Tech stack](TECHSTACK.md) · [Features](FEATURES.md) · [Build log](SECTIONS.md) · [Models](MODELS.md) · [Run locally](GETTING_STARTED.md) · [Deploy](DEPLOYMENT.md) · [Demo script](DEMO_SCRIPT.md) · [Demo guide with ready inputs](DEMO_GUIDE.md)
+[Tech stack](TECHSTACK.md) · [Features](FEATURES.md) · [Build log](SECTIONS.md) · [Models](MODELS.md) · [Run locally](GETTING_STARTED.md) · [Deploy](DEPLOYMENT.md) · [Licences](LICENCES.md) · [Demo script](DEMO_SCRIPT.md) · [Demo guide with ready inputs](DEMO_GUIDE.md)
 
 ---
 
@@ -24,6 +24,13 @@ fixture hard:
 Existing tools forecast a freight index or map ships. None of the ones we reviewed connects the forecast to what each
 port can physically take, or to the spot-versus-contract decision the buyer actually has to make.
 
+### What we found about SAIL's sourcing (with sources)
+
+- Blast furnaces make about 70% of India's steel and need roughly 750 kg of coking coal per tonne of crude steel; India imports around 70 Mt a year, more than half from Australia, and mills are widening the blend with the US, Russia and Mozambique (S&P Global and industry reports, 2025).
+- Mozambique is the newest lane: SAIL's own news item records the first Benga premium hard coking coal cargo arriving at Vizag (ICVL, 65% owned, with Tata Steel 35%); Mozambique is expected to become India's second-largest coking-coal supplier.
+- Paradip berthed its first Capesize in September 2026 (152,702 t of coking coal from Hay Point at a 16.5 m draft, berth WD-1) and plans dredging to 18.5 m, so a ship that "cannot fit" may still call part-laden. The desk models this.
+- Two other student projects for the same problem statement exist publicly; ours differs in port-physics feasibility, live ship availability, role-based access and a single verdict.
+
 ## 2. What we built
 
 A working platform, not a slide: sign in, ask a question, get a number, and see where it came from.
@@ -40,6 +47,7 @@ A working platform, not a slide: sign in, ask a question, get a number, and see 
 | **Govern** | Role-based access control enforced in the API and the database queries, per-port scoping, an audit log of every request and refusal, hash-chained fixture ledger, alerts, drift monitor. | Access & Audit, Fixture Ledger, Alerts |
 | **See** | Four vanilla three.js scenes: the Haldia dock on the landing page, a trade globe with chokepoint traffic, a 3D Monte-Carlo forecast fan, and a market terrain. A layout that scales from phones to 4K projectors. | Landing, Trade Globe, Risk Lab, Market Terrain |
 | **Decide fast** | What-If Studio (eight levers, crisis playbooks, tornado, break-even, saved comparisons) and the Urgent Fixture Desk (what can arrive by the deadline, how likely, at what cost, and the walk-away price). Also askable in plain English. | What-If Studio, Urgent Fixture Desk, Ask the Desk |
+| **The verdict** | One plain call: when to rent a ship and which one (rent now, within a week, wait, split, or cannot meet the date), with the reasons and what would change it. Rule-based decision support, not a trained model. | The Verdict, Ask the Desk |
 | **Ship availability and claims** | Ship Supply Radar (named bulk carriers arriving at Newcastle's coal berths, from a live public feed), part-laden berth fit, laytime and demurrage claim calculator, Market Pulse of current public data, and Data Health for the administrator. | Ship Supply Radar, Laytime, Market Pulse, Data Health |
 | **Quantify risk** | Cost-at-risk Monte Carlo for a cargo (P50/P95 in INR crore), Haldia lightering planner fitted to real vessel data, laycan timing coach, unusual-moves feed, a Live Desk of minute-by-minute simulated ticks. | Risk Lab, Port Signals, Markets, Live Desk |
 

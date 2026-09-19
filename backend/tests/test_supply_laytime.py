@@ -20,6 +20,7 @@ def test_feed_parser_reads_rows_and_unescapes():
 
 
 def test_supply_counts_only_coal_berths(monkeypatch):
+    monkeypatch.setattr(supply, "enabled", lambda: True)
     monkeypatch.setattr(supply, "movements", lambda force=False: {"rows": supply._parse(SAMPLE_HTML), "fetched_at": 1.0, "error": None, "stale": False})
     s = supply.newcastle_supply()
     assert s["open_ships_arriving"] == 1  # Shine Jade to Kooragang; the Dyke arrival and the tanker are not coal berths
@@ -43,3 +44,9 @@ def test_part_laden_fraction_matches_paradip_capesize_case():
     f = part_laden_fraction(17.0, 16.5)  # Capesize design draft against Paradip's 16.5 m
     assert f >= MIN_PARTIAL_FRACTION and f < 1.0
     assert part_laden_fraction(17.0, 8.0) < MIN_PARTIAL_FRACTION  # a shallow port is not a part-laden call
+
+
+def test_feed_is_off_by_default(monkeypatch):
+    monkeypatch.setattr(supply, "enabled", lambda: False)
+    s = supply.newcastle_supply()
+    assert s["enabled"] is False and s["window_movements"] == 0 and s["signal"] == "Feed off"

@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, TrendingUp, Compass, MapPinned, ShieldAlert, Calculator, FlaskConical, Activity, Map, MessageSquareText, KeyRound, Leaf, Radar,
-  Database, BookLock, Bell, Gauge, Globe2, Mountain, Dices, Brain, FileText, Zap, Timer, Flame, Anchor, Scale, HeartPulse, type LucideIcon,
+  Database, BookLock, Bell, Gauge, Globe2, Mountain, Dices, Brain, FileText, Zap, Timer, Flame, Anchor, Scale, Gavel, HeartPulse, type LucideIcon,
 } from "lucide-react";
 
 export interface NavLinkDef { to: string; key: string; label: string; icon: LucideIcon; hint?: string }
@@ -10,6 +10,7 @@ export const NAV_GROUPS: NavGroup[] = [
   { title: "Decide", links: [
     { to: "/app", key: "overview", label: "Overview", icon: LayoutDashboard },
     { to: "/app/ask", key: "ask", label: "Ask the Desk", icon: MessageSquareText, hint: "Chat or speak a question" },
+    { to: "/app/verdict", key: "verdict", label: "The Verdict", icon: Gavel, hint: "When to rent, and which ship" },
     { to: "/app/urgent", key: "urgent", label: "Urgent Fixture Desk", icon: Timer, hint: "Last-minute cargo: what arrives in time" },
     { to: "/app/whatif", key: "whatif", label: "What-If Studio", icon: Flame, hint: "Change freight, rupee, delays; see the cost" },
     { to: "/app/supply", key: "supply", label: "Ship Supply Radar", icon: Anchor, hint: "Which ships are actually available" },

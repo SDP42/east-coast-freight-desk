@@ -1,13 +1,13 @@
 # Feature List — Baseline vs. Differentiating
 
-67 features (10 baseline + 57 differentiating), split deliberately into two groups: things any competent
+73 features (10 baseline + 63 differentiating), split deliberately into two groups: things any competent
 competing team (there are ~300 submissions per problem statement, and at least
 two public GitHub repos already attempting near-identical ideas) would also
 build, and things that are genuinely ours. This split is itself part of the
 pitch — it shows the judges we know exactly what's "table stakes" versus what's
 the real USP, rather than presenting everything as equally novel.
 
-**Why 16 build sections for 67 features:** the sections in `SECTIONS.md` are
+**Why 16 build sections for 73 features:** the sections in `SECTIONS.md` are
 *build phases* (how the system gets implemented), not a 1:1 map to features
 (what capabilities exist). Several features are delivered together within one
 section because they share the same underlying subsystem — e.g. Section 7
@@ -15,7 +15,7 @@ alone delivered features #1 and #2 (compatibility engine + tidal optimizer);
 Section 8 delivered #5; Section 9 delivered #6. The table below is the actual
 per-feature tracker — updated every session, not just at section boundaries.
 
-## Status tracker (all 67 features)
+## Status tracker (all 73 features)
 
 Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not fully surfaced, or vice versa) · ⬜ not started
 
@@ -90,11 +90,17 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 50 | One-click crisis playbooks | ✅ | Red Sea closes, cyclone, port strike, rupee fall, freight spike, need it in two weeks, perfect storm (`PLAYBOOKS`); assumed constants are named in code and returned with every result |
 | 51 | Urgent Fixture Desk | ✅ | `UrgentDesk.tsx`, `POST /whatif/urgent`: 60 options (origin x vessel x speed), 2,000-draw arrival simulation, berth-fit and coking-grade filters, walk-away price, timeline vs deadline, 5-second-undo "Fix this vessel" into the ledger |
 | 52 | What-if and urgent questions in Ask the Desk | ✅ | Two new intents (17 in total), percentage and day extraction, both gated by `financial:read`; also available by voice |
-| 53 | Ship Supply Radar (real ship availability) | ✅ | `services/supply.py`, `GET /supply/newcastle`, `ShipSupply.tsx`: reads the Port Authority of NSW's public Newcastle vessel movements (world's largest coal port), lists named bulk carriers due at the coal berths and where they come from, counts coal ships leaving loaded, and gives a tonnage-supply signal. Shown inside the Urgent Desk too. Limits: no deadweight or draft in the feed, Newcastle only, source reuse terms unconfirmed so rows are cached 30 minutes and not stored |
+| 53 | Ship Supply Radar (real ship availability) | ✅ | `services/supply.py`, `GET /supply/newcastle`, `ShipSupply.tsx`: reads the Port Authority of NSW's public Newcastle vessel movements (world's largest coal port), lists named bulk carriers due at the coal berths and where they come from, counts coal ships leaving loaded, and gives a tonnage-supply signal. Shown inside the Urgent Desk too. Limits: no deadweight or draft in the feed, Newcastle only. **Off by default** (`LIVE_SHIP_FEED=false`) because the source page's reuse terms could not be confirmed; see LICENCES.md |
 | 54 | Part-laden berth fit | ✅ | `services/compatibility.py`: a ship whose full draft is too deep can still call part-laden; capacity is estimated from draft (light-ship draft assumed 28% of design draft). Reflects Paradip's first Capesize, 152,702 t at 16.5 m on 6 Sept 2026. The Urgent Desk marks such options "part-laden" and checks the cargo still fits |
 | 55 | Laytime and demurrage claim calculator | ✅ | `services/laytime.py`, `POST /laytime`, `Laytime.tsx`: allowed laytime, time counted, excepted periods, "once on demurrage always on demurrage", despatch at half rate, every step written out. Tested. Not legal advice |
 | 56 | Data Health (administrator) | ✅ | `services/datahealth.py`, `GET /admin/data-health`, `DataHealth.tsx`: freshness, age and status of every series and feed, and the reason an old one is old |
 | 57 | Current data and Market Pulse | ✅ | `scripts/ingest_latest.py`, `services/pulse.py`, `GET /market/pulse`: US BLS deep-sea freight PPI and iron ore (FRED) to mid-2026, World Bank coal to Aug 2026, IMF PortWatch port and chokepoint traffic to last week. A test showed the PPI does **not** predict the Baltic Panamax index (monthly-change correlation 0.00, out-of-sample R² below zero), so no Baltic nowcast is offered |
+| 58 | The Verdict: when to rent, and which ship | ✅ | `services/verdict.py`, `POST /verdict`, `Verdict.tsx`, assistant intent (18 intents). One call: RENT NOW / RENT WITHIN A WEEK / WAIT AND RECHECK / SPLIT INTO TWO PARCELS / CANNOT MEET THE DATE SAFELY, with the ship, act-by date, walk-away price, confidence, the signals that drove it and what would change it. Rule-based decision support (time pressure, Newcastle ship supply, storm season, coal momentum, rupee, port traffic), **not** a trained model; weights are judgement and the page says so |
+| 59 | Model proof ("are the models real?") | ✅ | `services/mlproof.py`, `GET /lab/proof/{index}`: refits ARIMA and XGBoost live on ten walk-forward origins with measured timings (about 2 s for 20 fits), SHA-256 fingerprints of the saved deep-model weights, and a map of which results are cached, precomputed or live. Explains why answers arrive quickly |
+| 60 | Annual freight programme planner (Finance) | ✅ | `services/insights.py`, `POST /finance/programme`: the year's landed-cost bill for a list of parcels, a P5/P50/P95 budget range from one shared freight draw, the amount to hold at 95%, and the saving from moving volume between origins |
+| 61 | Sourcing resilience (Procurement) | ✅ | `POST /sourcing/resilience`: Herfindahl concentration and effective number of suppliers for the coking-coal mix, and the freight-cost effect of losing each origin. The default mix is an illustrative placeholder; enter SAIL's own |
+| 62 | Usage and refusal analytics (Administrator) | ✅ | `GET /admin/analytics`: events, active users, denied rate, by role and action, top refusals, per-day counts from the audit log |
+| 63 | Laytime claims for port officers | ✅ | The laytime calculator now needs `ports:read`, so Port and Logistics Officers (who hold the statement of facts) can use it, not only Finance |
 
 **Running total: 56 done, 1 partial, 0 not started** (of 57), counted directly from the rows above. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
 
@@ -219,11 +225,11 @@ Also delivered (not counted as features): landing page rebuilt with React Bits c
 
 | Persona | Problem | Answered by | Still open |
 |---|---|---|---|
-| Administrator | Cannot tell whether the data behind a recommendation is current; users and access need governing | Data Health (#56), Access & Audit, audit log | Usage analytics per role |
-| Finance & Treasury | Cost surprises: demurrage claims, rupee and freight moves | Laytime calculator (#55), What-If Studio, hedge overlay, cost at risk | Budget-versus-actual variance tracker |
-| Procurement Manager | Is any ship actually available for this laycan, and will it fit the berth? | Ship Supply Radar (#53), Urgent Desk, part-laden fit (#54) | Named-vessel matching by size (needs a licensed fleet register); Hay Point and Richards Bay feeds |
-| Chartering Analyst | Market context that is current, not 2019 | Market Pulse (#57), Forecast, Model Lab | A licensed live Baltic feed |
-| Port & Logistics Officer | Berth and queue risk for their own port | Port Signals, berth-slot forecast, cyclone risk, port scoping | Berth-allocation planner |
+| Administrator | Cannot tell whether the data behind a recommendation is current; users and access need governing | Data Health (#56), usage and refusal analytics (#62), Access & Audit | none |
+| Finance & Treasury | Cost surprises: demurrage claims, rupee and freight moves | Annual programme planner (#60), laytime calculator (#55), What-If Studio, hedge overlay, cost at risk | Actual-versus-budget tracking against ledger entries |
+| Procurement Manager | Is any ship actually available for this laycan, and will it fit the berth? | The Verdict (#58), Ship Supply Radar (#53), Urgent Desk, part-laden fit (#54), sourcing resilience (#61) | Named-vessel matching by size (needs a licensed fleet register); Hay Point and Richards Bay feeds |
+| Chartering Analyst | Market context that is current, not 2019 | Market Pulse (#57), Forecast, Model Lab, model proof (#59) | A licensed live Baltic feed |
+| Port & Logistics Officer | Berth and queue risk for their own port | Port Signals, berth-slot forecast, cyclone risk, laytime claims (#63), port scoping | Berth-allocation planner (no berth counts are public) |
 | Viewer | Public market context | Markets, Market Pulse | none |
 
 Ship availability is the weakest link and is stated plainly: real public feeds name the ships arriving at Newcastle but give no size or

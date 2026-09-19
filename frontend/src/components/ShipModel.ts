@@ -20,7 +20,7 @@ function beamFactor(t: number): number {
   if (t < 0.16) return 0.7 + 0.3 * smooth(0, 0.16, t); // stern run-in to the transom
   if (t < 0.7) return 1;
   const k = (t - 0.7) / 0.3;
-  return Math.max(0, Math.pow(1 - Math.pow(k, 2.1), 0.62)); // bow entrance
+  return Math.pow(Math.max(0, 1 - Math.pow(Math.min(1, k), 2.1)), 0.62); // bow entrance (clamped: k can round to just over 1)
 }
 
 function keelDepth(t: number, D: number): number {

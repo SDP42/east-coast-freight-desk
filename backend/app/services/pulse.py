@@ -42,7 +42,7 @@ def market_pulse(db: Session) -> dict:
         c3, c12 = _change(s, 92), _change(s, 365)
         cards.append({
             "series": name, "label": META.get(name, (name, ""))[0], "unit": META.get(name, ("", ""))[1], "latest": round(float(s.iloc[-1]), 3),
-            "as_of": s.index[-1].date().isoformat(), "change_3m_pct": c3, "change_12m_pct": c12,
+            "as_of": s.index[-1].date().isoformat(), "change_3m_pct": None if c3 is None else float(c3), "change_12m_pct": None if c12 is None else float(c12),
             "percentile_since_start": pct, "history_from": s.index[0].date().isoformat(),
         })
 
@@ -76,8 +76,8 @@ def market_pulse(db: Session) -> dict:
             yr = s[(s.index > pd.Timestamp(cend) - pd.Timedelta(days=28 + 365)) & (s.index <= pd.Timestamp(cend) - pd.Timedelta(days=365))].mean()
             base = s[(s.index >= "2022-01-01") & (s.index < "2023-10-01")].mean()
             chokes.append({
-                "chokepoint": name, "dry_bulk_dwt_per_day_28d": round(float(last)), "vs_year_ago_pct": round((last / yr - 1) * 100, 1) if yr else None,
-                "vs_pre_oct_2023_pct": round((last / base - 1) * 100, 1) if base else None,
+                "chokepoint": name, "dry_bulk_dwt_per_day_28d": round(float(last)), "vs_year_ago_pct": float(round((last / yr - 1) * 100, 1)) if yr else None,
+                "vs_pre_oct_2023_pct": float(round((last / base - 1) * 100, 1)) if base else None,
             })
 
     notes = []

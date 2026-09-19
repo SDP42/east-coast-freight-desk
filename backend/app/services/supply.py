@@ -41,6 +41,11 @@ def _parse(html: str) -> list[dict]:
     return rows
 
 
+def enabled() -> bool:
+    from app.core.config import get_settings
+    return bool(get_settings().LIVE_SHIP_FEED)
+
+
 def movements(force: bool = False) -> dict:
     now = time.time()
     if not force and _cache["rows"] and now - _cache["at"] < CACHE_SECONDS:
@@ -62,6 +67,13 @@ def _is_bulk(v: dict) -> bool:
 
 
 def newcastle_supply() -> dict:
+    if not enabled():
+        return {
+            "enabled": False, "source": "Port Authority of NSW, Newcastle Harbour daily vessel movements (public page)", "url": URL, "fetched_at": None, "error": None, "stale": False,
+            "window_movements": 0, "bulk_movements": 0, "bulk_arrivals": 0, "bulk_departures": 0, "bulk_in_port_now": 0, "open_ships_arriving": 0, "coal_cargoes_loaded": 0,
+            "arriving_from": [], "signal": "Feed off", "meaning": "The live ship feed is switched off (LIVE_SHIP_FEED=false) because the source page's reuse terms are not confirmed. Enable it only after checking with the Port Authority of NSW.",
+            "arrivals": [], "limits": "Switched off by default.",
+        }
     feed = movements()
     rows = feed["rows"]
     bulk = [r for r in rows if _is_bulk(r)]

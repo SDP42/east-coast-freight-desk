@@ -59,12 +59,11 @@ def extend_from_world_bank(db) -> None:
     for col, name in WB_COLUMNS.items():
         latest = db.query(func.max(FreightRate.rate_date)).filter(FreightRate.index_name == name).scalar()
         rows = []
-        for r in df.itertuples():
-            y, m = r.period.split("M")
+        for period, value in zip(df["period"], pd.to_numeric(df[col], errors="coerce")):
+            y, m = str(period).split("M")
             d = date(int(y), int(m), 1)
-            v = pd.to_numeric(getattr(r, "_" + str(list(df.columns).index(col))), errors="coerce")
-            if pd.notna(v) and (latest is None or d > latest):
-                rows.append(FreightRate(rate_date=d, index_name=name, value=float(v), unit="usd_per_tonne", source=WB_SOURCE))
+            if pd.notna(value) and (latest is None or d > latest):
+                rows.append(FreightRate(rate_date=d, index_name=name, value=float(value), unit="usd_per_tonne", source=WB_SOURCE))
         db.bulk_save_objects(rows)
         db.commit()
         print(f"{name}: +{len(rows)} rows from the World Bank file (was up to {latest})")

@@ -7,6 +7,7 @@ import { api } from "../lib/api";
 
 interface Row { when: string; movement: string; vessel: string; vessel_type: string; agent: string; from: string; to: string; in_port: boolean }
 interface Res {
+  enabled?: boolean;
   source: string; url: string; fetched_at: string | null; error: string | null; stale: boolean; bulk_arrivals: number; bulk_departures: number; bulk_in_port_now: number;
   open_ships_arriving: number; coal_cargoes_loaded: number; arriving_from: { port: string; ships: number }[]; signal: string; meaning: string; arrivals: Row[]; limits: string;
 }
@@ -23,7 +24,8 @@ export default function ShipSupply() {
       <PageHeader title="Ship supply radar" subtitle="Which ships are actually available? This reads the public daily vessel movements of Newcastle, the world's largest coal port, and shows the bulk carriers arriving to load and leaving loaded." />
       {err && <p className="text-xs text-down">{err}</p>}
       {!res && !err && <Loading label="Reading Newcastle movements" pattern="sweep" block />}
-      {res && (
+      {res && res.enabled === false && <Note kind="warn">{res.meaning}</Note>}
+      {res && res.enabled !== false && (
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-4">
             <Stat label="Ships due at coal berths" value={res.open_ships_arriving} />

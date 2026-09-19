@@ -98,6 +98,11 @@ TRAINING: dict[str, list[str]] = {
         "fastest way to get coal to vizag", "last minute fixture", "emergency coal shipment", "can we get a ship in two weeks",
         "we have a deadline for coking coal", "need a vessel quickly", "urgent charter for dhamra", "what is the quickest source of coal",
     ],
+    "verdict": [
+        "should we rent a ship now or wait", "when should we charter", "is it a good time to charter for paradip", "rent now or wait for haldia",
+        "what is your verdict on chartering", "should i book a vessel today", "when should we book the ship and which one", "give me a recommendation on when to rent",
+        "shall we fix now or hold off", "which ship should we take and when", "charter now or later", "is now the right time to book a ship",
+    ],
     "help": [
         "help", "what can you do", "hello", "hi there", "what can i ask you", "how do i use this",
         "show me what you can answer", "good morning", "who are you", "what questions do you understand", "thanks", "guide me",

@@ -349,16 +349,32 @@ def _urgent(db: Session, e: Entities, a: list[str], user=None) -> Answer:
     return Answer("urgent", 0, [], {}, u["verdict"], figs, [("Open the Urgent Desk", "/app/urgent")], a)
 
 
+def _verdict(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    from app.services import verdict as verdict_service
+    port = e.port or "Paradip"
+    if not e.port:
+        a.append("No port named, so I assumed Paradip.")
+    cargo = e.cargo_tonnes or 60000
+    if not e.cargo_tonnes:
+        a.append("No cargo size given, so I assumed 60,000 t.")
+    days = float(e.horizon_days) if e.horizon_days else 45.0
+    if not e.horizon_days:
+        a.append("No need-by date given, so I assumed 45 days.")
+    v = verdict_service.build(db, port, cargo, days)
+    figs = [("Verdict", v["verdict"].title()), ("Act by", v["act_by"]), ("Confidence", v["confidence"])]
+    return Answer("verdict", 0, [], {}, v["headline"], figs, [("Open the verdict", "/app/verdict")], a)
+
+
 HANDLERS = {
     "market_now": _market_now, "forecast": _forecast, "recommend_origin": _recommend, "port_fit": _port_fit, "risk": _risk, "congestion": _congestion,
-    "haldia": _haldia, "coa_vs_spot": _coa, "ledger": _ledger, "alerts_mine": _alerts_mine, "my_access": _my_access, "users_admin": _users_admin, "what_if": _what_if, "urgent": _urgent, "demand": _demand, "data_sources": _sources, "help": _help,
+    "haldia": _haldia, "coa_vs_spot": _coa, "ledger": _ledger, "alerts_mine": _alerts_mine, "my_access": _my_access, "users_admin": _users_admin, "what_if": _what_if, "urgent": _urgent, "verdict": _verdict, "demand": _demand, "data_sources": _sources, "help": _help,
 }
 
 
 INTENT_PERMISSION = {
     "market_now": "market:read", "forecast": "market:read", "recommend_origin": "recommend:read", "port_fit": "ports:read", "risk": "risk:read",
     "congestion": "ports:read", "haldia": None, "coa_vs_spot": "financial:read", "demand": "demand:read", "data_sources": None, "help": None,
-    "what_if": "financial:read", "urgent": "financial:read", "ledger": "ledger:read", "alerts_mine": "alerts:manage", "my_access": None, "users_admin": "admin:users",
+    "what_if": "financial:read", "urgent": "financial:read", "verdict": "financial:read", "ledger": "ledger:read", "alerts_mine": "alerts:manage", "my_access": None, "users_admin": "admin:users",
 }
 
 
@@ -392,6 +408,7 @@ SUGGESTION_INTENTS = [
     ("How much coking coal does SAIL import?", "demand"),
     ("What if freight rises 30%?", "what_if"),
     ("We need 60000 t at Paradip within 20 days", "urgent"),
+    ("Should we rent a ship now or wait?", "verdict"),
     ("Show my fixtures", "ledger"),
     ("How does the lock at Haldia work?", "haldia"),
     ("What can I access?", "my_access"),

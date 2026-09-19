@@ -153,3 +153,23 @@ Also try typing `/app/financial` into the address bar as the Port Officer: a "Th
 - **Does the chatbot use ChatGPT?** No. A local model chooses an engine; nothing leaves the deployment.
 - **Can someone give themselves admin?** No. New accounts are Viewers; only an administrator assigns roles.
 - **Why is the deep-learning result "not significant"?** About 2,500 daily points is little for neural networks; the report says so instead of claiming a win.
+
+---
+
+## 11. The verdict (added): one answer for people who will not read the charts
+
+Sign in as **Finance & Treasury** or **Procurement Manager**, open **The Verdict**. It reads live signals (ship supply at Newcastle, port traffic, rupee, coal price), so the call can change from day to day; these are the results on the build date, and the structure is what to point out.
+
+| Set | You will see |
+|---|---|
+| Paradip, 60,000 t, needed within 20 days | **RENT NOW**: Panamax from Mozambique at 12 knots, about 15 days, ₹5.16 crore; confidence Low (only time pressure votes strongly) |
+| Paradip, 60,000 t, needed within 45 days | **WAIT AND RECHECK** (recheck in five days) with the ship it would take today |
+| Haldia, 60,000 t, needed within 12 days | **CANNOT MEET THE DATE SAFELY**: fastest Panamax is about 17 days |
+| Paradip, 150,000 t, needed within 40 days | **SPLIT INTO TWO PARCELS**: no single ship can carry it into Paradip |
+
+Say: "Every bar is a reason. The desk shows what would flip the call. It is rule-based decision support, not a black box, and it tells you when it is not sure." Ask the desk in words: "Should we rent a ship now or wait for Paradip?"
+
+## 12. "Are the models real?": the proof page
+
+Call `GET /lab/proof/BPI` (or add the page): it refits ARIMA and XGBoost live on ten walk-forward origins (about two seconds for twenty fits) and lists the deep-model weight files with SHA-256 fingerprints. Say: "Forecast pages are quick because results are cached for six hours and the deep networks were trained offline; this proves the work is real. The honest result is that the models beat a naive forecast only modestly, and the deep ensemble is not significantly better than ARIMA."
+

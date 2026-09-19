@@ -193,11 +193,16 @@ def _australia_supply() -> dict | None:
     try:
         from app.services.supply import newcastle_supply
         s = newcastle_supply()
-        if s["error"] and not s["window_movements"]:
+        if not s["window_movements"]:
             return None
         return {k: s[k] for k in ("signal", "meaning", "open_ships_arriving", "coal_cargoes_loaded", "fetched_at", "stale")}
     except Exception:  # noqa: BLE001
         return None
+
+
+def _size_ok(vc, cargo_tonnes: float) -> bool:
+    """A parcel must suit the ship: not so small that a large ship sails part-empty, not more than the ship can carry."""
+    return 0.75 * float(vc.dwt_min) <= cargo_tonnes <= 0.95 * float(vc.dwt_max)
 
 
 def _berth_fit(port: Port, vc, cargo_tonnes: float) -> dict:
@@ -245,15 +250,15 @@ def urgent_desk(db: Session, port_name: str, cargo_tonnes: float, deadline_days:
                     "p_on_time": round(p_on_time, 3), "total_inr_crore": out.total_inr_crore, "total_usd": out.total_usd, "freight_usd_per_t": out.freight_usd_per_t,
                     "urgency_premium_pct": out.levers["urgency_premium_pct"], "premium_usd": out.urgency_premium_usd, "demurrage_usd": out.demurrage_usd, "lightering_usd": out.lightering_usd,
                     "feasible": out.total_days <= deadline_days,
-                    "fits_berth": fit["fits"], "part_laden": fit["part_laden"], "berth_note": fit["note"],
+                    "fits_berth": fit["fits"], "part_laden": fit["part_laden"], "berth_note": fit["note"], "size_ok": _size_ok(vc_objs[vc], cargo_tonnes),
                     "coking_grade": origin != "Indonesia",
                 })
-    usable = lambda o: o["feasible"] and o["p_on_time"] >= 0.8 and o["fits_berth"] and o["coking_grade"]  # noqa: E731
+    usable = lambda o: o["feasible"] and o["p_on_time"] >= 0.8 and o["fits_berth"] and o["coking_grade"] and o["size_ok"]  # noqa: E731
     feasible = [o for o in options if usable(o)]
     for o in options:
         o["score"] = round(o["total_inr_crore"] * (1 + (1 - o["p_on_time"]) * 2), 3)  # cost inflated by the risk of missing the date
-    options.sort(key=lambda o: (not (o["fits_berth"] and o["coking_grade"]), o["score"]))
-    fastest = min([o for o in options if o["fits_berth"] and o["coking_grade"]] or options, key=lambda o: o["days"])
+    options.sort(key=lambda o: (not (o["fits_berth"] and o["coking_grade"] and o["size_ok"]), o["score"]))
+    fastest = min([o for o in options if o["fits_berth"] and o["coking_grade"] and o["size_ok"]] or options, key=lambda o: o["days"])
     cheapest = min(feasible, key=lambda o: o["total_inr_crore"]) if feasible else None
     best = next((o for o in options if usable(o)), None)
     base_cost = min((o["total_usd"] for o in options), default=0)

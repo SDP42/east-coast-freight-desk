@@ -36,6 +36,8 @@ class Settings(BaseSettings):
 
     # Compute the slowest model endpoints once at start-up (in the background) so the first visitor is fast.
     PREWARM: bool = True
+    # Train the small assistant language model right after start-up (in the background) so the first question is not slow.
+    PREWARM_ASSISTANT: bool = True
 
     # One-click sign-in for the seeded demo accounts (see scripts/seed_demo_users.py). Turn off for a real deployment.
     ALLOW_DEMO_LOGIN: bool = True

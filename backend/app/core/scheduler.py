@@ -63,3 +63,19 @@ async def prewarm() -> None:
         await asyncio.to_thread(_prewarm_once)
     except Exception:
         log.exception("prewarm failed")
+
+
+def _prewarm_assistant_once() -> None:
+    from app.ml import intent
+
+    intent.classify("warm up")  # trains the intent model
+    intent.model_info()  # cached accuracy summary shown on the assistant panel
+    log.info("assistant model ready")
+
+
+async def prewarm_assistant() -> None:
+    await asyncio.sleep(5)
+    try:
+        await asyncio.to_thread(_prewarm_assistant_once)
+    except Exception:
+        log.exception("assistant prewarm failed")

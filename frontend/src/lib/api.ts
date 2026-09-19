@@ -371,5 +371,5 @@ export interface AssistantInfo {
   model: { algorithm: string; intents: number; training_examples: number; cv_accuracy_mean: number; cv_accuracy_std: number; note: string };
   suggestions: string[];
 }
-export const askDesk = (question: string) => api.post<AskAnswer>("/assistant/ask", { question }).then((r) => r.data);
+export const askDesk = (question: string) => api.post<AskAnswer>("/assistant/ask", { question }, { timeout: 90_000 }).then((r) => r.data);
 export const getAssistantInfo = () => api.get<AssistantInfo>("/assistant/info").then((r) => r.data);

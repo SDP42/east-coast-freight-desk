@@ -16,7 +16,7 @@ export default function Report() {
   const tools = Object.entries(ROUTE_PERMISSION).filter(([, need]) => (Array.isArray(need) ? need.some(can) : can(need))).length;
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="no-print"><PageHeader title="Board pack" subtitle="A one-page briefing built from the live engines and limited to what your role may see. Print it or save it as a PDF." /></div>
+      <div className="no-print"><PageHeader title="Board pack" subtitle="A one-page briefing for your role. Print or save as PDF." /></div>
       <button onClick={() => window.print()} className={btnCls + " no-print mb-6 flex items-center gap-2"}><Printer className="h-4 w-4" /> Print or save as PDF</button>
 
       <article className="rounded-3xl border border-border-soft bg-white p-8 shadow-sm print:border-0 print:p-0 print:shadow-none">

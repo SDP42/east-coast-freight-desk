@@ -52,7 +52,7 @@ export default function Alerts() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader title="Alerts" subtitle="Set the conditions that matter and the desk tells you when they are met, in the app or to a webhook of your own." />
+      <PageHeader title="Alerts" subtitle="Get told when the conditions you set are met." />
       <SpotlightCard>
         <div className="p-6">
           <h2 className="text-sm font-semibold text-strong">New rule</h2>

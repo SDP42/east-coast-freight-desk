@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import { Globe2 } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
-import { Note, PageHeader } from "../components/ui";
+import { Note, PageHeader, Fine } from "../components/ui";
 import { api } from "../lib/api";
 import type { Chokepoint } from "../components/three/GlobeScene";
 
@@ -19,7 +19,7 @@ export default function TradeGlobe() {
   const cur = data?.chokepoints.find((c) => c.name === sel);
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Trade globe" subtitle="Where the coal sails and the chokepoints it passes. Drag to rotate, scroll to zoom, click a marker for its traffic." />
+      <PageHeader title="Trade globe" subtitle="Where the coal sails. Drag to rotate, scroll to zoom." />
       <div className="grid gap-4 lg:grid-cols-3">
         <SpotlightCard className="lg:col-span-2">
           <div className="relative h-[34rem] bg-gradient-to-b from-sky-50 to-white">
@@ -57,7 +57,7 @@ export default function TradeGlobe() {
         </div>
       </div>
       {data?.note && <div className="mt-4"><Note kind="warn">{data.note}</Note></div>}
-      {data && <p className="mt-3 text-[11px] text-muted">{data.method} Lane routes are hand-placed for illustration; ships on the lanes are decorative. Land outlines: Natural Earth (public domain).</p>}
+      {data && <Fine>{data.method} Lane routes are hand-placed for illustration; ships on the lanes are decorative. Land outlines: Natural Earth (public domain).</Fine>}
     </div>
   );
 }

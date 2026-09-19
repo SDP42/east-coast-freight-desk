@@ -18,7 +18,7 @@ export default function Laytime() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="Laytime and demurrage claims" subtitle="Check a demurrage or despatch claim from the statement of facts: laytime allowed, time counted, excepted periods, and the amount, with every step shown." />
+      <PageHeader title="Laytime and demurrage claims" subtitle="Check a demurrage or despatch claim, step by step." />
       <SpotlightCard>
         <div className="grid gap-4 p-5 sm:grid-cols-3">
           {fields.map(([k, l]) => (<label key={k} className="block text-xs font-medium text-body">{l}<input type="number" className={inputCls} value={f[k]} onChange={set(k)} /></label>))}

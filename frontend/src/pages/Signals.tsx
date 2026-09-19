@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { px } from "../lib/scale";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import SpotlightCard from "../components/SpotlightCard";
-import { Field, Note, PageHeader, Stat, Tabs, btnCls, errText, inputCls } from "../components/ui";
+import { Field, PageHeader, Stat, Tabs, btnCls, errText, inputCls, Fine } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
@@ -64,7 +64,7 @@ function CycloneTool() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <Note>{res.method} Delay assumptions: {res.assumptions.delay_days_per_storm_day} days per storm day, plus {res.assumptions.extra_delay_days_if_severe} if severe (assumed, not measured). Long-run averages, not a weather forecast; the calmest month for this port is {MONTHS[res.safest_month - 1]}.</Note>
+            <Fine>{res.method} Delay assumptions: {res.assumptions.delay_days_per_storm_day} days per storm day, plus {res.assumptions.extra_delay_days_if_severe} if severe (assumed, not measured). Long-run averages, not a weather forecast; the calmest month for this port is {MONTHS[res.safest_month - 1]}.</Fine>
           </div>
         )}
       </div>
@@ -106,7 +106,7 @@ function DemandTool() {
               <thead><tr className="text-xs text-muted"><th className="py-1">Period</th><th>Crude steel (reported)</th><th>Imported coal (estimated)</th><th>Range</th></tr></thead>
               <tbody>{res.estimates.map((e) => <tr key={e.period} className="border-t border-border-soft"><td className="py-1.5 font-medium text-strong">{e.period}</td><td>{e.crude_steel_mt} MT</td><td>{e.imported_coal_mt} MT</td><td className="text-muted">{e.low_mt}–{e.high_mt}</td></tr>)}</tbody>
             </table>
-            <Note kind="warn">{res.method}</Note>
+            <Fine>{res.method}</Fine>
           </>
         )}
       </div>
@@ -142,7 +142,7 @@ function LighteringTool() {
               <Stat label="Barge trips" value={d.barge_trips} /><Stat label="Lightering days" value={d.lightering_days} />
               <Stat label="Parcels at the ceiling" value={`${d.parcels_of_median_size} × ${d.median_parcel_t.toLocaleString()} t`} />
             </div>
-            <Note kind="warn">{d.method}</Note>
+            <Fine>{d.method}</Fine>
           </>
         )}
       </div>
@@ -182,7 +182,7 @@ function TimingCoach() {
               <p className="text-xs font-semibold uppercase tracking-wide text-muted">Five calmest laycan starts (sailing {d.transit_days} days)</p>
               <ul className="mt-2 flex flex-wrap gap-2">{d.best.map((b) => <li key={b.laycan_start} className="rounded-full border border-up/30 bg-up/10 px-3 py-1 text-xs text-up">{b.laycan_start} · {Math.round(b.storm_probability * 100)}% storm chance</li>)}</ul>
             </div>
-            <Note>{d.method} {d.note}</Note>
+            <Fine>{d.method} {d.note}</Fine>
           </>
         )}
       </div>
@@ -195,7 +195,7 @@ export default function Signals() {
   const [tab, setTab] = useState<Tab>("cyclone");
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="Port signals" subtitle="Forward-looking signals for the East Coast ports, built from NOAA cyclone history and SAIL's own published output." />
+      <PageHeader title="Port signals" subtitle="Cyclone risk, laycan timing and demand signals for the East Coast ports." />
       <Tabs<Tab> tabs={[{ key: "cyclone", label: "Cyclone ETA risk" }, { key: "timing", label: "Timing coach" }, ...(!user?.port_scope || user.port_scope.includes("Haldia") ? [{ key: "lightering" as Tab, label: "Haldia lightering" }] : []), ...(can("demand:read") ? [{ key: "demand" as Tab, label: "Coal demand" }] : [])]} value={tab} onChange={setTab} />
       {tab === "cyclone" && <CycloneTool />}
       {tab === "demand" && <DemandTool />}

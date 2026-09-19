@@ -15,7 +15,7 @@ export default function DataHealth() {
   const icon = (s: S["status"]) => s === "fresh" ? <CheckCircle2 className="h-4 w-4 text-up" /> : s === "ended" ? <XCircle className="h-4 w-4 text-down" /> : <Clock className="h-4 w-4 text-warn" />;
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Data health" subtitle="How current each dataset is, and why an old one is old. A recommendation is only as good as the data behind it." />
+      <PageHeader title="Data health" subtitle="How current each dataset is." />
       {err && <p className="text-xs text-down">{err}</p>}
       {!d && !err && <Loading label="Checking datasets" pattern="sweep" block />}
       {d && (

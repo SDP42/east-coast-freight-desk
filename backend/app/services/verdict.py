@@ -80,13 +80,13 @@ def build(db: Session, port_name: str, cargo_tonnes: float, need_by_days: float 
     if "OCEAN_GULF_JAPAN" in cards and cards["OCEAN_GULF_JAPAN"]["change_3m_pct"] is not None:
         ch = cards["OCEAN_GULF_JAPAN"]["change_3m_pct"]
         votes.append(_vote("Dry-bulk freight momentum", 1.5, ch / 15, f"USDA grain ocean rate {ch:+.1f}% over 3 months (to {cards['OCEAN_GULF_JAPAN']['as_of']})",
-                           "Rising dry-bulk rates mean a dearer ship later: rent sooner. Momentum has only a weak record (see the evidence below), so it carries a modest weight."))
+                           "Rising rates mean a dearer ship later. Weak track record, so a modest weight."))
     if "BRENT" in cards and cards["BRENT"]["change_3m_pct"] is not None:
         ch = cards["BRENT"]["change_3m_pct"]
-        votes.append(_vote("Fuel price momentum", 1.0, ch / 20, f"Brent crude {ch:+.1f}% over 3 months", "Bunker fuel is a large part of freight; a rising oil price pushes rates up."))
+        votes.append(_vote("Fuel price momentum", 1.0, ch / 20, f"Brent crude {ch:+.1f}% over 3 months", "Fuel is a large part of freight; rising oil lifts rates."))
     if "COAL_PPI" in cards and cards["COAL_PPI"]["change_3m_pct"] is not None:
         ch = cards["COAL_PPI"]["change_3m_pct"]
-        votes.append(_vote("Coal price momentum", 0.5, ch / 15, f"US coal price index {ch:+.1f}% over 3 months", "Rising coal prices lift demand for ships. A weak, indirect signal."))
+        votes.append(_vote("Coal price momentum", 0.5, ch / 15, f"US coal price index {ch:+.1f}% over 3 months", "Rising coal lifts demand for ships. Indirect."))
     if "INR" in cards and cards["INR"]["change_3m_pct"] is not None:
         ch = cards["INR"]["change_3m_pct"]
         votes.append(_vote("Rupee trend", 1.0, ch / 6, f"rupee {ch:+.1f}% per dollar over 3 months", "A weaker rupee makes a dollar freight bill dearer each week you wait."))

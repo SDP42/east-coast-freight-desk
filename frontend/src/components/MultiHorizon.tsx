@@ -3,7 +3,7 @@ import Loading from "./Loading";
 import { px } from "../lib/scale";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import SpotlightCard from "./SpotlightCard";
-import { Note } from "./ui";
+import { Fine } from "./ui";
 import { api } from "../lib/api";
 
 interface Res { index_name: string; last_date: string; last_value: number; horizons: { horizon: number; value: number; change_pct: number; lower: number; upper: number }[]; note: string }
@@ -37,7 +37,7 @@ export default function MultiHorizon({ indexName }: { indexName: string }) {
                 <tr key={h.horizon} className="border-t border-border-soft"><td className="py-1.5 font-medium text-strong">{h.horizon} month{h.horizon > 1 ? "s" : ""}</td><td>{h.value.toLocaleString()}</td><td className={h.change_pct >= 0 ? "text-down" : "text-up"}>{h.change_pct > 0 ? "+" : ""}{h.change_pct}%</td><td>{h.lower.toLocaleString()} to {h.upper.toLocaleString()}</td><td className="text-muted">±{(((h.upper - h.lower) / 2 / res.last_value) * 100).toFixed(0)}%</td></tr>
               ))}</tbody>
             </table>
-            <Note>{res.note}</Note>
+            <Fine>{res.note}</Fine>
           </div>
         )}
       </div>

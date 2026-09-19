@@ -73,7 +73,7 @@ export default function LiveDesk() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Live desk" subtitle="A trading-desk view with minute-by-minute motion. The ticks are simulated from each series' last real trading day, and the page says so." />
+      <PageHeader title="Live desk" subtitle="Minute-by-minute ticks (simulated)." />
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <span className="flex items-center gap-1.5 rounded-full bg-amber/10 px-3 py-1 text-xs font-semibold text-amber"><Zap className="h-3.5 w-3.5" /> SIMULATED TICKS</span>
         <button onClick={() => setRunning((r) => !r)} className="flex items-center gap-1.5 rounded-lg border border-border-soft bg-white px-3 py-1.5 text-xs text-strong hover:border-cyan">{running ? <><Pause className="h-3.5 w-3.5" /> Pause</> : <><Play className="h-3.5 w-3.5" /> Resume</>}</button>

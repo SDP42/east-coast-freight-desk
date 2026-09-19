@@ -34,7 +34,7 @@ export default function Explorer() {
   const csvUrl = `${api.defaults.baseURL}/data/export.csv?index_name=${idx}${start ? `&start=${start}` : ""}${end ? `&end=${end}` : ""}`;
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader title="Data explorer" subtitle="Every series the models use. Filter by date and value, search series and documented disruptions, and export what you find." />
+      <PageHeader title="Data explorer" subtitle="Every series the models use. Filter, search and export." />
       <SpotlightCard>
         <div className="p-6">
           <div className="relative">

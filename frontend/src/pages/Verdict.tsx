@@ -3,7 +3,7 @@ import { CalendarClock, CheckCircle2, Hourglass, Scissors, ShieldAlert, Ship } f
 import SpotlightCard from "../components/SpotlightCard";
 import LightSelect from "../components/LightSelect";
 import Loading from "../components/Loading";
-import { Note, PageHeader, Stat, errText } from "../components/ui";
+import { Note, PageHeader, Stat, errText, Fine } from "../components/ui";
 import { api } from "../lib/api";
 
 interface Sig { signal: string; weight: number; vote: number; reading: string; why: string }
@@ -44,7 +44,7 @@ export default function Verdict() {
   const st = res ? STYLE[res.verdict] ?? STYLE["RENT WITHIN A WEEK"] : null;
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="The verdict" subtitle="One plain answer: when to rent a ship, and which one. Set the port, the tonnes and the date the plant needs the coal; the desk weighs time, ship supply, season and market context and tells you what to do." />
+      <PageHeader title="The verdict" subtitle="When to rent a ship, and which one, in one plain answer." />
       <SpotlightCard>
         <div className="grid gap-5 p-5 sm:grid-cols-4">
           <LightSelect label="Discharge port" value={port} options={PORTS} onChange={setPort} width={200} />
@@ -100,7 +100,7 @@ export default function Verdict() {
 
           {res.what_would_change_it.length > 0 && <SpotlightCard><div className="p-5"><h3 className="text-sm font-semibold text-strong">What would change this call</h3><ul className="mt-2 space-y-1 text-sm text-body">{res.what_would_change_it.map((w) => <li key={w}>• {w}</li>)}</ul></div></SpotlightCard>}
           {res.notes.map((n) => <Note key={n} kind="warn">{n}</Note>)}
-          <p className="text-xs text-muted">{res.method}</p>
+          <Fine>{res.method}</Fine>
         </div>
       )}
     </div>

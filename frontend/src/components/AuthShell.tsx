@@ -28,8 +28,8 @@ export default function AuthShell({ children, wide = false }: { children: ReactN
         </div>
         <SpotlightCard className="max-w-md"><div className="p-4"><LiveChart indexName="OCEAN_GULF_JAPAN" label="USDA grain ocean rate, Gulf to Japan (US$/t)" height={150} compact /></div></SpotlightCard>
         <ul className="max-w-md space-y-3 text-sm text-body">
-          <li className="flex gap-3"><Ship className="mt-0.5 h-4 w-4 shrink-0 text-cyan" /> Checked against real coal vessels discharging at Haldia.</li>
-          <li className="flex gap-3"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan" /> Passwords are hashed with bcrypt; repeated wrong attempts lock sign-in for ten minutes.</li>
+          <li className="flex gap-3"><Ship className="mt-0.5 h-4 w-4 shrink-0 text-cyan" /> Ships checked against the limits at both the loading and discharge port.</li>
+          <li className="flex gap-3"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan" /> Passwords are hashed; repeated wrong attempts lock sign-in.</li>
         </ul>
       </div>
     </div>

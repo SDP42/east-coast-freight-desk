@@ -3,7 +3,7 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import { Flame, RotateCcw, Save, Trash2 } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
 import LightSelect from "../components/LightSelect";
-import { Note, PageHeader, Stat, btnCls, errText } from "../components/ui";
+import { PageHeader, Stat, btnCls, errText, Fine } from "../components/ui";
 import { api } from "../lib/api";
 import { px } from "../lib/scale";
 
@@ -55,7 +55,7 @@ export default function WhatIf() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="What-if studio" subtitle="Change anything (freight, rupee, fuel, delays, a Red Sea reroute, how fast the ship sails) and see the landed cost move at once. Built for the call that comes in at 6 pm." />
+      <PageHeader title="What-if studio" subtitle="Change freight, rupee, fuel or delays and watch the landed cost move." />
 
       <div className="mb-4 flex flex-wrap gap-2">
         {meta?.playbooks.map((p) => (
@@ -160,7 +160,8 @@ export default function WhatIf() {
           )}
         </div>
       </SpotlightCard>
-      {run && <div className="mt-4"><Note>{run.note} Freight moves are applied to the route's illustrative rate. Assumed: fuel is 35% of freight, lightering $3.5/t at Sagar for cargo above Haldia's practical ceiling, laytime 2.5 days.</Note></div>}
+      {run && <div className="mt-4"><Fine>{run.note} Freight moves are applied to the route's illustrative rate. Assumed: fuel is 35% of freight, lightering $3.5/t at Sagar for cargo above Haldia's practical ceiling, laytime 2.5 days.</Fine>
+      <p className="mt-2 text-xs text-muted">Costs are illustrative estimates, not quotes.</p></div>}
     </div>
   );
 }

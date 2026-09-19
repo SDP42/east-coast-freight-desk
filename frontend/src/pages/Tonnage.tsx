@@ -3,7 +3,7 @@ import { ClipboardPaste, Download, FileUp, Trash2 } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
 import LightSelect from "../components/LightSelect";
 import Loading from "../components/Loading";
-import { Note, PageHeader, Stat, btnCls, errText } from "../components/ui";
+import { Note, PageHeader, Stat, btnCls, errText, Fine } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
@@ -45,7 +45,7 @@ export default function Tonnage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Open tonnage" subtitle="Which ships are actually available? Upload the position lists your brokers send (CSV or Excel). The desk matches ships to a cargo by size, berth fit, laycan and ETA. Your own data: nothing is scraped." />
+      <PageHeader title="Open tonnage" subtitle="Upload or paste your brokers' position lists. The desk matches ships to a cargo." />
       <div className="space-y-4">
         {can("ledger:write") && (
           <SpotlightCard><div className="flex flex-wrap items-center gap-3 p-5">
@@ -101,7 +101,7 @@ export default function Tonnage() {
             <table className="mt-2 w-full text-left text-xs"><tbody>{ships.map((s) => <tr key={s.id} className="border-t border-border-soft"><td className="py-1.5 font-medium text-strong">{s.vessel}</td><td>{s.dwt.toLocaleString()} t</td><td>{s.open_port}</td><td>{s.open_date}</td><td className="text-muted">{s.broker ?? ""}</td><td className="text-right"><button onClick={() => remove(s.id)} aria-label="Remove" className="text-muted hover:text-down"><Trash2 className="h-3.5 w-3.5" /></button></td></tr>)}</tbody></table>
           </div></SpotlightCard>
         )}
-        <p className="text-xs text-muted">{res?.method}</p>
+        <Fine>{res?.method}</Fine>
       </div>
     </div>
   );

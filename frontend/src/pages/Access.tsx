@@ -87,7 +87,7 @@ export default function Access() {
   useEffect(() => { api.get<Matrix>("/access/matrix").then((r) => setM(r.data)); }, []);
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader title="Access & audit" subtitle="What each role can see, what yours is, and, for administrators, who holds which role and what has been asked." />
+      <PageHeader title="Access & audit" subtitle="What each role can see, and who holds which role." />
       <SpotlightCard>
         <div className="flex flex-wrap items-center gap-4 p-6">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan/10"><ShieldCheck className="h-6 w-6 text-cyan" /></div>

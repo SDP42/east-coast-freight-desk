@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import SpotlightCard from "../components/SpotlightCard";
-import { Field, Note, PageHeader, Stat, Tabs, btnCls, errText, inputCls } from "../components/ui";
+import { Field, PageHeader, Stat, Tabs, btnCls, errText, inputCls, Fine } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { px } from "../lib/scale";
@@ -41,7 +41,7 @@ function FanTab() {
               <Stat label="Last value" value={d.last_value.toLocaleString()} /><Stat label={`In ${d.horizon} months, 5%`} value={d.terminal.p5.toLocaleString()} tone="up" />
               <Stat label="Median" value={d.terminal.p50.toLocaleString()} /><Stat label="95%" value={d.terminal.p95.toLocaleString()} tone="down" />
             </div>
-            <Note kind="warn">{d.method} Data through {d.last_date}: this shows the shape of risk from history, not a view on today's market.</Note>
+            <Fine>{d.method} Data through {d.last_date}: this shows the shape of risk from history, not a view on today's market.</Fine>
           </div>
         )}
       </div>
@@ -92,7 +92,7 @@ function CarTab() {
               </ResponsiveContainer>
             </div>
             <div className="text-sm text-body">What drives the spread: freight <b>{d.share_of_variance_pct.freight}%</b>, currency <b>{d.share_of_variance_pct.currency}%</b>, demurrage <b>{d.share_of_variance_pct.demurrage}%</b>. Freight dominates, so the timing and contract decisions matter more than port choice.</div>
-            <Note kind="warn">{d.method} Index used: {d.index_used}, through {d.index_data_through}.</Note>
+            <Fine>{d.method} Index used: {d.index_used}, through {d.index_data_through}.</Fine>
           </div>
         )}
       </div>
@@ -105,7 +105,7 @@ export default function RiskLab() {
   const [tab, setTab] = useState<Tab>("fan");
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Risk lab" subtitle="Two ways to see uncertainty: thousands of possible index paths in 3D, and the range of what one cargo could end up costing." />
+      <PageHeader title="Risk lab" subtitle="The range of outcomes: forecast paths in 3D, and cost at risk for one cargo." />
       <Tabs<Tab> tabs={[{ key: "fan", label: "3D forecast fan" }, ...(can("financial:read") ? [{ key: "car" as Tab, label: "Cost at risk" }] : [])]} value={tab} onChange={setTab} />
       {tab === "fan" ? <FanTab /> : <CarTab />}
     </div>

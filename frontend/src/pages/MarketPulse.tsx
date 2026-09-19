@@ -18,7 +18,7 @@ export default function MarketPulse() {
   useEffect(() => { api.get<Res>("/market/pulse").then((r) => setD(r.data)).catch((e) => setErr(errText(e))); }, []);
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Market pulse" subtitle="What the current public-domain data says today: freight, fuel, coal and currency, all US-government or Federal Reserve series, current to 2026." />
+      <PageHeader title="Market pulse" subtitle="Freight, fuel, coal and currency today, all public-domain series." />
       {err && <p className="text-xs text-down">{err}</p>}
       {!d && !err && <Loading label="Reading current data" pattern="sweep" block />}
       {d && (

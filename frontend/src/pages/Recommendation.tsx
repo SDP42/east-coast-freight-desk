@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Fine } from "../components/ui";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, CheckCircle2, XCircle, TrendingDown, TrendingUp, Ship } from "lucide-react";
 import ParetoCard from "../components/ParetoCard";
@@ -92,7 +93,7 @@ export default function Recommendation() {
       <AnimatePresence>
         {result && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <p className="text-xs text-muted">{result.methodology_note}</p>
+            <Fine>{result.methodology_note}</Fine>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {result.recommendations.map((rec, i) => {
                 const isBest = rec.rank === 1 && rec.compatibility.compatible;

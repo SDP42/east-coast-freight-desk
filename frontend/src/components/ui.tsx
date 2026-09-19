@@ -57,3 +57,13 @@ export function errText(e: unknown): string {
 }
 
 export const tone = (label: string) => (/low|open|stable|A|B/.test(label) ? "up" : /high|tight|drift|D|E|severe/i.test(label) ? "down" : "warn") as "up" | "down" | "warn";
+
+/** Long explanatory text, collapsed by default so pages stay clean. */
+export function Fine({ children, title = "How this is calculated" }: { children: ReactNode; title?: string }) {
+  return (
+    <details className="mt-3 text-xs text-muted">
+      <summary className="cursor-pointer select-none hover:text-body">{title}</summary>
+      <div className="mt-1.5 leading-relaxed">{children}</div>
+    </details>
+  );
+}

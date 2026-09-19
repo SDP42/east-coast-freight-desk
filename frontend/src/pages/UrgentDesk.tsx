@@ -4,7 +4,7 @@ import SpotlightCard from "../components/SpotlightCard";
 import LightSelect from "../components/LightSelect";
 import Loading from "../components/Loading";
 import FuseButtonRaw from "../components/rb/FuseButton";
-import { Note, PageHeader, Stat, errText } from "../components/ui";
+import { PageHeader, Stat, errText, Fine } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
@@ -49,7 +49,7 @@ export default function UrgentDesk() {
   const deadlinePct = (days / max) * 100;
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Urgent fixture desk" subtitle="A plant is short of coal and the clock is running. Set the port, the tonnes and the deadline: the desk tells you what can arrive in time, how likely it is, and the most you should pay." />
+      <PageHeader title="Urgent fixture desk" subtitle="Plant short of coal? What can arrive in time, how likely, and the most to pay." />
 
       <SpotlightCard>
         <div className="grid gap-5 p-5 sm:grid-cols-4">
@@ -113,7 +113,8 @@ export default function UrgentDesk() {
               </ul>
             </div>
           </SpotlightCard>
-          <Note kind="warn">{res.method} Costs are illustrative estimates, not quotes.</Note>
+          <Fine>{res.method} Costs are illustrative estimates, not quotes.</Fine>
+      <p className="mt-2 text-xs text-muted">Costs are illustrative estimates, not quotes.</p>
         </div>
       )}
     </div>

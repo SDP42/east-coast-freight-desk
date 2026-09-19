@@ -3,7 +3,7 @@ import Loading from "../components/Loading";
 import { Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, Area } from "recharts";
 import { Brain } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
-import { Note, PageHeader, Stat, errText } from "../components/ui";
+import { PageHeader, Stat, errText, Fine } from "../components/ui";
 import { api } from "../lib/api";
 import { px } from "../lib/scale";
 
@@ -30,7 +30,7 @@ export default function ModelLab() {
   const path = [...c.gulf_rate_history.slice(-36).map((h) => ({ m: h.month.slice(0, 7), actual: h.usd_per_t })), ...c.gulf_rate_forecast.path.map((p) => ({ m: p.month.slice(0, 7), forecast: p.forecast, band: [p.low, p.high] as [number, number] }))];
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <PageHeader title="Model lab" subtitle="Machine-learning and deep-learning models on public-domain data, tested honestly. Real numbers, including where the models did not beat 'no change'." />
+      <PageHeader title="Model lab" subtitle="Forecast models on public data, tested against 'no change'." />
       <SpotlightCard>
         <div className="space-y-4 p-6">
           <div className="flex items-start gap-4">
@@ -61,7 +61,7 @@ export default function ModelLab() {
               <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" /><XAxis dataKey="m" tick={{ fontSize: px(10), fill: "#64748b" }} interval={5} /><YAxis tick={{ fontSize: px(11), fill: "#64748b" }} domain={["auto", "auto"]} /><Tooltip />
               <Area dataKey="band" stroke="none" fill="#0e7490" fillOpacity={0.12} isAnimationActive={false} /><Line dataKey="actual" stroke="#0b2545" dot={false} isAnimationActive={false} /><Line dataKey="forecast" stroke="#0e7490" strokeDasharray="5 3" dot={false} isAnimationActive={false} />
             </ComposedChart></ResponsiveContainer></div>
-            <p className="mt-2 text-xs text-muted">{c.gulf_rate_forecast.method}. US Gulf to Japan grain ocean rate, US$ per tonne.</p>
+            <Fine>{c.gulf_rate_forecast.method}. US Gulf to Japan grain ocean rate, US$ per tonne.</Fine>
           </div>
         </SpotlightCard>
       </div>
@@ -76,7 +76,7 @@ export default function ModelLab() {
           {proof.artifacts.length > 0 && <p className="mt-3 text-xs text-muted">Saved artifacts: {proof.artifacts.map((a) => `${a.file} (${a.sha256})`).join(", ")}.</p>}
         </div></SpotlightCard>
       )}
-      <Note>{c.caveat} Inputs: {(c.inputs ?? []).join(", ")}. Trained {c.trained_at}.</Note>
+      <Fine>{c.caveat} Inputs: {(c.inputs ?? []).join(", ")}. Trained {c.trained_at}.</Fine>
     </div>
   );
 }

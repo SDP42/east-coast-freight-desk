@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Scale } from "lucide-react";
 import SpotlightCard from "./SpotlightCard";
-import { Note, btnCls, errText } from "./ui";
+import { btnCls, errText, Fine } from "./ui";
 import { api } from "../lib/api";
 
 interface Option { origin: string; cost: number; days: number; risk: number; vessel_class: string; fits_berth: boolean; dominated_by: string[]; pareto: boolean; score: number; rank: number }
@@ -46,7 +46,7 @@ export default function ParetoCard({ portId, cargoTonnes }: { portId: number | n
                 </tr>
               ))}</tbody>
             </table>
-            <Note>{res.note}</Note>
+            <Fine>{res.note}</Fine>
           </div>
         )}
       </div>

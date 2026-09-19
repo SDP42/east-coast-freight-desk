@@ -119,7 +119,7 @@ export default function Ask() {
           <SpotlightCard>
             <div className="p-6">
               <p className="text-sm font-semibold text-strong">{firstName ? `Hello ${firstName}. ` : ""}What would you like to know?</p>
-              <p className="mt-1 text-xs text-muted">Signed in as <b className="text-body">{user?.role_label}</b>{user?.port_scope ? `, limited to ${user.port_scope.join(", ") || "no ports yet"}` : ""}. I only answer with data your role may see; anything else is politely refused and logged.</p>
+              <p className="mt-1 text-xs text-muted">Signed in as <b className="text-body">{user?.role_label}</b>{user?.port_scope ? `, limited to ${user.port_scope.join(", ") || "no ports yet"}` : ""}. I only answer with data your role may see.</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {(info?.suggestions ?? []).map((s) => (
                   <button key={s} onClick={() => send(s)} className="rounded-full border border-border-soft bg-white px-3.5 py-1.5 text-xs text-body transition hover:border-cyan hover:text-cyan">{s}</button>
@@ -127,8 +127,7 @@ export default function Ask() {
               </div>
               {info && (
                 <p className="mt-5 text-[11px] leading-relaxed text-muted">
-                  Model: {info.model.algorithm}; {info.model.intents} intents, {info.model.training_examples} training examples. Held-out accuracy on our own hand-written questions:
-                  {" "}{(info.model.cv_accuracy_mean * 100).toFixed(0)}% ± {(info.model.cv_accuracy_std * 100).toFixed(0)}%. {info.model.note}
+                  Intent model: {info.model.intents} intents, {(info.model.cv_accuracy_mean * 100).toFixed(0)}% held-out accuracy.
                 </p>
               )}
             </div>
@@ -220,7 +219,7 @@ export default function Ask() {
         </button>
       </form>
       <p className="mt-2 text-[11px] text-muted">
-        {voiceMsg || "Voice: press the microphone and speak; answers are read aloud when the speaker is on. Chrome and Edge send the audio to their own speech service to transcribe it, so avoid confidential details."}
+        {voiceMsg || "Voice: press the microphone and speak. Chrome and Edge transcribe audio with their own speech service."}
       </p>
     </div>
   );

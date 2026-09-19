@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import SpotlightCard from "../components/SpotlightCard";
-import { Note, PageHeader } from "../components/ui";
+import { PageHeader, Fine } from "../components/ui";
 import { api } from "../lib/api";
 import type { TerrainData } from "../components/three/TerrainScene";
 
@@ -13,7 +13,7 @@ export default function Terrain() {
   useEffect(() => { api.get<Data>("/lab/terrain").then((r) => setD(r.data)); }, []);
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Market terrain" subtitle="Eight series over seven years as one landscape. Peaks are months when a series was far above its own normal; valleys are troughs. Hover the surface for values; drag to orbit." />
+      <PageHeader title="Market terrain" subtitle="Eight market series as one landscape. Drag to orbit, hover for values." />
       <SpotlightCard>
         <div className="relative h-[34rem] bg-gradient-to-b from-sky-50 to-white">
           {d ? <Suspense fallback={null}><TerrainScene className="h-full" data={d} /></Suspense> : <div className="flex h-full items-center justify-center"><Loading label="Building the terrain" pattern="sweep" /></div>}
@@ -22,7 +22,7 @@ export default function Terrain() {
           </div>
         </div>
       </SpotlightCard>
-      {d && <div className="mt-4"><Note>{d.method} Look for ridges that rise together (the Capesize, Panamax, Supramax and Handysize indices co-move), and for series that run against them, such as the dollar index.</Note></div>}
+      {d && <div className="mt-4"><Fine>{d.method} Look for ridges that rise together (the Capesize, Panamax, Supramax and Handysize indices co-move), and for series that run against them, such as the dollar index.</Fine></div>}
     </div>
   );
 }

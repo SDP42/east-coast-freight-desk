@@ -29,12 +29,12 @@ const Carousel = CarouselRaw as unknown as React.ComponentType<Record<string, un
 const GLOW = { backgroundColor: "#ffffff", glowColor: "190 85 38", colors: ["#0e7490", "#7c3aed", "#d97706"], borderRadius: 22, glowRadius: 26, fillOpacity: 0.28, edgeSensitivity: 26 };
 
 const CAPABILITIES = [
-  { icon: Timer, title: "Urgent Fixture Desk", text: "A plant is about to run short. Get the fastest safe ship, the on-time probability and a walk-away price in seconds.", to: "/app/urgent" },
-  { icon: Flame, title: "What-If Studio", text: "Move freight, rupee, fuel, delays and Red Sea reroutes and watch landed cost and trip time change live.", to: "/app/whatif" },
-  { icon: MessageSquareText, title: "Ask by voice or chat", text: "Type or speak a question; a local model routes it to the engines, and only answers what your role may see.", to: "/app/ask" },
-  { icon: LineChart, title: "Forecasts with proof", text: "ARIMA, XGBoost and deep models compared honestly on the same forecasts, with backtests and significance tests.", to: "/app/lab" },
-  { icon: MapPinned, title: "Berth-fit engine", text: "Draft, length, beam and tidal windows for seven ports, with part-laden calls handled per port.", to: "/app/ports" },
-  { icon: Compass, title: "Five origins, one cargo", text: "Australia, the US, Mozambique, Russia and Indonesia ranked on cost, time and risk, Pareto-optimal ones marked.", to: "/app/recommendation" },
+  { icon: Timer, title: "Urgent Fixture Desk", text: "Fastest safe ship, on-time probability and a walk-away price.", to: "/app/urgent" },
+  { icon: Flame, title: "What-If Studio", text: "Move freight, rupee, fuel and delays; watch landed cost change live.", to: "/app/whatif" },
+  { icon: MessageSquareText, title: "Ask by voice or chat", text: "Type or speak a question. Answers only what your role may see.", to: "/app/ask" },
+  { icon: LineChart, title: "Forecasts with proof", text: "Models compared honestly, with backtests and significance tests.", to: "/app/lab" },
+  { icon: MapPinned, title: "Berth-fit engine", text: "Draft, length, beam and tides for seven ports.", to: "/app/ports" },
+  { icon: Compass, title: "Five origins, one cargo", text: "Five origins ranked on cost, time and risk.", to: "/app/recommendation" },
   { icon: ShieldAlert, title: "Route risk", text: "Disruptions, congestion and volatility combined into one explained score per route.", to: "/app/risk" },
   { icon: Calculator, title: "COA vs spot", text: "Simulate locking a contract against staying spot, with the savings case for finance.", to: "/app/financial" },
 ];
@@ -114,15 +114,14 @@ export default function Landing() {
         </div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="relative -mt-4"><GradientText colors={["#0e7490", "#7c3aed", "#d97706", "#0e7490"]} animationSpeed={6} className="text-2xl font-bold sm:text-4xl">Every fixture counts.</GradientText></motion.div>
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="relative mx-auto mt-5 max-w-2xl text-base leading-relaxed text-body">
-          A coking-coal ship bound for SAIL is lightened at Sagar, sails six hours up the Hooghly and passes a tide-timed lock. This desk forecasts the market, checks what each port can take,
-          and answers the last-minute call: <b className="text-strong">what if freight jumps, the port stalls, or we need coal in two weeks?</b>
+          Forecast the market, check what each port can take, and answer the last-minute call: <b className="text-strong">what if freight jumps, the port stalls, or we need coal in two weeks?</b>
         </motion.p>
         <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
           <Magnet><Link to={user ? "/app" : "/login"} className={primary}>{user ? "Open dashboard" : "Try the live demo"} <ArrowRight className="h-4 w-4" /></Link></Magnet>
           {!user && <Magnet><Link to="/register" className="flex items-center rounded-full border border-border-soft bg-white/85 px-7 py-3.5 text-sm font-medium text-strong backdrop-blur transition hover:border-cyan">Create an account</Link></Magnet>}
         </div>
         <div className="relative mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted">
-          {["6 roles with real access control", "Voice assistant", "4 interactive 3D views", "Deep learning, honestly compared"].map((t) => <span key={t} className="flex items-center gap-1.5"><Zap className="h-3 w-3 text-amber" />{t}</span>)}
+          {["6 roles", "Voice assistant", "3D views", "Public-domain data"].map((t) => <span key={t} className="flex items-center gap-1.5"><Zap className="h-3 w-3 text-amber" />{t}</span>)}
         </div>
       </section>
 
@@ -131,7 +130,7 @@ export default function Landing() {
         <div className="mb-5 text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-cyan">Where the coal comes from</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-strong">Five origins, seven ports, one desk.</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-body">More than half of India's coking coal comes from Australia; Mozambique, the US and Russia fill the rest, and the mix is shifting. Every lane has its own distance, weather and canal risk, and each end has its own draft limit. Switch views to explore.</p>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-body">More than half of India's coking coal comes from Australia. Mozambique, the US and Russia fill the rest. Each end has its own draft limit.</p>
         </div>
         <MapExplorer />
 
@@ -146,7 +145,7 @@ export default function Landing() {
             </BorderGlow>
           ))}
         </div>
-        <p className="mt-2 text-center text-[11px] text-muted">Figures from SAIL's annual report, the CAG audit and the Ministry of Ports (sources in the README). Haldia takes about 35,000 t per vessel because larger ships are lightened at Sagar first.</p>
+        <p className="mt-2 text-center text-[11px] text-muted">Sources: SAIL annual report, CAG audit, Ministry of Ports.</p>
       </section>
 
       {/* Decide fast */}
@@ -159,7 +158,7 @@ export default function Landing() {
               <div className="sm:col-span-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber/10"><Timer className="h-5 w-5 text-amber" /></div>
                 <h3 className="mt-3 text-xl font-bold text-strong">Urgent Fixture Desk</h3>
-                <p className="mt-2 text-sm leading-relaxed text-body">Tell it the port, the tonnes and the deadline. It costs every origin, vessel and speed, simulates 2,000 arrivals, and tells you the fastest safe option, the chance of being on time, and the most you should pay.</p>
+                <p className="mt-2 text-sm leading-relaxed text-body">Set the port, tonnes and deadline. Get the fastest safe ship, the chance it arrives in time, and the most to pay.</p>
                 <Link to={user ? "/app/urgent" : "/login"} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber hover:underline">See it work <ArrowRight className="h-4 w-4" /></Link>
               </div>
               <div className="flex flex-col justify-center gap-2 sm:col-span-2">
@@ -176,7 +175,7 @@ export default function Landing() {
               <div className="sm:col-span-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100"><Flame className="h-5 w-5 text-violet-700" /></div>
                 <h3 className="mt-3 text-xl font-bold text-strong">What-If Studio</h3>
-                <p className="mt-2 text-sm leading-relaxed text-body">Drag freight, rupee, fuel, delays or a Red Sea reroute and see landed cost, trip time and a tornado of what matters most. One-click crisis playbooks; save and compare scenarios.</p>
+                <p className="mt-2 text-sm leading-relaxed text-body">Move freight, rupee, fuel or delays and see landed cost and trip time. One-click crisis playbooks.</p>
                 <Link to={user ? "/app/whatif" : "/login"} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-violet-700 hover:underline">Try a scenario <ArrowRight className="h-4 w-4" /></Link>
               </div>
               <div className="flex flex-col justify-center gap-1.5 sm:col-span-2">
@@ -216,7 +215,7 @@ export default function Landing() {
         <div className="grid items-stretch gap-6 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <h2 className="text-3xl font-bold text-strong">See risk, don't just read it</h2>
-            <p className="mt-3 text-sm leading-relaxed text-body">Four interactive 3D views, written in plain three.js: the globe of sea lanes and chokepoints, a fan of possible futures, and a terrain of the markets. Below, the real Panamax index replays with spikes and collapses flagged.</p>
+            <p className="mt-3 text-sm leading-relaxed text-body">Explore the market in 3D: sea lanes, a fan of possible futures and a terrain of the series.</p>
             <div className="mt-5 grid grid-cols-2 gap-3">
               {SCENES.map((s) => (
                 <Link key={s.title} to={user ? s.to : "/login"} className={`group rounded-2xl border border-border-soft bg-gradient-to-br ${s.tint} p-4 transition hover:-translate-y-0.5 hover:shadow-md`}>
@@ -238,7 +237,7 @@ export default function Landing() {
         <div className="grid items-center gap-8 lg:grid-cols-2">
           <div>
             <h2 className="text-3xl font-bold text-strong">The same question, a different answer for each person</h2>
-            <p className="mt-3 text-sm leading-relaxed text-body">Access is a role an administrator assigns and it is enforced in the API and the database queries. Ask "How much coking coal does SAIL import?" as a port officer and the desk refuses and logs it; ask as Finance and it answers. Drag the cards to meet the six roles.</p>
+            <p className="mt-3 text-sm leading-relaxed text-body">Access is set by role and enforced in the API. Ask a port officer about SAIL's imports and the desk refuses and logs it. Drag the cards to meet the six roles.</p>
             <Link to={user ? "/app/access" : "/login"} className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-cyan hover:underline">Sign in with a demo role <ArrowRight className="h-4 w-4" /></Link>
           </div>
           <div className="flex justify-center"><Carousel items={ROLES} baseWidth={360} autoplay autoplayDelay={3200} pauseOnHover loop /></div>
@@ -259,8 +258,7 @@ export default function Landing() {
       <footer className="border-t border-border-soft bg-white/70">
         <div className="mx-auto max-w-6xl px-6 py-8 text-xs leading-relaxed text-muted">
           <p>
-            Prices shown are real ingested data, replayed rather than streamed live. Every series is public-domain US-government or Federal Reserve data, current to 2026, fetched free with no accounts or keys.
-            Cost figures are illustrative estimates, not quotes. The Haldia scene is a schematic built from public port-trust figures. Minute ticks on the Live Desk are simulated.
+            Public-domain data, replayed rather than streamed live. Costs are illustrative estimates, not quotes.
           </p>
           <p className="mt-3">Built for the Smart India Hackathon 2026.</p>
         </div>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, ShieldAlert, Link2 } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
-import { Field, Note, PageHeader, Stat, btnCls, errText, inputCls } from "../components/ui";
+import { Field, PageHeader, Stat, btnCls, errText, inputCls, Fine } from "../components/ui";
 import { api } from "../lib/api";
 
 interface Entry { id: number; fixture_date: string; vessel_name: string; origin_country: string; destination_port: string; cargo_tonnes: number; charter_type: string; rate_usd_per_tonne: number | null; is_sample: boolean; hash: string; prev_hash: string }
@@ -40,7 +40,7 @@ export default function Ledger() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader title="Fixture ledger" subtitle="Record charters in a tamper-evident chain, then benchmark each one against the freight market around its date." />
+      <PageHeader title="Fixture ledger" subtitle="Record charters in a tamper-evident chain and benchmark each one." />
 
       {chain && (
         <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${chain.valid ? "border-up/30 bg-up/10" : "border-down/40 bg-down/10"}`}>
@@ -97,7 +97,7 @@ export default function Ledger() {
                 ))}</tbody>
               </table>
             </div>
-            <div className="mt-4"><Note>{bench.method}</Note></div>
+            <div className="mt-4"><Fine>{bench.method}</Fine></div>
           </div>
         </SpotlightCard>
       )}

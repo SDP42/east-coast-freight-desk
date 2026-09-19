@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { px } from "../lib/scale";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import SpotlightCard from "../components/SpotlightCard";
-import { Field, Note, PageHeader, Stat, Tabs, btnCls, errText, inputCls } from "../components/ui";
+import { Field, Note, PageHeader, Stat, Tabs, btnCls, errText, inputCls, Fine } from "../components/ui";
 import { useAuth } from "../lib/auth";
 import { api, estimateDemurrage, getPorts, getVesselClasses, type DemurrageResult, type Port, type VesselClass } from "../lib/api";
 
@@ -67,7 +67,7 @@ function CarbonTool() {
                 <span key={s.speed_knots} className="rounded-full border border-border-soft bg-white px-3 py-1 text-xs text-body">{s.speed_knots} kn · {s.days} d · rating <b>{s.rating}</b></span>
               ))}
             </div>
-            <Note>{res.note} Assumed here: {res.assumptions.fuel_t_per_day_at_12kn} t/day at 12 kn, CO₂ factor {res.assumptions.co2_factor}, representative {res.assumptions.representative_dwt.toLocaleString()} dwt, required reduction {res.reduction_pct}% for {res.year}.</Note>
+            <Fine>{res.note} Assumed here: {res.assumptions.fuel_t_per_day_at_12kn} t/day at 12 kn, CO₂ factor {res.assumptions.co2_factor}, representative {res.assumptions.representative_dwt.toLocaleString()} dwt, required reduction {res.reduction_pct}% for {res.year}.</Fine>
           </div>
         )}
       </div>
@@ -116,7 +116,7 @@ function HedgeTool() {
               <div className="rounded-xl border border-cyan/40 bg-cyan/5 p-4"><p className="text-xs font-semibold text-cyan">HEDGED ({ratio}%)</p><p className="mt-1 text-sm text-body">Expected {inr(res.hedged.expected_inr)}</p><p className="text-sm text-amber">95% worst case {inr(res.hedged.worst_case_95_inr)}</p></div>
             </div>
             <p className="text-sm text-body">Hedging costs about <b>{inr(res.cost_of_hedge_inr)}</b> in expected terms and removes about <b className="text-up">{inr(res.worst_case_saved_inr)}</b> from the 95% worst case.</p>
-            <Note>{res.note}</Note>
+            <Fine>{res.note}</Fine>
           </div>
         )}
       </div>
@@ -173,7 +173,7 @@ function ModalTool() {
                 <tr key={o.port} className="border-t border-border-soft"><td className="py-1.5 font-medium text-strong">{o.port}{i === 0 && <span className="ml-2 rounded-full bg-up/10 px-2 py-0.5 text-[10px] text-up">cheapest</span>}</td><td>${o.sea_usd_per_t}</td><td>${o.rail_usd_per_t} ({o.rail_km} km)</td><td className="font-semibold">${o.total_usd_per_t}</td><td className="text-muted">+{o.premium_vs_best_pct}%</td></tr>
               ))}</tbody>
             </table>
-            <Note kind="warn">{res.note}</Note>
+            <Fine>{res.note}</Fine>
           </div>
         )}
       </div>
@@ -239,7 +239,7 @@ export default function Voyage() {
   const tabs: { key: Tab; label: string }[] = [{ key: "carbon", label: "Carbon (CII)" }, ...(can("treasury:read") ? [{ key: "hedge" as Tab, label: "INR/USD hedge" }] : []), { key: "modal", label: "Rail-sea-rail" }, ...(can("financial:read") ? [{ key: "demurrage" as Tab, label: "Demurrage & idle time" }] : [])];
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="Voyage economics" subtitle="Carbon, currency, inland logistics and demurrage: the costs around the freight rate that decide which fixture is actually cheapest." />
+      <PageHeader title="Voyage economics" subtitle="Carbon, currency, inland logistics and demurrage around the freight rate." />
       <Tabs<Tab> tabs={tabs} value={tab} onChange={setTab} />
       {tab === "carbon" && <CarbonTool />}
       {tab === "hedge" && <HedgeTool />}

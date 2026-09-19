@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import SpotlightCard from "../components/SpotlightCard";
 import Loading from "../components/Loading";
-import { Note, PageHeader, Stat, errText } from "../components/ui";
+import { Note, PageHeader, Stat, errText, Fine } from "../components/ui";
 import { api } from "../lib/api";
 
 interface Alloc { origin: string; port: string; plant: string; kt: number; landed_inr_per_t: number }
@@ -17,7 +17,7 @@ export default function Optimiser() {
   useEffect(() => { api.post<Res>("/sourcing/optimise", {}).then((x) => setR(x.data)).catch((e) => setErr(errText(e))); }, []);
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Sourcing optimiser" subtitle="Which origin, through which port, to which plant. A linear program finds the cheapest logistics for the month's coal, and tells you what each limit (a port's capacity, an origin's cap) is costing." />
+      <PageHeader title="Sourcing optimiser" subtitle="The cheapest origin, port and plant mix for the month, and what each limit costs." />
       {err && <p className="text-xs text-down">{err}</p>}
       {!r && !err && <Loading label="Solving the allocation" pattern="sweep" block />}
       {r && !r.feasible && <Note kind="warn">{r.message}</Note>}
@@ -35,7 +35,7 @@ export default function Optimiser() {
             <table className="mt-3 w-full text-left text-xs"><thead className="text-muted"><tr><th className="py-1">Limit</th><th>Used / limit (kt)</th><th>Saving per extra kt</th></tr></thead><tbody>{r.binding_limits.map((b) => <tr key={b.limit} className="border-t border-border-soft"><td className="py-1.5 font-medium text-strong">{b.limit}</td><td>{b.used_kt} / {b.limit_kt}</td><td>₹{b.saving_inr_lakh_per_extra_kt_per_month} lakh</td></tr>)}</tbody></table></div></SpotlightCard>
           <SpotlightCard><div className="max-h-80 overflow-auto p-5"><h3 className="text-sm font-semibold text-strong">The plan</h3>
             <table className="mt-3 w-full text-left text-xs"><thead className="sticky top-0 bg-white text-muted"><tr><th className="py-1">Origin</th><th>Port</th><th>Plant</th><th>kt</th><th>Landed ₹/t</th></tr></thead><tbody>{r.allocation.map((a, i) => <tr key={i} className="border-t border-border-soft"><td className="py-1.5">{a.origin}</td><td>{a.port}</td><td>{a.plant}</td><td className="font-medium text-strong">{a.kt}</td><td>{a.landed_inr_per_t}</td></tr>)}</tbody></table></div></SpotlightCard>
-          <Note>{r.method}</Note>
+          <Fine>{r.method}</Fine>
         </div>
       )}
     </div>

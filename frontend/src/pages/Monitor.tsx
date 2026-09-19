@@ -3,7 +3,7 @@ import { px } from "../lib/scale";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { RefreshCw } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
-import { Note, PageHeader, Stat, btnCls, errText } from "../components/ui";
+import { Note, PageHeader, Stat, btnCls, errText, Fine } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
@@ -26,7 +26,7 @@ export default function Monitor() {
   const drift = rep?.status === "drift";
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader title="Model monitor" subtitle="Shown on the daily Brent crude series (US EIA, a bunker-fuel proxy). Is the forecast model still behaving as it did when it was trained? Frozen parameters are scored on newer data; drift is flagged and the model can be retrained." />
+      <PageHeader title="Model monitor" subtitle="Is the forecast model still behaving as trained? Drift is flagged and the model can be retrained." />
       <div className="flex items-center gap-3">
         <select value={idx} onChange={(e) => setIdx(e.target.value)} className="rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-strong">{["BRENT", "INR", "DXY"].map((i) => <option key={i}>{i}</option>)}</select>
         {can("monitor:retrain") && <button onClick={retrain} disabled={busy} className={btnCls + " flex items-center gap-2"}><RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} /> {busy ? "Retraining…" : "Retrain now"}</button>}
@@ -62,7 +62,7 @@ export default function Monitor() {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-3"><Note>{rep.method} Thresholds: error ratio above {rep.thresholds.error_ratio} with p below {rep.thresholds.p_value}, or PSI above {rep.thresholds.psi} (a common rule of thumb).</Note></div>
+              <div className="mt-3"><Fine>{rep.method} Thresholds: error ratio above {rep.thresholds.error_ratio} with p below {rep.thresholds.p_value}, or PSI above {rep.thresholds.psi} (a common rule of thumb).</Fine></div>
             </div>
           </SpotlightCard>
           <SpotlightCard>

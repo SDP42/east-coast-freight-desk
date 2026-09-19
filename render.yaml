@@ -1,0 +1,24 @@
+# Render Blueprint: the backend as a free-tier web service, no Docker.
+# The database is Neon Postgres (created separately); paste its connection string when Render asks for DATABASE_URL.
+services:
+  - type: web
+    name: freight-desk-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
+      - key: PREWARM
+        value: "true"

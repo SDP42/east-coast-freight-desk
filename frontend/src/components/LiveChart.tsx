@@ -134,7 +134,7 @@ export default function LiveChart({ indexName, label, height = 300, compact = fa
             {!compact && <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />}
             <XAxis dataKey="date" hide={compact} tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={{ stroke: "#dbe4ee" }} minTickGap={40} />
             <YAxis hide={compact} domain={[(min: number) => min * 0.97, (max: number) => max * 1.03]} tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} width={48} tickFormatter={(v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })} />
-            {!compact && <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #232d45", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "#64748b" }} />}
+            {!compact && <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #dbe4ee", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "#64748b" }} />}
             <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill={`url(#${gradId})`} isAnimationActive={false} />
             {events.map((e) => (
               <ReferenceDot key={e.date} x={e.date} y={e.value} r={5} fill={e.event === "spike" ? "#059669" : "#dc2626"} stroke="#f3f7fb" strokeWidth={2} />

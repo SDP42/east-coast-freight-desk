@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from statsmodels.tsa.arima.model import ARIMA
 
+from app.core.cache import cached, data_version
 from app.db.session import get_db
 from app.ml.arima_model import fit_best_arima, forecast, forecast_with_ci
 from app.ml.backtesting import walk_forward_backtest
@@ -36,6 +37,11 @@ def get_forecast(
     horizon: int = Query(default=7, ge=1, le=90),
     db: Session = Depends(get_db),
 ) -> ForecastResponse:
+    key = f"forecast:{index_name.upper()}:{horizon}:{data_version(db, index_name.upper())}"
+    return ForecastResponse(**cached(key, 6 * 3600, lambda: _compute_forecast(index_name, horizon, db).model_dump(mode="json")))
+
+
+def _compute_forecast(index_name: str, horizon: int, db: Session) -> ForecastResponse:
     series = load_series(db, index_name.upper())
     if series.empty:
         raise HTTPException(status_code=404, detail=f"No data for index '{index_name}'")
@@ -86,6 +92,12 @@ def get_ensemble_forecast(
     horizon: int = Query(default=7, ge=1, le=30),
     db: Session = Depends(get_db),
 ) -> EnsembleForecastResponse:
+    names = [index_name.upper(), *EXOGENOUS_CANDIDATES]
+    key = f"ensemble:{index_name.upper()}:{horizon}:{data_version(db, *names)}"
+    return EnsembleForecastResponse(**cached(key, 6 * 3600, lambda: _compute_ensemble(index_name, horizon, db).model_dump(mode="json")))
+
+
+def _compute_ensemble(index_name: str, horizon: int, db: Session) -> EnsembleForecastResponse:
     """ARIMA + XGBoost ensemble with inverse-RMSE weighting and a Wilcoxon
     signed-rank significance test — the validated methodology from Baghel
     (2025, NCI MSc thesis), with S&P 500 / US Dollar Index / coal price

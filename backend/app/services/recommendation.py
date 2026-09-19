@@ -154,3 +154,33 @@ def compare_origins(
 
     results.sort(key=sort_key)
     return results
+
+
+def pareto_rank(db: Session, destination_port: Port, cargo_tonnes: float, origins: list[str], weights: tuple[float, float, float] = (0.5, 0.25, 0.25)) -> dict:
+    """Multi-objective ranking (#26): cost, transit time and route risk are all minimised. Returns each
+    origin's three objectives, whether it is Pareto-optimal, who dominates it, and a weighted top three."""
+    from app.services.risk import compute_route_risk
+
+    results = compare_origins(db, destination_port, cargo_tonnes, origins, market_signal=MarketSignal("BDI", None, None))
+    rows = []
+    for r in results:
+        if r.estimated_freight_usd_per_tonne is None or not r.route or not r.route.typical_transit_days:
+            continue
+        risk = compute_route_risk(db, r.origin_country, destination_port).composite_score
+        rows.append({"origin": r.origin_country, "cost": float(r.estimated_freight_usd_per_tonne), "days": float(r.route.typical_transit_days), "risk": float(risk),
+                     "vessel_class": r.vessel_class.name, "fits_berth": r.compatibility.compatible})
+    for a in rows:
+        a["dominated_by"] = [b["origin"] for b in rows if b is not a and all(b[k] <= a[k] for k in ("cost", "days", "risk")) and any(b[k] < a[k] for k in ("cost", "days", "risk"))]
+        a["pareto"] = not a["dominated_by"]
+    if rows:
+        lo = {k: min(r[k] for r in rows) for k in ("cost", "days", "risk")}
+        hi = {k: max(r[k] for r in rows) for k in ("cost", "days", "risk")}
+        wc, wd, wr = weights
+        for a in rows:
+            n = {k: (a[k] - lo[k]) / (hi[k] - lo[k]) if hi[k] > lo[k] else 0.0 for k in lo}
+            a["score"] = round(wc * n["cost"] + wd * n["days"] + wr * n["risk"], 3)
+        rows.sort(key=lambda a: a["score"])
+        for i, a in enumerate(rows, 1):
+            a["rank"] = i
+    return {"port": destination_port.name, "cargo_tonnes": cargo_tonnes, "weights": {"cost": weights[0], "time": weights[1], "risk": weights[2]}, "options": rows,
+            "note": "Cost is the illustrative distance-based estimate; time is the route's typical transit; risk is the composite route risk (0-10). Lower is better on all three. Scores are min-max normalised across these origins, so they rank only within this set."}

@@ -1,4 +1,6 @@
+import asyncio
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,16 +14,29 @@ from app.api.market import router as market_router
 from app.api.portmap import router as portmap_router
 from app.api.haldia import router as haldia_router
 from app.api.assistant import router as assistant_router
+from app.api.tools import router as tools_router
 from app.api.recommendation import router as recommendation_router
 from app.api.risk import router as risk_router
 from app.api.scenario import router as scenario_router
 from app.core.config import get_settings
 from app.core.error_handlers import register_error_handlers
 from app.core.logging_middleware import RequestLoggingMiddleware
+from app.core.scheduler import alert_loop, prewarm
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 settings = get_settings()
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    tasks = [asyncio.create_task(alert_loop())]
+    if settings.PREWARM:
+        tasks.append(asyncio.create_task(prewarm()))
+    yield
+    for t in tasks:
+        t.cancel()
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -30,6 +45,7 @@ app = FastAPI(
         "recommendation platform for coal procurement to India's East Coast ports."
     ),
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -50,6 +66,7 @@ app.include_router(market_router, prefix="/api/v1")
 app.include_router(portmap_router, prefix="/api/v1")
 app.include_router(haldia_router, prefix="/api/v1")
 app.include_router(assistant_router, prefix="/api/v1")
+app.include_router(tools_router, prefix="/api/v1")
 app.include_router(recommendation_router, prefix="/api/v1")
 app.include_router(risk_router, prefix="/api/v1")
 app.include_router(financial_router, prefix="/api/v1")

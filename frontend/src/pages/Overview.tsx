@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Anchor, ArrowUpRight, Database, Globe2, Ship } from "lucide-react";
+import BriefingCard from "../components/BriefingCard";
 import HealthBadge from "../components/HealthBadge";
 import SpotlightCard from "../components/SpotlightCard";
 import AnimatedCounter from "../components/AnimatedCounter";
@@ -32,7 +33,7 @@ export default function Overview() {
           <p className="text-xs uppercase tracking-widest" style={{ color: `rgb(${view.accent})` }}>
             {PERSONA_LABEL[user?.role ?? ""] ?? "Freight desk"}
           </p>
-          <h1 className="mt-1 bg-gradient-to-r from-white via-ice to-cyan bg-clip-text text-3xl font-bold text-transparent">
+          <h1 className="mt-1 bg-gradient-to-r from-strong via-body to-cyan bg-clip-text text-3xl font-bold text-transparent">
             {greeting()}, {firstName}
           </h1>
           <p className="mt-1 text-sm text-muted">{view.tagline}</p>
@@ -60,6 +61,8 @@ export default function Overview() {
           ))}
         </div>
       </div>
+
+      <BriefingCard />
 
       <SpotlightCard>
         <div className="p-6">

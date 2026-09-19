@@ -43,8 +43,23 @@ def test_stationarity(series: pd.Series) -> tuple[bool, float]:
     return p_value < 0.05, p_value
 
 
+_fit_memo: dict[tuple, "ArimaFitResult"] = {}
+
+
 def fit_best_arima(series: pd.Series) -> ArimaFitResult:
-    """Grid-search (p, d, q) by AIC and return the best-fitting model."""
+    """Grid-search (p, d, q) by AIC and return the best-fitting model. Results are memoised per series
+    fingerprint (first/last date and value, length), so repeated calls on unchanged data are free."""
+    key = (str(series.index[0]), str(series.index[-1]), len(series), float(series.iloc[0]), float(series.iloc[-1]))
+    if key in _fit_memo:
+        return _fit_memo[key]
+    result = _fit_best_arima_uncached(series)
+    if len(_fit_memo) > 64:
+        _fit_memo.clear()
+    _fit_memo[key] = result
+    return result
+
+
+def _fit_best_arima_uncached(series: pd.Series) -> ArimaFitResult:
     is_stationary, adf_pvalue = test_stationarity(series)
 
     best: ArimaFitResult | None = None

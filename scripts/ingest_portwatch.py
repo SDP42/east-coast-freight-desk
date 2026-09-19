@@ -17,7 +17,7 @@ from app.models import ChokepointTransit, PortActivity  # noqa: E402
 RAW = Path(__file__).resolve().parents[1] / "data" / "raw" / "candidates"
 PORTS_FILE = RAW / "imf_portwatch_daily_ec_india_ports.csv"
 CHOKE_FILE = RAW / "imf_portwatch_daily_chokepoints.csv"
-NAME_MAP = {"Visakhapatnam": "Visakhapatnam", "Paradip": "Paradip", "Haldia": "Haldia", "Dhamra": "Dhamra", "Gopalpur": "Gopalpur"}
+NAME_MAP = {"Visakhapatnam": "Visakhapatnam", "Paradip": "Paradip", "Haldia": "Haldia", "Dhamra Port": "Dhamra", "Gopalpur": "Gopalpur"}
 
 
 def main() -> None:

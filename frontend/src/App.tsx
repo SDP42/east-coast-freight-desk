@@ -1,5 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import AppShell from "./components/AppShell";
+import Voyage from "./pages/Voyage";
+import Signals from "./pages/Signals";
+import Ledger from "./pages/Ledger";
+import Monitor from "./pages/Monitor";
+import Alerts from "./pages/Alerts";
+import Explorer from "./pages/Explorer";
 import Ask from "./pages/Ask";
 import Profile from "./pages/Profile";
 import Landing from "./pages/Landing";
@@ -33,6 +39,12 @@ export default function App() {
         <Route path="financial" element={<Financial />} />
         <Route path="scenario" element={<Scenario />} />
         <Route path="ask" element={<Ask />} />
+        <Route path="voyage" element={<Voyage />} />
+        <Route path="signals" element={<Signals />} />
+        <Route path="ledger" element={<Ledger />} />
+        <Route path="monitor" element={<Monitor />} />
+        <Route path="alerts" element={<Alerts />} />
+        <Route path="explorer" element={<Explorer />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 

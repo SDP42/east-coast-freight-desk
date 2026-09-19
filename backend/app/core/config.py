@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
@@ -32,6 +33,25 @@ class Settings(BaseSettings):
     LATENCY_TARGET_MS: int = 200
 
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+
+    # Compute the slowest model endpoints once at start-up (in the background) so the first visitor is fast.
+    PREWARM: bool = True
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def normalise_postgres_url(cls, v: str) -> str:
+        # Neon and Render hand out "postgres://" / "postgresql://"; SQLAlchemy needs the driver named.
+        if v.startswith("postgres://"):
+            v = "postgresql://" + v[len("postgres://"):]
+        if v.startswith("postgresql://"):
+            v = "postgresql+psycopg2://" + v[len("postgresql://"):]
+        return v
+
+    @model_validator(mode="after")
+    def require_real_secret_in_production(self) -> "Settings":
+        if self.ENVIRONMENT.lower() == "production" and (self.JWT_SECRET_KEY == "changeme-dev-secret" or len(self.JWT_SECRET_KEY) < 32):
+            raise ValueError("JWT_SECRET_KEY must be set to a random value of at least 32 characters when ENVIRONMENT=production")
+        return self
 
 
 @lru_cache

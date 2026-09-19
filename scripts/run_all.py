@@ -20,6 +20,7 @@ SCRIPTS = [
     "ingest_portwatch.py",
     "ingest_port_turnaround.py",
     "ingest_haldia_positions.py",
+    "ingest_cyclones.py",
 ]
 
 

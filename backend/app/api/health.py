@@ -30,8 +30,9 @@ def health_check(db: Session = Depends(get_db)) -> dict:
     elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
 
     return {
-        "status": "ok" if db_ok and redis_ok else "degraded",
+        # Redis is optional: without it the response cache runs in process memory.
+        "status": "ok" if db_ok else "degraded",
         "database": "up" if db_ok else "down",
-        "cache": "up" if redis_ok else "down",
+        "cache": "redis" if redis_ok else "in-memory",
         "latency_ms": elapsed_ms,
     }

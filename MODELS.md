@@ -33,6 +33,14 @@ user-facing features.
 - **Why chosen**: with about 270 examples a linear model on sparse features is the sensible fit. Character n-grams tolerate typos and phrasings ("vizag", "capesize"), and marker tokens let it use the fact that a port or a horizon was named. A transformer or hosted LLM would need a provider, a key and data leaving the deployment.
 - **Accuracy**: 75% ± 9% on held-out hand-written questions (5-fold; 132 hand-written and 140 template-generated examples, templates always in training). This is an in-distribution figure on our own questions, not an external benchmark. Low-confidence questions (under 35%) get a clarification instead of a guess.
 
+### 5. Port-signal models (Section 14d)
+
+- **Berth-slot forecaster** (`services/signals.py`): for each port, four simple models (last 14-, 28- and 90-day mean, ARIMA(1,1,1)) forecast the 7-day mean of PortWatch dry-bulk calls; the best by a 12-window rolling-origin backtest is used. An ARIMA(2,0,1) tried first was 48% worse than a naive forecast, which is why the selection exists. Best-model gain over naive is 0 to 9%, so it is a pressure indicator, not a schedule.
+- **Congestion transfer**: Granger causality (F-test, best lag up to 10 days) between every ordered port pair on first-differenced 7-day means, Bonferroni-corrected. One pair survives (Haldia leads Visakhapatnam, about 6 days, adjusted p = 0.029).
+- **Cyclone exposure**: empirical frequency from IBTrACS, not a model; expected delay uses two assumed parameters.
+- **Demand estimator**: a single ratio (imported coking coal / crude steel = 0.865) from two annual points. No fitted model; the band is two standard deviations of two numbers.
+- **Drift monitor**: ARIMA(2,1,2) trained on 800 days, then applied with frozen parameters; one-sided Mann-Whitney U on recent vs reference one-step errors, and PSI on daily returns.
+
 ## Models considered and explicitly rejected (with reasons)
 
 | Model | Why it was considered | Why rejected / deferred |

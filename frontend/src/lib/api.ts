@@ -11,7 +11,7 @@ export const api = axios.create({
 export interface HealthStatus {
   status: "ok" | "degraded";
   database: "up" | "down";
-  cache: "up" | "down";
+  cache: "redis" | "in-memory";
   latency_ms: number;
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { motion } from "framer-motion";
 import { Brain, CheckCircle2, CircleSlash, LineChart as LineChartIcon } from "lucide-react";
+import MultiHorizon from "../components/MultiHorizon";
 import SpotlightCard from "../components/SpotlightCard";
 import { getEnsemble, getForecast, getHistory, type EnsembleResult, type ForecastResult, type HistoryPoint } from "../lib/api";
 
@@ -119,7 +120,7 @@ export default function Forecast() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
                   <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={{ stroke: "#dbe4ee" }} minTickGap={40} />
                   <YAxis domain={["auto", "auto"]} tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} width={48} />
-                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #232d45", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "#64748b" }} />
+                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #dbe4ee", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "#64748b" }} />
                   <Area dataKey="band" stroke="none" fill="#d97706" fillOpacity={0.15} isAnimationActive={false} name="95% band" />
                   <Line dataKey="actual" stroke="#0e7490" strokeWidth={2} dot={false} isAnimationActive={false} name="Actual" />
                   <Line dataKey="forecast" stroke="#d97706" strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} name="ARIMA forecast" />
@@ -229,6 +230,22 @@ export default function Forecast() {
           )}
         </div>
       </SpotlightCard>
+
+      {forecast && !loading && (
+        <SpotlightCard>
+          <div className="p-6">
+            <h2 className="text-sm font-semibold text-strong">Backtest, split by split</h2>
+            <p className="mt-1 text-xs text-muted">Each row retrains on everything up to the date shown and forecasts the next {horizon} days. Steady error across rows is what a trustworthy model looks like.</p>
+            <table className="mt-3 w-full text-left text-sm">
+              <thead><tr className="text-xs text-muted"><th className="py-1">Split</th><th>Trained to</th><th>RMSE</th><th>MAE</th><th>MAPE</th></tr></thead>
+              <tbody>{forecast.backtest_splits.map((b) => (
+                <tr key={b.split_index} className="border-t border-border-soft"><td className="py-1.5">#{b.split_index + 1}</td><td>{b.train_end}</td><td>{b.rmse.toFixed(1)}</td><td>{b.mae.toFixed(1)}</td><td className={b.mape > forecast.backtest_mean_mape * 1.5 ? "font-semibold text-down" : ""}>{b.mape.toFixed(2)}%</td></tr>
+              ))}</tbody>
+            </table>
+          </div>
+        </SpotlightCard>
+      )}
+      <MultiHorizon indexName={indexKey} />
     </div>
   );
 }

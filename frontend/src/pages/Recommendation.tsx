@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, CheckCircle2, XCircle, TrendingDown, TrendingUp, Ship } from "lucide-react";
+import ParetoCard from "../components/ParetoCard";
 import SpotlightCard from "../components/SpotlightCard";
 import { getPorts, compareOrigins, type Port, type RecommendationResponse } from "../lib/api";
 
@@ -152,6 +153,7 @@ export default function Recommendation() {
           </motion.div>
         )}
       </AnimatePresence>
+      <ParetoCard portId={destinationPort} cargoTonnes={Number(cargoTonnes) || 0} />
     </div>
   );
 }

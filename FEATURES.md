@@ -31,7 +31,7 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 6 | REST API serving model predictions | ✅ | `/forecast`, `/forecast/{index}/ensemble` |
 | 7 | User authentication / login | ✅ | Backend (Section 4) + `Login.tsx`, `Register.tsx`, route guard, sign-out |
 | 8 | Form to input cargo details, origin, destination | ✅ | `Recommendation.tsx` live form |
-| 9 | Basic filtering/search over historical data | ⬜ | Not started |
+| 9 | Basic filtering/search over historical data | ✅ | `Explorer.tsx` + `/data/*`: filter any of 12 series by date and value, search series and disruption events, CSV export
 | 10 | Results/output page presenting the recommendation | ✅ | `Recommendation.tsx` ranked results grid |
 
 ### Differentiating (29)
@@ -40,38 +40,38 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 |---|---|---|---|
 | 1 | Port–Vessel Compatibility Engine | ✅ | Section 7, live checker + matrix in `Ports.tsx` |
 | 2 | Tidal-cycle-aware partial-load optimizer | ✅ | Section 7 `tidal_plan` logic |
-| 3 | Multi-horizon ensemble forecasting (7/30/90-day) | 🔧 | UI offers 7/14/30-day horizons (ARIMA API allows 90, ensemble 30); no side-by-side multi-horizon view or 90-day option yet |
+| 3 | Multi-horizon ensemble forecasting (7/30/90-day) | ✅ | `MultiHorizon.tsx` on the Forecast page: 7/14/30/60/90-day outlook side by side with widening bands; per-split backtest table
 | 4 | SHAP-based explainability panel | ✅ | Ensemble panel on `Forecast.tsx` shows SHAP driver bars next to the model comparison |
 | 5 | Multi-origin comparative routing | ✅ | Section 8, live in `Recommendation.tsx` |
 | 6 | Disruption/Risk Early-Warning composite score | ✅ | Section 9, live in `Risk.tsx` (on-demand score; push-style "early warning" alerting is #27, not yet built) |
 | 7 | COA-vs-Spot Simulator | ✅ | Section 10, live in `Financial.tsx` |
-| 8 | Idle-time/ballast-leg minimizer | 🔧 | Section 10 backend done (`/financial/ballast-options`), no UI yet |
-| 9 | Demurrage risk estimator | 🔧 | Section 10 backend done (`/financial/demurrage`), no UI yet |
-| 10 | Historical fixture ledger & benchmarking | ⬜ | `Fixture` model exists in the schema (Section 2); no ingestion/UI yet |
+| 8 | Idle-time/ballast-leg minimizer | ✅ | `Voyage.tsx` Demurrage & idle time tab: origins ranked by ballast plus laycan wait
+| 9 | Demurrage risk estimator | ✅ | `Voyage.tsx`: expected demurrage from the port's real turnaround against your laytime
+| 10 | Historical fixture ledger & benchmarking | ✅ | `Ledger.tsx`: add fixtures, benchmark timing against the real BDI (percentile, cheaper day within 30 days, forward move) and rate against the illustrative rate. No public fixture data exists, so only the six sample entries (marked) and your own entries are shown
 | 11 | "Ask the Freight Desk" NL query assistant | ✅ | `Ask.tsx` + `/assistant/ask`: local TF-IDF + logistic-regression intent model (11 intents, 75% held-out accuracy on hand-written questions) routes to the forecast, origin, berth, risk, congestion, Haldia, COA and demand engines. No external LLM. |
 | 12 | Scenario/stress-testing sandbox | ✅ | Section 11, live in `Scenario.tsx` (freight spike, port closure with reroute alternatives, Red Sea closure) |
-| 13 | Monsoon/cyclone-adjusted ETA & laycan risk engine | ⬜ | Disruption events include a `weather` category (Section 9) as a building block; the ETA-shifting logic itself isn't built |
-| 14 | WhatsApp/SMS disruption alerts | ⬜ | Not started |
-| 15 | CII/carbon emissions estimator per voyage | ⬜ | Not started |
-| 16 | INR/USD hedging cost overlay | ⬜ | Not started |
-| 17 | Rail-sea-rail coastal modal-shift recommender | ⬜ | Not started |
-| 18 | Hash-chained fixture ledger (audit trail) | ⬜ | Not started |
+| 13 | Monsoon/cyclone-adjusted ETA & laycan risk engine | ✅ | `Signals.tsx` Cyclone tab: IBTrACS 1990-2025 storm-day probability within 400 km of each port by month, expected delay for a laycan window (delay per storm day is an assumed parameter)
+| 14 | WhatsApp/SMS disruption alerts | 🔧 | In-app alerts and https webhooks are live (`Alerts.tsx`). WhatsApp/SMS need a messaging-provider account and are not configured
+| 15 | CII/carbon emissions estimator per voyage | ✅ | `Voyage.tsx` Carbon tab: round-trip CO2, IMO bulk-carrier CII rating for 2023-2026, speed sweep. Fuel burn per class is an assumed typical value
+| 16 | INR/USD hedging cost overlay | ✅ | `Voyage.tsx` Hedge tab: real FRED INR/USD volatility, forward from the interest differential (assumed rates), cost of hedge vs worst-case saved, flags ratios above SAIL's 25% policy cap
+| 17 | Rail-sea-rail coastal modal-shift recommender | ✅ | `Voyage.tsx` Rail-sea-rail tab: landed cost at five plants across five ports. Rail distances and tariff are approximate planning assumptions
+| 18 | Hash-chained fixture ledger (audit trail) | ✅ | SHA-256 chain across ledger entries, verified on every load; editing any past entry breaks the chain at that entry (tested)
 | 19 | AIS-lite vessel congestion heatmap | ✅ | `PortMap.tsx` — real port congestion rings + simulated vessels on sea lanes and simulated anchorage queues, clearly labelled as simulated (no free real AIS) |
-| 20 | "Explain like a broker" auto-briefing narrative | 🔧 | Every assistant answer is a short broker-style briefing with the figures used; an always-on briefing on the Overview page is not built |
-| 21 | Macroeconomic Cargo Demand Estimator | ⬜ | SP500/DXY/coal prices are used as XGBoost *rate* features (Section 6); the separate GDP/production-based *demand* (tonnes) regression module itself isn't built |
-| 22 | Berth Slot Availability Forecaster | ⬜ | Not started |
-| 23 | Cross-Port Congestion Transfer / Rerouting Signal | ⬜ | Not started |
-| 24 | Model Trust / Backtest Transparency Dashboard | 🔧 | `Forecast.tsx` shows backtest MAPE/RMSE/MAE, the model comparison, ensemble weights and both Wilcoxon tests; per-split backtest detail isn't shown yet |
-| 25 | Automated Retraining Pipeline with Drift Detection | ⬜ | Not started |
-| 26 | Multi-Objective Pareto-Ranked Recommendations | 🔧 | `Recommendation.tsx` ranks by cost with compatibility/time/market-direction shown per card, but doesn't yet do true multi-objective Pareto ranking across cost/time/risk together |
-| 27 | Configurable Alerting | ⬜ | Not started |
+| 20 | "Explain like a broker" auto-briefing narrative | ✅ | `BriefingCard.tsx` on Overview (market, outlook, ports, route risk) from `/briefing`, plus every assistant answer
+| 21 | Macroeconomic Cargo Demand Estimator | ✅ | `Signals.tsx` Coal demand tab: imported coking coal as a share of crude steel (0.865, from FY24 and FY25 annual reports) applied to reported quarterly steel, with a growth slider and shipload count. Two calibration points only, so indicative
+| 22 | Berth Slot Availability Forecaster | ✅ | `Signals.tsx` Berth slots tab: 14-day pressure forecast from real PortWatch calls; best of four models by 12-window backtest (about 0-9% better than naive)
+| 23 | Cross-Port Congestion Transfer / Rerouting Signal | ✅ | `Signals.tsx` Congestion transfer tab: Bonferroni-corrected Granger tests across five ports (Haldia leads Visakhapatnam by about 6 days) and a live rerouting signal
+| 24 | Model Trust / Backtest Transparency Dashboard | ✅ | Forecast page: backtest metrics, per-split table, model comparison, weights, Wilcoxon tests, SHAP
+| 25 | Automated Retraining Pipeline with Drift Detection | ✅ | `Monitor.tsx`: frozen-model error vs the prior year (Mann-Whitney), return-distribution PSI, manual retrain, scheduled retrain on drift, run history. The data is not refreshed automatically, so a retrain reproduces the same fit
+| 26 | Multi-Objective Pareto-Ranked Recommendations | ✅ | `ParetoCard.tsx` on Recommendation: cost, transit time and route risk, Pareto-optimal origins marked, adjustable weights
+| 27 | Configurable Alerting | ✅ | `Alerts.tsx`: six rule types, in-app feed with unread badge, https webhook (public hosts only), 30-minute background evaluation
 | 28 | Role personas (tailored starting point per user type) | ✅ | Backend personas + self-register validation (admin not self-selectable); persona picker at sign-up, persona-specific Overview quick actions and sidebar hints |
 | 29 | Regional market boards with live-replay charts | ✅ | `Markets.tsx` — freight, coal, FX and equity series grouped by origin region; regions with no real series (Indonesia, Russia) are shown empty rather than invented |
 | 30 | Haldia digital-twin landing scene (three.js) | ✅ | `HaldiaScene.tsx`: anchorage and lightering, river transit, the 330 x 39 m lock with animated gates, berth 4A unloaders, coal pile and rail, with labels and a step caption. Schematic, built from public port-trust figures |
 | 31 | Real Haldia coal-vessel ledger from port-trust reports | ✅ | `ingest_haldia_positions.py` parses SMP Kolkata's daily morning-position PDFs into 90+ distinct coal vessels (LOA, draft, cargo, importer); served at `/haldia/summary` and shown on the landing page |
 | 32 | Account security: password policy, login lockout, change password, session expiry | ✅ | Backend policy (8+ chars, letter and number), 5-failure 10-minute lockout, `PATCH /auth/me`, `POST /auth/change-password`; frontend strength meter, show/hide, profile page, automatic sign-out on expired token |
 
-**Running total: 23 done, 6 partial, 13 not started** (of 42), counted directly from the rows above (an earlier version of this line was miscounted; the table is the source of truth). Remaining ⬜ items mostly land in the NL assistant, alerting/monitoring and deployment sections, plus the data-driven ones (demand estimator, congestion transfer, fixture ledger) that need the additional datasets being collected — see `SECTIONS.md`. There's also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here — a bonus beyond the tracked count.
+**Running total: 41 done, 1 partial, 0 not started** (of 42), counted directly from the rows above. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
 
 ## A. Baseline features (10) — expected of any serious attempt at this problem
 

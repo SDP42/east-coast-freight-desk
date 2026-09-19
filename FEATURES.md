@@ -1,13 +1,13 @@
 # Feature List — Baseline vs. Differentiating
 
-73 features (10 baseline + 63 differentiating), split deliberately into two groups: things any competent
+75 features (10 baseline + 65 differentiating), split deliberately into two groups: things any competent
 competing team (there are ~300 submissions per problem statement, and at least
 two public GitHub repos already attempting near-identical ideas) would also
 build, and things that are genuinely ours. This split is itself part of the
 pitch — it shows the judges we know exactly what's "table stakes" versus what's
 the real USP, rather than presenting everything as equally novel.
 
-**Why 16 build sections for 73 features:** the sections in `SECTIONS.md` are
+**Why 16 build sections for 75 features:** the sections in `SECTIONS.md` are
 *build phases* (how the system gets implemented), not a 1:1 map to features
 (what capabilities exist). Several features are delivered together within one
 section because they share the same underlying subsystem — e.g. Section 7
@@ -15,7 +15,7 @@ alone delivered features #1 and #2 (compatibility engine + tidal optimizer);
 Section 8 delivered #5; Section 9 delivered #6. The table below is the actual
 per-feature tracker — updated every session, not just at section boundaries.
 
-## Status tracker (all 73 features)
+## Status tracker (all 75 features)
 
 Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not fully surfaced, or vice versa) · ⬜ not started
 
@@ -101,6 +101,8 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 61 | Sourcing resilience (Procurement) | ✅ | `POST /sourcing/resilience`: Herfindahl concentration and effective number of suppliers for the coking-coal mix, and the freight-cost effect of losing each origin. The default mix is an illustrative placeholder; enter SAIL's own |
 | 62 | Usage and refusal analytics (Administrator) | ✅ | `GET /admin/analytics`: events, active users, denied rate, by role and action, top refusals, per-day counts from the audit log |
 | 63 | Laytime claims for port officers | ✅ | The laytime calculator now needs `ports:read`, so Port and Logistics Officers (who hold the statement of facts) can use it, not only Finance |
+| 64 | Current dry-bulk freight signal (USDA ocean rate) | ✅ | `scripts/ingest_usda_ocean.py`: the US government's monthly grain ocean rate to 2026, shown in Market Pulse and used as a freight-momentum vote in the Verdict. Tracked the Baltic indices closely in 2012 to 2019 (0.76 and 0.72 monthly-change correlation) |
+| 65 | Models retrained on current data | ✅ | `scripts/train_current.py`, `train_current_dl.py`, `services/current.py`, `GET /lab/current`: rate forecasts (ARIMA, Ridge, XGBoost, hybrid, GRU) with walk-forward tests, and a Baltic Supramax and Panamax nowcast to 2026 with bands. Honest results: no model beats "no change" on the rate; the nowcast is usable for Supramax and Panamax and not for Capesize |
 
 **Running total: 56 done, 1 partial, 0 not started** (of 57), counted directly from the rows above. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
 
@@ -228,7 +230,7 @@ Also delivered (not counted as features): landing page rebuilt with React Bits c
 | Administrator | Cannot tell whether the data behind a recommendation is current; users and access need governing | Data Health (#56), usage and refusal analytics (#62), Access & Audit | none |
 | Finance & Treasury | Cost surprises: demurrage claims, rupee and freight moves | Annual programme planner (#60), laytime calculator (#55), What-If Studio, hedge overlay, cost at risk | Actual-versus-budget tracking against ledger entries |
 | Procurement Manager | Is any ship actually available for this laycan, and will it fit the berth? | The Verdict (#58), Ship Supply Radar (#53), Urgent Desk, part-laden fit (#54), sourcing resilience (#61) | Named-vessel matching by size (needs a licensed fleet register); Hay Point and Richards Bay feeds |
-| Chartering Analyst | Market context that is current, not 2019 | Market Pulse (#57), Forecast, Model Lab, model proof (#59) | A licensed live Baltic feed |
+| Chartering Analyst | Market context that is current, not 2019 | Market Pulse (#57), Forecast, Model Lab, model proof (#59) | A licensed live Baltic feed (Supramax and Panamax now have a validated nowcast; Capesize does not) |
 | Port & Logistics Officer | Berth and queue risk for their own port | Port Signals, berth-slot forecast, cyclone risk, laytime claims (#63), port scoping | Berth-allocation planner (no berth counts are public) |
 | Viewer | Public market context | Markets, Market Pulse | none |
 

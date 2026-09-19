@@ -1,0 +1,1701 @@
+{
+ "trained_at": "2026-09-19T14:57:10",
+ "data_through": "2026-08-01",
+ "months_used": 344,
+ "forecast_gulf_rate": [
+  {
+   "horizon_months": 1,
+   "origins": 199,
+   "test_from": "2010-01-01",
+   "test_to": "2026-07-01",
+   "models": {
+    "naive": {
+     "mae_usd_per_t": 2.58,
+     "mape_pct": 5.14,
+     "p_vs_naive": null
+    },
+    "ARIMA(1,1,1)": {
+     "mae_usd_per_t": 2.45,
+     "mape_pct": 4.79,
+     "p_vs_naive": 0.0891
+    },
+    "Ridge": {
+     "mae_usd_per_t": 2.44,
+     "mape_pct": 4.74,
+     "p_vs_naive": 0.0534
+    },
+    "XGBoost": {
+     "mae_usd_per_t": 2.61,
+     "mape_pct": 5.13,
+     "p_vs_naive": 0.4758
+    },
+    "ARIMA+XGBoost": {
+     "mae_usd_per_t": 2.49,
+     "mape_pct": 4.89,
+     "p_vs_naive": 0.1697
+    }
+   }
+  },
+  {
+   "horizon_months": 3,
+   "origins": 197,
+   "test_from": "2010-01-01",
+   "test_to": "2026-05-01",
+   "models": {
+    "naive": {
+     "mae_usd_per_t": 5.27,
+     "mape_pct": 10.68,
+     "p_vs_naive": null
+    },
+    "ARIMA(1,1,1)": {
+     "mae_usd_per_t": 5.27,
+     "mape_pct": 10.64,
+     "p_vs_naive": 0.8481
+    },
+    "Ridge": {
+     "mae_usd_per_t": 5.15,
+     "mape_pct": 10.32,
+     "p_vs_naive": 0.5479
+    },
+    "XGBoost": {
+     "mae_usd_per_t": 5.67,
+     "mape_pct": 11.34,
+     "p_vs_naive": 0.5782
+    },
+    "ARIMA+XGBoost": {
+     "mae_usd_per_t": 5.35,
+     "mape_pct": 10.77,
+     "p_vs_naive": 0.9885
+    }
+   }
+  }
+ ],
+ "nowcast_baltic": {
+  "overlap_months": 84,
+  "overlap_from": "2012-08-01",
+  "overlap_to": "2019-07-01",
+  "targets": {
+   "Supramax": {
+    "gulf only": {
+     "oos_r2_vs_mean": 0.654,
+     "oos_mape_pct": 14.4,
+     "months_tested": 48
+    },
+    "gulf + coal + ore": {
+     "oos_r2_vs_mean": 0.685,
+     "oos_mape_pct": 13.6,
+     "months_tested": 48
+    },
+    "all five": {
+     "oos_r2_vs_mean": 0.725,
+     "oos_mape_pct": 12.6,
+     "months_tested": 48
+    },
+    "chosen": "all five",
+    "reliable": true,
+    "band_log": 0.314,
+    "series": [
+     {
+      "date": "2019-08-01",
+      "estimate": 983,
+      "low": 718,
+      "high": 1346
+     },
+     {
+      "date": "2019-09-01",
+      "estimate": 1026,
+      "low": 750,
+      "high": 1404
+     },
+     {
+      "date": "2019-10-01",
+      "estimate": 1003,
+      "low": 733,
+      "high": 1373
+     },
+     {
+      "date": "2019-11-01",
+      "estimate": 920,
+      "low": 672,
+      "high": 1260
+     },
+     {
+      "date": "2019-12-01",
+      "estimate": 912,
+      "low": 666,
+      "high": 1248
+     },
+     {
+      "date": "2020-01-01",
+      "estimate": 888,
+      "low": 649,
+      "high": 1215
+     },
+     {
+      "date": "2020-02-01",
+      "estimate": 832,
+      "low": 608,
+      "high": 1139
+     },
+     {
+      "date": "2020-03-01",
+      "estimate": 813,
+      "low": 594,
+      "high": 1113
+     },
+     {
+      "date": "2020-04-01",
+      "estimate": 719,
+      "low": 525,
+      "high": 984
+     },
+     {
+      "date": "2020-05-01",
+      "estimate": 642,
+      "low": 469,
+      "high": 879
+     },
+     {
+      "date": "2020-06-01",
+      "estimate": 683,
+      "low": 499,
+      "high": 935
+     },
+     {
+      "date": "2020-07-01",
+      "estimate": 743,
+      "low": 543,
+      "high": 1016
+     },
+     {
+      "date": "2020-08-01",
+      "estimate": 806,
+      "low": 589,
+      "high": 1103
+     },
+     {
+      "date": "2020-09-01",
+      "estimate": 814,
+      "low": 595,
+      "high": 1114
+     },
+     {
+      "date": "2020-10-01",
+      "estimate": 809,
+      "low": 591,
+      "high": 1108
+     },
+     {
+      "date": "2020-11-01",
+      "estimate": 798,
+      "low": 583,
+      "high": 1092
+     },
+     {
+      "date": "2020-12-01",
+      "estimate": 824,
+      "low": 602,
+      "high": 1128
+     },
+     {
+      "date": "2021-01-01",
+      "estimate": 902,
+      "low": 659,
+      "high": 1234
+     },
+     {
+      "date": "2021-02-01",
+      "estimate": 1022,
+      "low": 747,
+      "high": 1399
+     },
+     {
+      "date": "2021-03-01",
+      "estimate": 1180,
+      "low": 862,
+      "high": 1615
+     },
+     {
+      "date": "2021-04-01",
+      "estimate": 1217,
+      "low": 889,
+      "high": 1666
+     },
+     {
+      "date": "2021-05-01",
+      "estimate": 1326,
+      "low": 969,
+      "high": 1815
+     },
+     {
+      "date": "2021-06-01",
+      "estimate": 1445,
+      "low": 1056,
+      "high": 1977
+     },
+     {
+      "date": "2021-07-01",
+      "estimate": 1683,
+      "low": 1230,
+      "high": 2304
+     },
+     {
+      "date": "2021-08-01",
+      "estimate": 1710,
+      "low": 1249,
+      "high": 2340
+     },
+     {
+      "date": "2021-09-01",
+      "estimate": 1838,
+      "low": 1343,
+      "high": 2516
+     },
+     {
+      "date": "2021-10-01",
+      "estimate": 2017,
+      "low": 1473,
+      "high": 2760
+     },
+     {
+      "date": "2021-11-01",
+      "estimate": 1709,
+      "low": 1249,
+      "high": 2339
+     },
+     {
+      "date": "2021-12-01",
+      "estimate": 1553,
+      "low": 1135,
+      "high": 2126
+     },
+     {
+      "date": "2022-01-01",
+      "estimate": 1492,
+      "low": 1090,
+      "high": 2042
+     },
+     {
+      "date": "2022-02-01",
+      "estimate": 1492,
+      "low": 1090,
+      "high": 2042
+     },
+     {
+      "date": "2022-03-01",
+      "estimate": 1848,
+      "low": 1350,
+      "high": 2529
+     },
+     {
+      "date": "2022-04-01",
+      "estimate": 1900,
+      "low": 1388,
+      "high": 2600
+     },
+     {
+      "date": "2022-05-01",
+      "estimate": 2057,
+      "low": 1503,
+      "high": 2815
+     },
+     {
+      "date": "2022-06-01",
+      "estimate": 2006,
+      "low": 1466,
+      "high": 2745
+     },
+     {
+      "date": "2022-07-01",
+      "estimate": 1879,
+      "low": 1373,
+      "high": 2572
+     },
+     {
+      "date": "2022-08-01",
+      "estimate": 1710,
+      "low": 1249,
+      "high": 2340
+     },
+     {
+      "date": "2022-09-01",
+      "estimate": 1629,
+      "low": 1191,
+      "high": 2230
+     },
+     {
+      "date": "2022-10-01",
+      "estimate": 1682,
+      "low": 1229,
+      "high": 2302
+     },
+     {
+      "date": "2022-11-01",
+      "estimate": 1527,
+      "low": 1116,
+      "high": 2091
+     },
+     {
+      "date": "2022-12-01",
+      "estimate": 1483,
+      "low": 1083,
+      "high": 2029
+     },
+     {
+      "date": "2023-01-01",
+      "estimate": 1306,
+      "low": 954,
+      "high": 1787
+     },
+     {
+      "date": "2023-02-01",
+      "estimate": 1136,
+      "low": 830,
+      "high": 1555
+     },
+     {
+      "date": "2023-03-01",
+      "estimate": 1204,
+      "low": 879,
+      "high": 1647
+     },
+     {
+      "date": "2023-04-01",
+      "estimate": 1266,
+      "low": 925,
+      "high": 1732
+     },
+     {
+      "date": "2023-05-01",
+      "estimate": 1168,
+      "low": 853,
+      "high": 1598
+     },
+     {
+      "date": "2023-06-01",
+      "estimate": 1059,
+      "low": 774,
+      "high": 1449
+     },
+     {
+      "date": "2023-07-01",
+      "estimate": 1018,
+      "low": 744,
+      "high": 1394
+     },
+     {
+      "date": "2023-08-01",
+      "estimate": 1117,
+      "low": 816,
+      "high": 1528
+     },
+     {
+      "date": "2023-09-01",
+      "estimate": 1229,
+      "low": 898,
+      "high": 1683
+     },
+     {
+      "date": "2023-10-01",
+      "estimate": 1223,
+      "low": 894,
+      "high": 1674
+     },
+     {
+      "date": "2023-11-01",
+      "estimate": 1199,
+      "low": 876,
+      "high": 1641
+     },
+     {
+      "date": "2023-12-01",
+      "estimate": 1298,
+      "low": 948,
+      "high": 1776
+     },
+     {
+      "date": "2024-01-01",
+      "estimate": 1220,
+      "low": 892,
+      "high": 1670
+     },
+     {
+      "date": "2024-02-01",
+      "estimate": 1237,
+      "low": 904,
+      "high": 1693
+     },
+     {
+      "date": "2024-03-01",
+      "estimate": 1326,
+      "low": 969,
+      "high": 1815
+     },
+     {
+      "date": "2024-04-01",
+      "estimate": 1313,
+      "low": 959,
+      "high": 1797
+     },
+     {
+      "date": "2024-05-01",
+      "estimate": 1332,
+      "low": 973,
+      "high": 1823
+     },
+     {
+      "date": "2024-06-01",
+      "estimate": 1297,
+      "low": 948,
+      "high": 1775
+     },
+     {
+      "date": "2024-07-01",
+      "estimate": 1289,
+      "low": 942,
+      "high": 1764
+     },
+     {
+      "date": "2024-08-01",
+      "estimate": 1282,
+      "low": 937,
+      "high": 1755
+     },
+     {
+      "date": "2024-09-01",
+      "estimate": 1228,
+      "low": 897,
+      "high": 1681
+     },
+     {
+      "date": "2024-10-01",
+      "estimate": 1204,
+      "low": 880,
+      "high": 1648
+     },
+     {
+      "date": "2024-11-01",
+      "estimate": 1137,
+      "low": 831,
+      "high": 1557
+     },
+     {
+      "date": "2024-12-01",
+      "estimate": 1051,
+      "low": 768,
+      "high": 1439
+     },
+     {
+      "date": "2025-01-01",
+      "estimate": 1009,
+      "low": 737,
+      "high": 1380
+     },
+     {
+      "date": "2025-02-01",
+      "estimate": 1011,
+      "low": 739,
+      "high": 1384
+     },
+     {
+      "date": "2025-03-01",
+      "estimate": 1023,
+      "low": 748,
+      "high": 1401
+     },
+     {
+      "date": "2025-04-01",
+      "estimate": 1006,
+      "low": 735,
+      "high": 1377
+     },
+     {
+      "date": "2025-05-01",
+      "estimate": 1012,
+      "low": 739,
+      "high": 1384
+     },
+     {
+      "date": "2025-06-01",
+      "estimate": 1030,
+      "low": 753,
+      "high": 1410
+     },
+     {
+      "date": "2025-07-01",
+      "estimate": 1118,
+      "low": 817,
+      "high": 1531
+     },
+     {
+      "date": "2025-08-01",
+      "estimate": 1145,
+      "low": 836,
+      "high": 1567
+     },
+     {
+      "date": "2025-09-01",
+      "estimate": 1179,
+      "low": 861,
+      "high": 1614
+     },
+     {
+      "date": "2025-10-01",
+      "estimate": 1178,
+      "low": 860,
+      "high": 1612
+     },
+     {
+      "date": "2025-11-01",
+      "estimate": 1176,
+      "low": 859,
+      "high": 1609
+     },
+     {
+      "date": "2025-12-01",
+      "estimate": 1158,
+      "low": 846,
+      "high": 1585
+     },
+     {
+      "date": "2026-01-01",
+      "estimate": 1078,
+      "low": 788,
+      "high": 1476
+     },
+     {
+      "date": "2026-02-01",
+      "estimate": 1191,
+      "low": 870,
+      "high": 1630
+     },
+     {
+      "date": "2026-03-01",
+      "estimate": 1349,
+      "low": 986,
+      "high": 1846
+     },
+     {
+      "date": "2026-04-01",
+      "estimate": 1419,
+      "low": 1037,
+      "high": 1942
+     },
+     {
+      "date": "2026-05-01",
+      "estimate": 1523,
+      "low": 1113,
+      "high": 2084
+     },
+     {
+      "date": "2026-06-01",
+      "estimate": 1534,
+      "low": 1121,
+      "high": 2100
+     },
+     {
+      "date": "2026-07-01",
+      "estimate": 1487,
+      "low": 1086,
+      "high": 2034
+     }
+    ]
+   },
+   "Panamax": {
+    "gulf only": {
+     "oos_r2_vs_mean": 0.473,
+     "oos_mape_pct": 25.0,
+     "months_tested": 48
+    },
+    "gulf + coal + ore": {
+     "oos_r2_vs_mean": 0.611,
+     "oos_mape_pct": 21.1,
+     "months_tested": 48
+    },
+    "all five": {
+     "oos_r2_vs_mean": 0.664,
+     "oos_mape_pct": 19.1,
+     "months_tested": 48
+    },
+    "chosen": "all five",
+    "reliable": true,
+    "band_log": 0.532,
+    "series": [
+     {
+      "date": "2019-08-01",
+      "estimate": 1172,
+      "low": 688,
+      "high": 1996
+     },
+     {
+      "date": "2019-09-01",
+      "estimate": 1233,
+      "low": 724,
+      "high": 2100
+     },
+     {
+      "date": "2019-10-01",
+      "estimate": 1220,
+      "low": 717,
+      "high": 2078
+     },
+     {
+      "date": "2019-11-01",
+      "estimate": 1103,
+      "low": 648,
+      "high": 1879
+     },
+     {
+      "date": "2019-12-01",
+      "estimate": 1082,
+      "low": 635,
+      "high": 1843
+     },
+     {
+      "date": "2020-01-01",
+      "estimate": 1066,
+      "low": 626,
+      "high": 1815
+     },
+     {
+      "date": "2020-02-01",
+      "estimate": 987,
+      "low": 580,
+      "high": 1682
+     },
+     {
+      "date": "2020-03-01",
+      "estimate": 972,
+      "low": 571,
+      "high": 1655
+     },
+     {
+      "date": "2020-04-01",
+      "estimate": 823,
+      "low": 483,
+      "high": 1401
+     },
+     {
+      "date": "2020-05-01",
+      "estimate": 698,
+      "low": 410,
+      "high": 1189
+     },
+     {
+      "date": "2020-06-01",
+      "estimate": 742,
+      "low": 436,
+      "high": 1264
+     },
+     {
+      "date": "2020-07-01",
+      "estimate": 806,
+      "low": 473,
+      "high": 1372
+     },
+     {
+      "date": "2020-08-01",
+      "estimate": 870,
+      "low": 511,
+      "high": 1482
+     },
+     {
+      "date": "2020-09-01",
+      "estimate": 898,
+      "low": 527,
+      "high": 1529
+     },
+     {
+      "date": "2020-10-01",
+      "estimate": 913,
+      "low": 536,
+      "high": 1554
+     },
+     {
+      "date": "2020-11-01",
+      "estimate": 927,
+      "low": 545,
+      "high": 1579
+     },
+     {
+      "date": "2020-12-01",
+      "estimate": 1028,
+      "low": 604,
+      "high": 1751
+     },
+     {
+      "date": "2021-01-01",
+      "estimate": 1145,
+      "low": 672,
+      "high": 1949
+     },
+     {
+      "date": "2021-02-01",
+      "estimate": 1314,
+      "low": 772,
+      "high": 2238
+     },
+     {
+      "date": "2021-03-01",
+      "estimate": 1583,
+      "low": 929,
+      "high": 2695
+     },
+     {
+      "date": "2021-04-01",
+      "estimate": 1633,
+      "low": 959,
+      "high": 2781
+     },
+     {
+      "date": "2021-05-01",
+      "estimate": 1858,
+      "low": 1091,
+      "high": 3164
+     },
+     {
+      "date": "2021-06-01",
+      "estimate": 2166,
+      "low": 1272,
+      "high": 3689
+     },
+     {
+      "date": "2021-07-01",
+      "estimate": 2702,
+      "low": 1586,
+      "high": 4601
+     },
+     {
+      "date": "2021-08-01",
+      "estimate": 2873,
+      "low": 1687,
+      "high": 4893
+     },
+     {
+      "date": "2021-09-01",
+      "estimate": 3246,
+      "low": 1906,
+      "high": 5528
+     },
+     {
+      "date": "2021-10-01",
+      "estimate": 3837,
+      "low": 2253,
+      "high": 6534
+     },
+     {
+      "date": "2021-11-01",
+      "estimate": 2884,
+      "low": 1694,
+      "high": 4912
+     },
+     {
+      "date": "2021-12-01",
+      "estimate": 2643,
+      "low": 1552,
+      "high": 4501
+     },
+     {
+      "date": "2022-01-01",
+      "estimate": 2615,
+      "low": 1536,
+      "high": 4454
+     },
+     {
+      "date": "2022-02-01",
+      "estimate": 2708,
+      "low": 1590,
+      "high": 4612
+     },
+     {
+      "date": "2022-03-01",
+      "estimate": 3848,
+      "low": 2259,
+      "high": 6553
+     },
+     {
+      "date": "2022-04-01",
+      "estimate": 3956,
+      "low": 2323,
+      "high": 6737
+     },
+     {
+      "date": "2022-05-01",
+      "estimate": 4614,
+      "low": 2709,
+      "high": 7857
+     },
+     {
+      "date": "2022-06-01",
+      "estimate": 4514,
+      "low": 2651,
+      "high": 7687
+     },
+     {
+      "date": "2022-07-01",
+      "estimate": 4363,
+      "low": 2562,
+      "high": 7430
+     },
+     {
+      "date": "2022-08-01",
+      "estimate": 3942,
+      "low": 2315,
+      "high": 6713
+     },
+     {
+      "date": "2022-09-01",
+      "estimate": 3831,
+      "low": 2250,
+      "high": 6525
+     },
+     {
+      "date": "2022-10-01",
+      "estimate": 3893,
+      "low": 2286,
+      "high": 6630
+     },
+     {
+      "date": "2022-11-01",
+      "estimate": 3351,
+      "low": 1968,
+      "high": 5707
+     },
+     {
+      "date": "2022-12-01",
+      "estimate": 3331,
+      "low": 1956,
+      "high": 5673
+     },
+     {
+      "date": "2023-01-01",
+      "estimate": 2719,
+      "low": 1597,
+      "high": 4630
+     },
+     {
+      "date": "2023-02-01",
+      "estimate": 2047,
+      "low": 1202,
+      "high": 3485
+     },
+     {
+      "date": "2023-03-01",
+      "estimate": 2110,
+      "low": 1239,
+      "high": 3593
+     },
+     {
+      "date": "2023-04-01",
+      "estimate": 2260,
+      "low": 1327,
+      "high": 3849
+     },
+     {
+      "date": "2023-05-01",
+      "estimate": 1963,
+      "low": 1153,
+      "high": 3343
+     },
+     {
+      "date": "2023-06-01",
+      "estimate": 1680,
+      "low": 986,
+      "high": 2860
+     },
+     {
+      "date": "2023-07-01",
+      "estimate": 1612,
+      "low": 946,
+      "high": 2745
+     },
+     {
+      "date": "2023-08-01",
+      "estimate": 1837,
+      "low": 1079,
+      "high": 3129
+     },
+     {
+      "date": "2023-09-01",
+      "estimate": 2077,
+      "low": 1220,
+      "high": 3538
+     },
+     {
+      "date": "2023-10-01",
+      "estimate": 1983,
+      "low": 1165,
+      "high": 3377
+     },
+     {
+      "date": "2023-11-01",
+      "estimate": 1864,
+      "low": 1094,
+      "high": 3174
+     },
+     {
+      "date": "2023-12-01",
+      "estimate": 2103,
+      "low": 1235,
+      "high": 3581
+     },
+     {
+      "date": "2024-01-01",
+      "estimate": 1888,
+      "low": 1109,
+      "high": 3216
+     },
+     {
+      "date": "2024-02-01",
+      "estimate": 1920,
+      "low": 1127,
+      "high": 3269
+     },
+     {
+      "date": "2024-03-01",
+      "estimate": 2124,
+      "low": 1247,
+      "high": 3617
+     },
+     {
+      "date": "2024-04-01",
+      "estimate": 2118,
+      "low": 1244,
+      "high": 3607
+     },
+     {
+      "date": "2024-05-01",
+      "estimate": 2181,
+      "low": 1281,
+      "high": 3715
+     },
+     {
+      "date": "2024-06-01",
+      "estimate": 2096,
+      "low": 1231,
+      "high": 3569
+     },
+     {
+      "date": "2024-07-01",
+      "estimate": 2094,
+      "low": 1230,
+      "high": 3566
+     },
+     {
+      "date": "2024-08-01",
+      "estimate": 2127,
+      "low": 1249,
+      "high": 3623
+     },
+     {
+      "date": "2024-09-01",
+      "estimate": 2004,
+      "low": 1177,
+      "high": 3414
+     },
+     {
+      "date": "2024-10-01",
+      "estimate": 1988,
+      "low": 1167,
+      "high": 3385
+     },
+     {
+      "date": "2024-11-01",
+      "estimate": 1856,
+      "low": 1090,
+      "high": 3161
+     },
+     {
+      "date": "2024-12-01",
+      "estimate": 1658,
+      "low": 974,
+      "high": 2824
+     },
+     {
+      "date": "2025-01-01",
+      "estimate": 1548,
+      "low": 909,
+      "high": 2636
+     },
+     {
+      "date": "2025-02-01",
+      "estimate": 1507,
+      "low": 885,
+      "high": 2566
+     },
+     {
+      "date": "2025-03-01",
+      "estimate": 1513,
+      "low": 888,
+      "high": 2576
+     },
+     {
+      "date": "2025-04-01",
+      "estimate": 1456,
+      "low": 855,
+      "high": 2480
+     },
+     {
+      "date": "2025-05-01",
+      "estimate": 1489,
+      "low": 875,
+      "high": 2537
+     },
+     {
+      "date": "2025-06-01",
+      "estimate": 1547,
+      "low": 908,
+      "high": 2634
+     },
+     {
+      "date": "2025-07-01",
+      "estimate": 1709,
+      "low": 1003,
+      "high": 2910
+     },
+     {
+      "date": "2025-08-01",
+      "estimate": 1756,
+      "low": 1031,
+      "high": 2991
+     },
+     {
+      "date": "2025-09-01",
+      "estimate": 1786,
+      "low": 1049,
+      "high": 3042
+     },
+     {
+      "date": "2025-10-01",
+      "estimate": 1790,
+      "low": 1051,
+      "high": 3049
+     },
+     {
+      "date": "2025-11-01",
+      "estimate": 1817,
+      "low": 1067,
+      "high": 3094
+     },
+     {
+      "date": "2025-12-01",
+      "estimate": 1770,
+      "low": 1039,
+      "high": 3014
+     },
+     {
+      "date": "2026-01-01",
+      "estimate": 1655,
+      "low": 972,
+      "high": 2818
+     },
+     {
+      "date": "2026-02-01",
+      "estimate": 1895,
+      "low": 1113,
+      "high": 3227
+     },
+     {
+      "date": "2026-03-01",
+      "estimate": 2296,
+      "low": 1348,
+      "high": 3910
+     },
+     {
+      "date": "2026-04-01",
+      "estimate": 2386,
+      "low": 1401,
+      "high": 4063
+     },
+     {
+      "date": "2026-05-01",
+      "estimate": 2634,
+      "low": 1546,
+      "high": 4485
+     },
+     {
+      "date": "2026-06-01",
+      "estimate": 2667,
+      "low": 1566,
+      "high": 4542
+     },
+     {
+      "date": "2026-07-01",
+      "estimate": 2548,
+      "low": 1496,
+      "high": 4340
+     }
+    ]
+   },
+   "Capesize": {
+    "gulf only": {
+     "oos_r2_vs_mean": 0.392,
+     "oos_mape_pct": 51.9,
+     "months_tested": 48
+    },
+    "gulf + coal + ore": {
+     "oos_r2_vs_mean": 0.387,
+     "oos_mape_pct": 54.4,
+     "months_tested": 48
+    },
+    "all five": {
+     "oos_r2_vs_mean": 0.405,
+     "oos_mape_pct": 54.7,
+     "months_tested": 48
+    },
+    "chosen": "all five",
+    "reliable": false,
+    "band_log": 0.975,
+    "series": [
+     {
+      "date": "2019-08-01",
+      "estimate": 2074,
+      "low": 783,
+      "high": 5498
+     },
+     {
+      "date": "2019-09-01",
+      "estimate": 2254,
+      "low": 850,
+      "high": 5974
+     },
+     {
+      "date": "2019-10-01",
+      "estimate": 2163,
+      "low": 816,
+      "high": 5732
+     },
+     {
+      "date": "2019-11-01",
+      "estimate": 1832,
+      "low": 691,
+      "high": 4857
+     },
+     {
+      "date": "2019-12-01",
+      "estimate": 1797,
+      "low": 678,
+      "high": 4763
+     },
+     {
+      "date": "2020-01-01",
+      "estimate": 1706,
+      "low": 644,
+      "high": 4522
+     },
+     {
+      "date": "2020-02-01",
+      "estimate": 1509,
+      "low": 569,
+      "high": 3999
+     },
+     {
+      "date": "2020-03-01",
+      "estimate": 1434,
+      "low": 541,
+      "high": 3801
+     },
+     {
+      "date": "2020-04-01",
+      "estimate": 1128,
+      "low": 426,
+      "high": 2990
+     },
+     {
+      "date": "2020-05-01",
+      "estimate": 906,
+      "low": 342,
+      "high": 2401
+     },
+     {
+      "date": "2020-06-01",
+      "estimate": 1015,
+      "low": 383,
+      "high": 2690
+     },
+     {
+      "date": "2020-07-01",
+      "estimate": 1188,
+      "low": 448,
+      "high": 3150
+     },
+     {
+      "date": "2020-08-01",
+      "estimate": 1389,
+      "low": 524,
+      "high": 3681
+     },
+     {
+      "date": "2020-09-01",
+      "estimate": 1419,
+      "low": 535,
+      "high": 3761
+     },
+     {
+      "date": "2020-10-01",
+      "estimate": 1409,
+      "low": 532,
+      "high": 3734
+     },
+     {
+      "date": "2020-11-01",
+      "estimate": 1371,
+      "low": 517,
+      "high": 3633
+     },
+     {
+      "date": "2020-12-01",
+      "estimate": 1462,
+      "low": 551,
+      "high": 3874
+     },
+     {
+      "date": "2021-01-01",
+      "estimate": 1735,
+      "low": 655,
+      "high": 4599
+     },
+     {
+      "date": "2021-02-01",
+      "estimate": 2207,
+      "low": 833,
+      "high": 5850
+     },
+     {
+      "date": "2021-03-01",
+      "estimate": 2910,
+      "low": 1098,
+      "high": 7712
+     },
+     {
+      "date": "2021-04-01",
+      "estimate": 3072,
+      "low": 1159,
+      "high": 8142
+     },
+     {
+      "date": "2021-05-01",
+      "estimate": 3626,
+      "low": 1368,
+      "high": 9611
+     },
+     {
+      "date": "2021-06-01",
+      "estimate": 4277,
+      "low": 1614,
+      "high": 11337
+     },
+     {
+      "date": "2021-07-01",
+      "estimate": 5726,
+      "low": 2160,
+      "high": 15177
+     },
+     {
+      "date": "2021-08-01",
+      "estimate": 5975,
+      "low": 2254,
+      "high": 15836
+     },
+     {
+      "date": "2021-09-01",
+      "estimate": 6968,
+      "low": 2629,
+      "high": 18468
+     },
+     {
+      "date": "2021-10-01",
+      "estimate": 8337,
+      "low": 3145,
+      "high": 22098
+     },
+     {
+      "date": "2021-11-01",
+      "estimate": 6065,
+      "low": 2288,
+      "high": 16076
+     },
+     {
+      "date": "2021-12-01",
+      "estimate": 5021,
+      "low": 1895,
+      "high": 13310
+     },
+     {
+      "date": "2022-01-01",
+      "estimate": 4653,
+      "low": 1756,
+      "high": 12334
+     },
+     {
+      "date": "2022-02-01",
+      "estimate": 4657,
+      "low": 1757,
+      "high": 12343
+     },
+     {
+      "date": "2022-03-01",
+      "estimate": 7052,
+      "low": 2661,
+      "high": 18692
+     },
+     {
+      "date": "2022-04-01",
+      "estimate": 7437,
+      "low": 2806,
+      "high": 19712
+     },
+     {
+      "date": "2022-05-01",
+      "estimate": 8713,
+      "low": 3287,
+      "high": 23095
+     },
+     {
+      "date": "2022-06-01",
+      "estimate": 8301,
+      "low": 3132,
+      "high": 22002
+     },
+     {
+      "date": "2022-07-01",
+      "estimate": 7377,
+      "low": 2783,
+      "high": 19553
+     },
+     {
+      "date": "2022-08-01",
+      "estimate": 6159,
+      "low": 2324,
+      "high": 16325
+     },
+     {
+      "date": "2022-09-01",
+      "estimate": 5638,
+      "low": 2127,
+      "high": 14943
+     },
+     {
+      "date": "2022-10-01",
+      "estimate": 5968,
+      "low": 2251,
+      "high": 15817
+     },
+     {
+      "date": "2022-11-01",
+      "estimate": 4951,
+      "low": 1868,
+      "high": 13124
+     },
+     {
+      "date": "2022-12-01",
+      "estimate": 4650,
+      "low": 1754,
+      "high": 12324
+     },
+     {
+      "date": "2023-01-01",
+      "estimate": 3621,
+      "low": 1366,
+      "high": 9597
+     },
+     {
+      "date": "2023-02-01",
+      "estimate": 2739,
+      "low": 1033,
+      "high": 7259
+     },
+     {
+      "date": "2023-03-01",
+      "estimate": 3052,
+      "low": 1151,
+      "high": 8089
+     },
+     {
+      "date": "2023-04-01",
+      "estimate": 3369,
+      "low": 1271,
+      "high": 8929
+     },
+     {
+      "date": "2023-05-01",
+      "estimate": 2887,
+      "low": 1089,
+      "high": 7653
+     },
+     {
+      "date": "2023-06-01",
+      "estimate": 2380,
+      "low": 898,
+      "high": 6307
+     },
+     {
+      "date": "2023-07-01",
+      "estimate": 2208,
+      "low": 833,
+      "high": 5853
+     },
+     {
+      "date": "2023-08-01",
+      "estimate": 2636,
+      "low": 994,
+      "high": 6986
+     },
+     {
+      "date": "2023-09-01",
+      "estimate": 3162,
+      "low": 1193,
+      "high": 8380
+     },
+     {
+      "date": "2023-10-01",
+      "estimate": 3118,
+      "low": 1176,
+      "high": 8264
+     },
+     {
+      "date": "2023-11-01",
+      "estimate": 2980,
+      "low": 1124,
+      "high": 7898
+     },
+     {
+      "date": "2023-12-01",
+      "estimate": 3474,
+      "low": 1311,
+      "high": 9207
+     },
+     {
+      "date": "2024-01-01",
+      "estimate": 3081,
+      "low": 1162,
+      "high": 8167
+     },
+     {
+      "date": "2024-02-01",
+      "estimate": 3172,
+      "low": 1197,
+      "high": 8407
+     },
+     {
+      "date": "2024-03-01",
+      "estimate": 3646,
+      "low": 1375,
+      "high": 9663
+     },
+     {
+      "date": "2024-04-01",
+      "estimate": 3572,
+      "low": 1348,
+      "high": 9467
+     },
+     {
+      "date": "2024-05-01",
+      "estimate": 3671,
+      "low": 1385,
+      "high": 9730
+     },
+     {
+      "date": "2024-06-01",
+      "estimate": 3497,
+      "low": 1319,
+      "high": 9268
+     },
+     {
+      "date": "2024-07-01",
+      "estimate": 3455,
+      "low": 1304,
+      "high": 9158
+     },
+     {
+      "date": "2024-08-01",
+      "estimate": 3429,
+      "low": 1294,
+      "high": 9088
+     },
+     {
+      "date": "2024-09-01",
+      "estimate": 3164,
+      "low": 1194,
+      "high": 8386
+     },
+     {
+      "date": "2024-10-01",
+      "estimate": 3045,
+      "low": 1149,
+      "high": 8070
+     },
+     {
+      "date": "2024-11-01",
+      "estimate": 2738,
+      "low": 1033,
+      "high": 7256
+     },
+     {
+      "date": "2024-12-01",
+      "estimate": 2348,
+      "low": 886,
+      "high": 6223
+     },
+     {
+      "date": "2025-01-01",
+      "estimate": 2156,
+      "low": 814,
+      "high": 5715
+     },
+     {
+      "date": "2025-02-01",
+      "estimate": 2160,
+      "low": 815,
+      "high": 5724
+     },
+     {
+      "date": "2025-03-01",
+      "estimate": 2211,
+      "low": 834,
+      "high": 5861
+     },
+     {
+      "date": "2025-04-01",
+      "estimate": 2143,
+      "low": 809,
+      "high": 5680
+     },
+     {
+      "date": "2025-05-01",
+      "estimate": 2169,
+      "low": 818,
+      "high": 5750
+     },
+     {
+      "date": "2025-06-01",
+      "estimate": 2249,
+      "low": 848,
+      "high": 5961
+     },
+     {
+      "date": "2025-07-01",
+      "estimate": 2622,
+      "low": 989,
+      "high": 6951
+     },
+     {
+      "date": "2025-08-01",
+      "estimate": 2728,
+      "low": 1029,
+      "high": 7230
+     },
+     {
+      "date": "2025-09-01",
+      "estimate": 2872,
+      "low": 1084,
+      "high": 7612
+     },
+     {
+      "date": "2025-10-01",
+      "estimate": 2866,
+      "low": 1081,
+      "high": 7598
+     },
+     {
+      "date": "2025-11-01",
+      "estimate": 2859,
+      "low": 1079,
+      "high": 7577
+     },
+     {
+      "date": "2025-12-01",
+      "estimate": 2769,
+      "low": 1045,
+      "high": 7340
+     },
+     {
+      "date": "2026-01-01",
+      "estimate": 2423,
+      "low": 914,
+      "high": 6422
+     },
+     {
+      "date": "2026-02-01",
+      "estimate": 2943,
+      "low": 1110,
+      "high": 7800
+     },
+     {
+      "date": "2026-03-01",
+      "estimate": 3729,
+      "low": 1407,
+      "high": 9885
+     },
+     {
+      "date": "2026-04-01",
+      "estimate": 4085,
+      "low": 1541,
+      "high": 10828
+     },
+     {
+      "date": "2026-05-01",
+      "estimate": 4663,
+      "low": 1759,
+      "high": 12358
+     },
+     {
+      "date": "2026-06-01",
+      "estimate": 4744,
+      "low": 1790,
+      "high": 12573
+     },
+     {
+      "date": "2026-07-01",
+      "estimate": 4459,
+      "low": 1682,
+      "high": 11819
+     }
+    ]
+   }
+  }
+ },
+ "gulf_forecast": {
+  "last_month": "2026-08-01",
+  "last_value": 72.94,
+  "method": "ARIMA(1,1,1) on log rates, last 20 years, 80% band",
+  "path": [
+   {
+    "month": "2026-09-01",
+    "forecast": 74.82,
+    "low": 66.98,
+    "high": 83.59
+   },
+   {
+    "month": "2026-10-01",
+    "forecast": 75.54,
+    "low": 62.22,
+    "high": 91.72
+   },
+   {
+    "month": "2026-11-01",
+    "forecast": 75.81,
+    "low": 58.28,
+    "high": 98.62
+   },
+   {
+    "month": "2026-12-01",
+    "forecast": 75.92,
+    "low": 55.06,
+    "high": 104.66
+   },
+   {
+    "month": "2027-01-01",
+    "forecast": 75.95,
+    "low": 52.38,
+    "high": 110.13
+   },
+   {
+    "month": "2027-02-01",
+    "forecast": 75.97,
+    "low": 50.1,
+    "high": 115.2
+   }
+  ]
+ }
+}

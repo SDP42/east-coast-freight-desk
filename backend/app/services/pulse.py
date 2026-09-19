@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.models import ChokepointTransit, FreightRate, PortActivity
 from app.services.explorer import META
 
-PULSE_SERIES = ["COAL_AUS", "IRON_ORE", "DEEPSEA_PPI", "INR", "AUD", "DXY"]
+PULSE_SERIES = ["OCEAN_GULF_JAPAN", "COAL_AUS", "IRON_ORE", "DEEPSEA_PPI", "INR", "AUD", "DXY"]
 
 
 def _series(db: Session, name: str) -> pd.Series:

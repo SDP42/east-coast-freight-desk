@@ -88,3 +88,33 @@ Panamax index change (levels correlate 0.49, which is mostly a shared trend), an
 **out-of-sample R² of -0.92** on 2017 to 2019 (adding coal and iron ore did not rescue it). A nowcast would therefore be invented, so none is
 shown. The PPI is a mostly container and tanker-weighted price index; it is displayed as context only.
 
+## Retrained on the current data (Sept 2026)
+
+New free series: the USDA monthly grain ocean rate, US Gulf to Japan (338 months, 1996 to Aug 2026), plus World Bank coal, IMF iron ore and the rupee.
+Scripts: `scripts/ingest_usda_ocean.py`, `scripts/train_current.py`, `scripts/train_current_dl.py`; results in `backend/app/ml/artifacts/current_results.json` and `current_dl.json`. Every test is expanding-window walk-forward.
+
+**Why this series.** On the 84 months where both exist (Aug 2012 to Jul 2019) its month-to-month change correlates 0.76 with the Baltic Panamax index and 0.72 with Supramax; the US deep-sea freight PPI, by contrast, had 0.00 correlation and was dropped.
+
+**Task A: forecasting the USDA rate itself** (about 200 monthly forecasts, 2010 to 2026):
+
+| Model | 1-month MAE ($/t) | 3-month MAE ($/t) |
+|---|---|---|
+| No change (naive) | 2.58 | 5.27 |
+| ARIMA(1,1,1) | 2.45 | 5.27 |
+| Ridge on lags, coal, ore, rupee | 2.44 | 5.15 |
+| XGBoost | 2.61 | 5.67 |
+| ARIMA + XGBoost | 2.49 | 5.35 |
+| GRU neural network (3 seeds) | 2.65 (p = 0.83) | not run |
+
+No model is significantly better than assuming no change (best is Ridge at 1 month, p = 0.053). The rate behaves close to a random walk, and about 300 monthly points is too few for the GRU. Reported as it is.
+
+**Task B: nowcasting the Baltic indices for Aug 2019 to Aug 2026** from the USDA rate, coal, iron ore and the rupee, fitted on the 84 overlapping months. Out-of-sample skill against always predicting the training mean (36 to 84 months, expanding window):
+
+| Index | Skill (R-squared) | Verdict |
+|---|---|---|
+| Supramax | 0.73 | usable as an estimate |
+| Panamax | 0.66 | usable as an estimate |
+| Capesize | 0.41 | too weak: no figures shown |
+
+The estimates show the 2020 slump and the 2021 surge, but they are **estimates**, not Baltic Exchange data: the relationship is fitted on 2012 to 2019 and applied to a different market, so the interface shows a wide band (about ±37% for Supramax, ±70% for Panamax). No post-2019 Baltic values were available to check them against.
+

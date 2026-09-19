@@ -140,3 +140,13 @@ def model_proof(index_name: str, db: Session = Depends(get_db)) -> dict:
         return mlproof.proof(db, index_name.upper())
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+
+
+@router.get("/lab/current", dependencies=MARKET)
+def current_models(db: Session = Depends(get_db)) -> dict:
+    """Models retrained on the current data: the USDA ocean-rate forecast and the Baltic nowcast, with honest tests."""
+    from app.services import current
+    try:
+        return cached(f"current:{data_version(db, 'OCEAN_GULF_JAPAN')}", 3600, lambda: current.current_models(db))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))

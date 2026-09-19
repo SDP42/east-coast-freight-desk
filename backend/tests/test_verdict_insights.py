@@ -63,3 +63,18 @@ def test_programme_range_brackets_the_base(db):
 def test_admin_analytics_shape(db):
     a = insights.admin_analytics(db, 30)
     assert {"events", "denied", "by_role", "top_refusals"} <= set(a)
+
+
+def test_current_models_report_negative_results_honestly(db):
+    from app.services import current
+    c = current.current_models(db)
+    assert c["data_through"] >= "2026-01-01" and c["verdicts"]
+    # Capesize skill is below the 0.5 bar, so no figures may be shown for it.
+    assert c["baltic_nowcast"]["Capesize"]["reliable"] is False and c["baltic_nowcast"]["Capesize"]["series"] == []
+    assert c["baltic_nowcast"]["Supramax"]["reliable"] is True and c["baltic_nowcast"]["Supramax"]["series"]
+    assert "ESTIMATES" in c["caveat"]
+
+
+def test_verdict_uses_the_current_freight_signal(db):
+    names = [s["signal"] for s in verdict.build(db, "Paradip", 60000, 30)["signals"]]
+    assert "Dry-bulk freight momentum" in names

@@ -72,6 +72,10 @@ def build(db: Session, port_name: str, cargo_tonnes: float, need_by_days: float 
     # 4-6. Current market context.
     p = pulse.market_pulse(db)
     cards = {c["series"]: c for c in p["cards"]}
+    if "OCEAN_GULF_JAPAN" in cards and cards["OCEAN_GULF_JAPAN"]["change_3m_pct"] is not None:
+        ch = cards["OCEAN_GULF_JAPAN"]["change_3m_pct"]
+        votes.append(_vote("Dry-bulk freight momentum", 2.0, ch / 15, f"USDA grain ocean rate {ch:+.1f}% over 3 months (to {cards['OCEAN_GULF_JAPAN']['as_of']})",
+                           "Rising dry-bulk rates mean a dearer ship later: rent sooner. Falling rates favour waiting. It tracks Baltic Supramax and Panamax moves closely (monthly-change correlation about 0.7 in 2012 to 2019), but it is a grain-route proxy, not a coal rate."))
     if "COAL_AUS" in cards and cards["COAL_AUS"]["change_3m_pct"] is not None:
         ch = cards["COAL_AUS"]["change_3m_pct"]
         votes.append(_vote("Coal price momentum", 1.0, ch / 15, f"Australian coal {ch:+.1f}% over 3 months", "Rising coal prices lift demand for ships; falling prices ease it. A weak, indirect signal."))
@@ -98,7 +102,7 @@ def build(db: Session, port_name: str, cargo_tonnes: float, need_by_days: float 
     agree = sum(1 for v in votes if (v["vote"] > 0.05) == (score > 0) and abs(v["vote"]) > 0.05)
     lean = sum(1 for v in votes if abs(v["vote"]) > 0.05)
     confidence = "High" if lean and agree / lean >= 0.75 and abs(score) >= 0.3 else "Medium" if lean and agree / lean >= 0.55 else "Low"
-    notes.append("No current freight index is available (the Baltic series ends in July 2019), so the call rests on time, supply, season and market context, not on a rate forecast.")
+    notes.append("The Baltic series ends in July 2019. The freight signal here is the USDA grain ocean rate (a proxy that tracked Baltic moves in 2012 to 2019), so treat the timing as guidance, not a rate forecast.")
 
     if ship:
         cls = f"{ship['vessel_class']} from {ship['origin']} at {ship['speed_knots']:g} knots"

@@ -122,7 +122,7 @@ SMP Kolkata's public daily Haldia reports (median cargo 33,000 t, draft 7.3 to 8
 **Simulated, and labelled as such in the interface:** vessel positions and anchorage queues on the map (real AIS is a
 paid feed), cost figures (illustrative distance-based estimates, not quotes), and the six sample ledger entries.
 
-**Not available:** a free daily freight index after July 2019 (the Baltic Exchange feed is paid; the current US deep-sea freight PPI was tested and does not track the Baltic indices, so it is shown as context only), real fixture or
+**Not available:** a free daily freight index after July 2019 (the Baltic Exchange feed is paid). The USDA monthly grain ocean rate (free, to Aug 2026) tracks the Baltic indices well and gives a validated Supramax and Panamax nowcast, marked as an estimate; the US deep-sea freight PPI does not track them and is context only, real fixture or
 charter-rate data (none is public), and Indonesia or Russia price series. The Baltic Dry Index was removed because no
 freely licensed daily source exists. Every page states where its data ends.
 

@@ -10,7 +10,7 @@ from app.services.explorer import META
 
 # Expected update rhythm in days, and a reason when a series has ended for good.
 # Monthly series publish about two months late, and FRED's daily series lag by about a week.
-RHYTHM = {"BCI": 1, "BPI": 1, "BSI": 1, "BHSI": 1, "COAL_AUS": 45, "COAL_ZA": 45, "IRON_ORE": 45, "DEEPSEA_PPI": 45,
+RHYTHM = {"BCI": 1, "BPI": 1, "BSI": 1, "BHSI": 1, "COAL_AUS": 45, "COAL_ZA": 45, "IRON_ORE": 45, "DEEPSEA_PPI": 45, "OCEAN_GULF_JAPAN": 45, "OCEAN_PNW_JAPAN": 45,
           "SP500": 7, "DXY": 7, "INR": 7, "AUD": 7, "ZAR": 7}
 ENDED = {
     "BCI": "Mendeley research dataset ends July 2019; the live Baltic feed is a paid licence.",

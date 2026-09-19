@@ -1,3 +1,4 @@
+from app.api.deps import require
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -37,3 +38,9 @@ def history(index_name: str, limit: int = Query(default=500, ge=2, le=5000), db:
 @router.get("/regions", response_model=list[RegionBoard])
 def regions(db: Session = Depends(get_db)) -> list[dict]:
     return get_region_boards(db)
+
+
+@router.get("/pulse")
+def pulse(db: Session = Depends(get_db), _=Depends(require("market:read"))) -> dict:
+    from app.services.pulse import market_pulse
+    return market_pulse(db)

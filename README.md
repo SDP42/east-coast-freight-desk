@@ -40,6 +40,7 @@ A working platform, not a slide: sign in, ask a question, get a number, and see 
 | **Govern** | Role-based access control enforced in the API and the database queries, per-port scoping, an audit log of every request and refusal, hash-chained fixture ledger, alerts, drift monitor. | Access & Audit, Fixture Ledger, Alerts |
 | **See** | Four vanilla three.js scenes: the Haldia dock on the landing page, a trade globe with chokepoint traffic, a 3D Monte-Carlo forecast fan, and a market terrain. A layout that scales from phones to 4K projectors. | Landing, Trade Globe, Risk Lab, Market Terrain |
 | **Decide fast** | What-If Studio (eight levers, crisis playbooks, tornado, break-even, saved comparisons) and the Urgent Fixture Desk (what can arrive by the deadline, how likely, at what cost, and the walk-away price). Also askable in plain English. | What-If Studio, Urgent Fixture Desk, Ask the Desk |
+| **Ship availability and claims** | Ship Supply Radar (named bulk carriers arriving at Newcastle's coal berths, from a live public feed), part-laden berth fit, laytime and demurrage claim calculator, Market Pulse of current public data, and Data Health for the administrator. | Ship Supply Radar, Laytime, Market Pulse, Data Health |
 | **Quantify risk** | Cost-at-risk Monte Carlo for a cargo (P50/P95 in INR crore), Haldia lightering planner fitted to real vessel data, laycan timing coach, unusual-moves feed, a Live Desk of minute-by-minute simulated ticks. | Risk Lab, Port Signals, Markets, Live Desk |
 
 ## 3. Who it is for, and what each role sees
@@ -113,7 +114,7 @@ SMP Kolkata's public daily Haldia reports (median cargo 33,000 t, draft 7.3 to 8
 **Simulated, and labelled as such in the interface:** vessel positions and anchorage queues on the map (real AIS is a
 paid feed), cost figures (illustrative distance-based estimates, not quotes), and the six sample ledger entries.
 
-**Not available:** a free daily freight index after July 2019 (the Baltic Exchange feed is paid), real fixture or
+**Not available:** a free daily freight index after July 2019 (the Baltic Exchange feed is paid; the current US deep-sea freight PPI was tested and does not track the Baltic indices, so it is shown as context only), real fixture or
 charter-rate data (none is public), and Indonesia or Russia price series. The Baltic Dry Index was removed because no
 freely licensed daily source exists. Every page states where its data ends.
 

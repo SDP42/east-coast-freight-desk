@@ -11,6 +11,7 @@ META = {
     "BCI": ("Capesize index", "points"), "BPI": ("Panamax index", "points"), "BSI": ("Supramax index", "points"),
     "BHSI": ("Handysize index", "points"), "COAL_AUS": ("Australian coal", "usd/t"), "COAL_ZA": ("South African coal", "usd/t"), "SP500": ("S&P 500", "usd"),
     "DXY": ("US dollar index", "pts"), "INR": ("INR per USD", "inr"), "AUD": ("USD per AUD", "usd"), "ZAR": ("ZAR per USD", "zar"),
+    "DEEPSEA_PPI": ("Deep-sea freight PPI (US BLS)", "pts"), "IRON_ORE": ("Iron ore", "usd/t"),
 }
 
 

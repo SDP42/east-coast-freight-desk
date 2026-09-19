@@ -188,6 +188,31 @@ PLAYBOOKS = [
 
 
 # ------------------------------------------------------------------ urgent fixture desk
+def _australia_supply() -> dict | None:
+    """Live ship availability at Newcastle, shown next to the recommendation; None if the feed is unreachable."""
+    try:
+        from app.services.supply import newcastle_supply
+        s = newcastle_supply()
+        if s["error"] and not s["window_movements"]:
+            return None
+        return {k: s[k] for k in ("signal", "meaning", "open_ships_arriving", "coal_cargoes_loaded", "fetched_at", "stale")}
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _berth_fit(port: Port, vc, cargo_tonnes: float) -> dict:
+    """Fully-laden fit, or a part-laden call whose estimated capacity still covers the cargo."""
+    r = check_compatibility(port, vc)
+    if r.compatible:
+        return {"fits": True, "part_laden": False, "note": ""}
+    if r.partial_load_ok:
+        cap = (float(vc.dwt_min) + float(vc.dwt_max)) / 2 * r.max_load_fraction * 0.95
+        if cargo_tonnes <= cap:
+            return {"fits": True, "part_laden": True, "note": f"part-laden (about {r.max_load_fraction:.0%} of deadweight)"}
+        return {"fits": False, "part_laden": True, "note": f"part-laden capacity about {cap:,.0f} t is below the cargo"}
+    return {"fits": False, "part_laden": False, "note": "draft or length too large for this port"}
+
+
 def urgent_desk(db: Session, port_name: str, cargo_tonnes: float, deadline_days: float, seed: int = 5) -> dict:
     port = db.query(Port).filter(Port.name == port_name, Port.is_destination.is_(True)).first()
     if not port:
@@ -206,6 +231,7 @@ def urgent_desk(db: Session, port_name: str, cargo_tonnes: float, deadline_days:
             continue
         for vc in classes:
             for speed in (12.0, 13.0, 14.0):
+                fit = _berth_fit(port, vc_objs[vc], cargo_tonnes)
                 base = landed_cost(db, Levers(origin=origin, port=port_name, cargo_tonnes=cargo_tonnes, vessel_class=vc, speed_knots=speed))
                 slack = deadline_days - base.total_days
                 premium_pct = BASE_URGENCY_PREMIUM_PCT + max(0.0, 3.0 * (10 - slack)) if slack < 10 else BASE_URGENCY_PREMIUM_PCT
@@ -219,7 +245,7 @@ def urgent_desk(db: Session, port_name: str, cargo_tonnes: float, deadline_days:
                     "p_on_time": round(p_on_time, 3), "total_inr_crore": out.total_inr_crore, "total_usd": out.total_usd, "freight_usd_per_t": out.freight_usd_per_t,
                     "urgency_premium_pct": out.levers["urgency_premium_pct"], "premium_usd": out.urgency_premium_usd, "demurrage_usd": out.demurrage_usd, "lightering_usd": out.lightering_usd,
                     "feasible": out.total_days <= deadline_days,
-                    "fits_berth": check_compatibility(port, vc_objs[vc], cargo_tonnes).compatible if False else check_compatibility(port, vc_objs[vc]).compatible,
+                    "fits_berth": fit["fits"], "part_laden": fit["part_laden"], "berth_note": fit["note"],
                     "coking_grade": origin != "Indonesia",
                 })
     usable = lambda o: o["feasible"] and o["p_on_time"] >= 0.8 and o["fits_berth"] and o["coking_grade"]  # noqa: E731
@@ -243,6 +269,6 @@ def urgent_desk(db: Session, port_name: str, cargo_tonnes: float, deadline_days:
     else:
         verdict = "No priced routes to this port."
     return {"port": port_name, "cargo_tonnes": cargo_tonnes, "deadline_days": deadline_days, "storm_chance_in_window": cyc["probability_storm_in_window"], "verdict": verdict,
-            "fastest": fastest, "cheapest_feasible": cheapest, "best": best, "walk_away_usd_per_t": walk_away, "options": options[:12], "options_evaluated": len(options), "feasible_count": len(feasible),
+            "fastest": fastest, "cheapest_feasible": cheapest, "best": best, "walk_away_usd_per_t": walk_away, "options": options[:12], "options_evaluated": len(options), "feasible_count": len(feasible), "australia_supply": _australia_supply(),
             "method": "Every origin, vessel class and speed (12, 13, 14 knots) is costed with the What-If engine. The urgency premium is an assumed 4% plus 3 points for each day of slack below ten. On-time probability comes from 2,000 simulated arrivals (port wait lognormal around the real average turnaround, plus cyclone delay). Score = cost inflated by twice the chance of being late. Options whose vessel does not fit the berth, or whose origin ships mainly thermal coal (Indonesia), are listed but never recommended. The walk-away price is 12% above the recommended option's rate.",
             "_lab": bool(lab_service)}

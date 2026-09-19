@@ -51,6 +51,21 @@ class CompatibilityResult:
     checks: list[ConstraintCheck] = field(default_factory=list)
     tidal_plan: TidalLoadPlan | None = None
     notes: list[str] = field(default_factory=list)
+    # A ship whose fully-laden draft is too deep can still call part-laden (Paradip took its first Capesize this way,
+    # Sept 2026: 152,702 t of coking coal at 16.5 m). max_load_fraction is an ESTIMATE of the share of full deadweight.
+    partial_load_ok: bool = False
+    max_load_fraction: float = 1.0
+
+
+# Assumed light-ship draft as a share of design draft, used only to estimate how much a ship can load at a
+# shallower draft. Below MIN_PARTIAL_FRACTION a part-laden call is treated as not worth fixing.
+LIGHTSHIP_DRAFT_SHARE = 0.28
+MIN_PARTIAL_FRACTION = 0.6
+
+
+def part_laden_fraction(design_draft_m: float, port_draft_m: float) -> float:
+    light = LIGHTSHIP_DRAFT_SHARE * design_draft_m
+    return max(0.0, min(1.0, (port_draft_m - light) / (design_draft_m - light)))
 
 
 def check_compatibility(port: Port, vessel_class: VesselClass, cargo_tonnes: float | None = None) -> CompatibilityResult:
@@ -105,7 +120,20 @@ def check_compatibility(port: Port, vessel_class: VesselClass, cargo_tonnes: flo
                 max_vessels_per_tide=port.max_vessels_per_tide,
             )
 
+    partial_ok, fraction = False, 1.0
+    if not hard_checks_passed and checks:
+        failed = [c for c in checks if not c.passed]
+        if all(c.name == "draft" for c in failed) and failed[0].required and failed[0].available:
+            fraction = part_laden_fraction(failed[0].required, failed[0].available)
+            partial_ok = fraction >= MIN_PARTIAL_FRACTION
+            if partial_ok:
+                notes.append(
+                    f"Only as a part-laden call: about {fraction:.0%} of full deadweight at {port.name}'s "
+                    f"{failed[0].available:g} m draft (estimate; light-ship draft assumed {LIGHTSHIP_DRAFT_SHARE:.0%} of design draft)."
+                )
+
     return CompatibilityResult(
+        partial_load_ok=partial_ok, max_load_fraction=round(fraction, 2),
         compatible=hard_checks_passed,
         port_name=port.name,
         vessel_class_name=vessel_class.name,

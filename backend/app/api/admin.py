@@ -80,3 +80,9 @@ def audit(limit: int = Query(100, ge=1, le=500), denied_only: bool = False, db: 
     rows = q.order_by(AuditLog.id.desc()).limit(limit).all()
     return {"entries": [{"id": r.id, "at": str(r.created_at), "email": r.email, "role": r.role, "action": r.action, "detail": r.detail, "allowed": r.allowed} for r in rows],
             "denied_total": db.query(AuditLog).filter(AuditLog.allowed.is_(False)).count(), "total": db.query(AuditLog).count()}
+
+
+@router.get("/admin/data-health")
+def data_health(db: Session = Depends(get_db), _: User = Depends(require("admin:users"))) -> dict:
+    from app.services.datahealth import data_health as build
+    return build(db)

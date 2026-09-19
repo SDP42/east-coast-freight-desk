@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { Water } from "three/examples/jsm/objects/Water.js";
 import { createFx } from "./HaldiaFx";
+import { makeBulker } from "./ShipModel";
 
 interface Props {
   onPhase?: (phase: number) => void;
@@ -17,62 +19,6 @@ const LABELS = [
   { id: "rail", text: "Rail to SAIL plants", phase: 4, pos: new THREE.Vector3(58, 4, 56) },
   { id: "oil", text: "Oil jetties", phase: -1, pos: new THREE.Vector3(48, 4, -11) },
 ];
-
-function makeBulker(hull: number, scale = 1): THREE.Group {
-  const g = new THREE.Group();
-  const L = 22.9 * scale, B = 3.2 * scale, H = 1.7 * scale;
-  const s = new THREE.Shape();
-  s.moveTo(-L / 2, -B / 2);
-  s.lineTo(L / 2 - 3.2 * scale, -B / 2);
-  s.quadraticCurveTo(L / 2, -B / 2 + 0.2, L / 2 + 0.3 * scale, 0);
-  s.quadraticCurveTo(L / 2, B / 2 - 0.2, L / 2 - 3.2 * scale, B / 2);
-  s.lineTo(-L / 2, B / 2);
-  s.lineTo(-L / 2, -B / 2);
-  const geo = new THREE.ExtrudeGeometry(s, { depth: H, bevelEnabled: false });
-  geo.rotateX(-Math.PI / 2);
-  const hullMesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: hull, roughness: 0.7 }));
-  hullMesh.position.y = -H * 0.55;
-  hullMesh.castShadow = true;
-  g.add(hullMesh);
-  const boot = new THREE.Mesh(new THREE.BoxGeometry(L * 0.98, 0.2 * scale, B * 1.01), new THREE.MeshStandardMaterial({ color: 0x7a1f1f }));
-  boot.position.y = -H * 0.5;
-  boot.position.x = -0.1;
-  g.add(boot);
-  const deck = new THREE.Mesh(new THREE.BoxGeometry(L * 0.86, 0.06, B * 0.9), new THREE.MeshStandardMaterial({ color: 0x8c95a3 }));
-  deck.position.set(-0.6 * scale, H * 0.45, 0);
-  g.add(deck);
-  for (let i = 0; i < 5; i++) {
-    const h = new THREE.Mesh(new THREE.BoxGeometry(2.6 * scale, 0.55 * scale, B * 0.62), new THREE.MeshStandardMaterial({ color: 0xd5dbe3, roughness: 0.5 }));
-    h.position.set((-6 + i * 3.4) * scale, H * 0.45 + 0.3 * scale, 0);
-    h.castShadow = true;
-    g.add(h);
-  }
-  const house = new THREE.Mesh(new THREE.BoxGeometry(2.6 * scale, 2.6 * scale, B * 0.8), new THREE.MeshStandardMaterial({ color: 0xf6f8fb }));
-  house.position.set(-9.4 * scale, H * 0.45 + 1.3 * scale, 0);
-  house.castShadow = true;
-  g.add(house);
-  const bridge = new THREE.Mesh(new THREE.BoxGeometry(1.3 * scale, 0.7 * scale, B * 0.85), new THREE.MeshStandardMaterial({ color: 0x1f3a5f }));
-  bridge.position.set(-9.4 * scale, H * 0.45 + 2.9 * scale, 0);
-  g.add(bridge);
-  const funnel = new THREE.Mesh(new THREE.CylinderGeometry(0.3 * scale, 0.35 * scale, 1.0 * scale, 10), new THREE.MeshStandardMaterial({ color: 0xd97706 }));
-  funnel.position.set(-10.2 * scale, H * 0.45 + 3.6 * scale, 0);
-  g.add(funnel);
-  // Geared deck cranes and navigation lights.
-  for (const cx of [-3.2, 0.2, 3.6]) {
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * scale, 0.14 * scale, 1.5 * scale, 6), new THREE.MeshStandardMaterial({ color: 0xf3f4f6 }));
-    post.position.set(cx * scale, H * 0.45 + 0.9 * scale, B * 0.55);
-    const jib = new THREE.Mesh(new THREE.BoxGeometry(0.08 * scale, 0.08 * scale, 2.4 * scale), new THREE.MeshStandardMaterial({ color: 0xe0a100 }));
-    jib.position.set(cx * scale, H * 0.45 + 1.7 * scale, B * 0.2);
-    jib.rotation.x = -0.35;
-    g.add(post, jib);
-  }
-  const lightG = new THREE.Mesh(new THREE.SphereGeometry(0.16 * scale, 8, 8), new THREE.MeshBasicMaterial({ color: 0x22c55e }));
-  lightG.position.set(L / 2 - 3.2 * scale, H * 0.45 + 0.25 * scale, -B * 0.42);
-  const lightR = new THREE.Mesh(new THREE.SphereGeometry(0.16 * scale, 8, 8), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-  lightR.position.set(L / 2 - 3.2 * scale, H * 0.45 + 0.25 * scale, B * 0.42);
-  g.add(lightG, lightR);
-  return g;
-}
 
 function makeCrane(): THREE.Group {
   const g = new THREE.Group();
@@ -133,36 +79,41 @@ export default function HaldiaScene({ onPhase, className = "" }: Props) {
     Object.assign(sun.shadow.camera, { left: -110, right: 110, top: 90, bottom: -90, near: 10, far: 260 });
     scene.add(sun);
 
-    // Water: stylised animated shader.
-    const waterMat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 } },
-      vertexShader: `
-        uniform float uTime; varying vec2 vUv; varying float vH;
-        void main(){ vUv = uv; vec3 p = position;
-          float h = sin(p.x*0.18+uTime*0.8)*0.10 + sin(p.y*0.23+uTime*0.6)*0.08;
-          p.z += h; vH = h;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.0); }`,
-      fragmentShader: `
-        uniform float uTime; varying vec2 vUv; varying float vH;
-        void main(){
-          vec3 deep = vec3(0.05,0.44,0.66); vec3 shallow = vec3(0.42,0.84,0.90);
-          float s1 = 0.5 + 0.5*sin(vUv.x*260.0 + vUv.y*90.0 + uTime*1.1);
-          float s2 = 0.5 + 0.5*sin(vUv.x*120.0 - vUv.y*210.0 - uTime*0.8);
-          float m = 0.30 + vH*2.2 + 0.07*s1 + 0.05*s2;
-          vec3 col = mix(deep, shallow, clamp(m,0.0,1.0));
-          float sp = pow(max(0.0, sin(vUv.x*1100.0+uTime*1.7)*sin(vUv.y*980.0-uTime*1.3)), 14.0);
-          float sp2 = pow(max(0.0, sin(vUv.x*640.0-uTime*1.1)*sin(vUv.y*700.0+uTime*0.9)), 18.0);
-          col += vec3(1.0,0.97,0.86) * (sp*0.7 + sp2*0.5);
-          gl_FragColor = vec4(col,1.0); }`,
+    // Water: three.js physically-based Water (mirror reflection of the sky and ships, Fresnel, sun glitter) driven by a
+    // tileable procedural normal map, so no external texture is needed.
+    const NS = 256;
+    const nd = new Uint8Array(NS * NS * 4);
+    const hgt = (x: number, y: number) => {
+      const u = (x / NS) * Math.PI * 2, v = (y / NS) * Math.PI * 2;
+      return Math.sin(u * 3 + v * 2) * 0.5 + Math.sin(u * 5 - v * 4 + 1.3) * 0.32 + Math.sin(u * 9 + v * 7 + 2.1) * 0.2 + Math.sin(u * 14 - v * 11) * 0.12;
+    };
+    for (let y = 0; y < NS; y++) for (let x = 0; x < NS; x++) {
+      const dx = (hgt(x + 1, y) - hgt(x - 1, y)) * 1.5, dy = (hgt(x, y + 1) - hgt(x, y - 1)) * 1.5;
+      const len = Math.hypot(dx, dy, 1), i = (y * NS + x) * 4;
+      nd[i] = Math.round((-dx / len * 0.5 + 0.5) * 255); nd[i + 1] = Math.round((-dy / len * 0.5 + 0.5) * 255); nd[i + 2] = Math.round((1 / len * 0.5 + 0.5) * 255); nd[i + 3] = 255;
+    }
+    const normalTex = new THREE.DataTexture(nd, NS, NS, THREE.RGBAFormat);
+    normalTex.wrapS = normalTex.wrapT = THREE.RepeatWrapping;
+    normalTex.needsUpdate = true;
+    const water = new Water(new THREE.PlaneGeometry(520, 420), {
+      textureWidth: 512, textureHeight: 512, waterNormals: normalTex, sunDirection: sun.position.clone().normalize(),
+      sunColor: 0xfff1d6, waterColor: 0x0c6a80, distortionScale: 0.55, fog: true,
     });
-    const water = new THREE.Mesh(new THREE.PlaneGeometry(520, 420, 90, 70), waterMat);
+    // Less mirror, more body colour: an estuary reads as deep green-blue water, not polished metal.
+    (water.material as THREE.ShaderMaterial).onBeforeCompile = (sh) => {
+      sh.fragmentShader = sh.fragmentShader.replace(
+        "float reflectance = rf0 + ( 1.0 - rf0 ) * pow( ( 1.0 - theta ), 5.0 );",
+        "float reflectance = rf0 + ( 1.0 - rf0 ) * pow( ( 1.0 - theta ), 5.0 ); reflectance = reflectance * 0.45 + 0.04;",
+      );
+    };
     water.rotation.x = -Math.PI / 2;
     water.position.y = -0.05;
+    (water.material as THREE.ShaderMaterial).uniforms.size.value = 5;
     scene.add(water);
 
-    const sand = new THREE.MeshStandardMaterial({ color: 0xeadfc9, roughness: 1 });
-    const concrete = new THREE.MeshStandardMaterial({ color: 0xc9d1da, roughness: 0.9 });
-    const green = new THREE.MeshStandardMaterial({ color: 0x9fc9a2, roughness: 1 });
+    const sand = new THREE.MeshStandardMaterial({ color: 0xb5a98f, roughness: 1 });
+    const concrete = new THREE.MeshStandardMaterial({ color: 0x9aa2aa, roughness: 0.9 });
+    const green = new THREE.MeshStandardMaterial({ color: 0x5f7a55, roughness: 1 });
     const landBox = (x0: number, x1: number, z0: number, z1: number, mat: THREE.Material, h = 0.5) => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, h, z1 - z0), mat);
       m.position.set((x0 + x1) / 2, h / 2 - 0.05, (z0 + z1) / 2);
@@ -395,7 +346,8 @@ export default function HaldiaScene({ onPhase, className = "" }: Props) {
       const dt = Math.min(0.1, time - lastTime);
       lastTime = time;
       const t = reduced ? 20 : time % CYCLE;
-      waterMat.uniforms.uTime.value = time;
+      (water.material as THREE.ShaderMaterial).uniforms.time.value = time * 0.5;
+      (water.material as THREE.ShaderMaterial).uniforms.sunDirection.value.copy(sun.position).normalize();
 
       if (!reduced && t < 0.06 && Math.floor(time / CYCLE) !== heroColorIdx) {
         heroColorIdx = Math.floor(time / CYCLE);

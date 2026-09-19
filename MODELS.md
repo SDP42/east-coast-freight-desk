@@ -79,3 +79,12 @@ user-facing features.
 ## Datasets each model trains on
 
 See `SECTIONS.md` Section 3 for full detail — summary: Mendeley Baltic sub-index dataset (8,745 real daily rows, 2012-2019), World Bank coal prices (1,152 rows, 1960-2024), FRED S&P 500 (2,513 rows, 2016-2026) and Trade-Weighted US Dollar Index (5,188 rows, 2006-2026).
+
+## Negative result: can current public freight data stand in for the Baltic indices?
+
+The Baltic indices end in July 2019. The only free current freight series found is the US BLS producer price index for deep-sea freight
+(monthly, to August 2026). On the 84 overlapping months (Aug 2012 to Jul 2019) its month-to-month change has **0.00 correlation** with the
+Panamax index change (levels correlate 0.49, which is mostly a shared trend), and a regression fitted on 2012 to 2016 scores an
+**out-of-sample R² of -0.92** on 2017 to 2019 (adding coal and iron ore did not rescue it). A nowcast would therefore be invented, so none is
+shown. The PPI is a mostly container and tanker-weighted price index; it is displayed as context only.
+

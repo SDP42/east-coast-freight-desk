@@ -13,6 +13,10 @@ import Terrain from "./pages/Terrain";
 import ModelLab from "./pages/ModelLab";
 import LiveDesk from "./pages/LiveDesk";
 import UrgentDesk from "./pages/UrgentDesk";
+import MarketPulse from "./pages/MarketPulse";
+import ShipSupply from "./pages/ShipSupply";
+import Laytime from "./pages/Laytime";
+import DataHealth from "./pages/DataHealth";
 import WhatIf from "./pages/WhatIf";
 import Report from "./pages/Report";
 import Access from "./pages/Access";
@@ -64,6 +68,10 @@ export default function App() {
         <Route path="live" element={<LiveDesk />} />
         <Route path="urgent" element={<UrgentDesk />} />
         <Route path="whatif" element={<WhatIf />} />
+        <Route path="pulse" element={<MarketPulse />} />
+        <Route path="supply" element={<ShipSupply />} />
+        <Route path="laytime" element={<Laytime />} />
+        <Route path="datahealth" element={<DataHealth />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

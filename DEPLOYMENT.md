@@ -150,7 +150,7 @@ Call it **the secret key**.
 | `SHOW_SIMULATED_FEEDS` | `false` |
 | `LIVE_SHIP_FEED` | `false` |
 
-6. Open **Advanced** and set **Health Check Path** to `/api/v1/health`.
+6. Open **Advanced** and set **Health Check Path** to `/api/v1/healthz` (a light check that never waits on the database; the free server is slow, and a heavier check can time out and cause restarts).
 7. Click **Create Web Service**. Render now builds it: watch the **Logs** tab. The first build takes about 5 to 10 minutes (it installs the scientific libraries).
 8. It is finished when the top of the page shows a green **Live** and the log ends with `Application startup complete`.
 9. At the top you will see your backend address, like `https://freight-desk-api.onrender.com`. **Copy it.** Open this in a browser tab to test:
@@ -247,6 +247,7 @@ The market series come from free public sources. To update them, in a Terminal w
 | Render log says `could not connect to server` or `password authentication failed` | `DATABASE_URL` is wrong. Re-copy the Neon string (direct connection, `sslmode=require`), no extra spaces or quotes. |
 | Render log says `relation ... does not exist` | Step 3 was skipped or ran against the wrong database. Repeat Step 3 with the same Neon string. |
 | Render shows `Out of memory` and restarts | The ensemble forecast is heavy. Upgrade the service to **Starter**, or avoid pressing "Run ensemble" repeatedly. |
+| Render **Events** shows "HTTP health check failed (timed out after 5 seconds)" | The free server was busy with a heavy request. Set **Health Check Path** to `/api/v1/healthz` (Settings, then Health Checks). |
 | Pages show "Could not load ... is the backend running?" | Open your Render address plus `/api/v1/health`. If that fails the backend is down or asleep; check the Render **Logs**. |
 | Port Map is blank grey | Vercel did not deploy `frontend/public/geo/`. Check the folder exists in GitHub and redeploy. |
 | Every page reloads to a 404 on Vercel | `frontend/vercel.json` must be in GitHub (it rewrites every path to the app). Redeploy. |

@@ -4,6 +4,7 @@ evaluation runs in a worker thread so slow model calls never block requests."""
 import asyncio
 import logging
 
+from app.core.config import get_settings
 from app.db.session import SessionLocal
 from datetime import datetime, timedelta
 
@@ -19,7 +20,7 @@ def _run_once() -> int:
     try:
         # Scheduled retraining: refit when drift is flagged and no run happened in the last 24 hours.
         try:
-            if monitor.drift_report(db, "BRENT")["status"] == "drift":
+            if get_settings().SCHEDULED_RETRAIN and monitor.drift_report(db, "BRENT")["status"] == "drift":
                 last = db.query(ModelRun).filter(ModelRun.index_name == "BRENT").order_by(ModelRun.id.desc()).first()
                 if last is None or last.trained_at < datetime.utcnow() - timedelta(hours=24):
                     monitor.retrain(db, "BRENT", "scheduled")

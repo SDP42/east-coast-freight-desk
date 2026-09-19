@@ -38,3 +38,10 @@ def health_check(db: Session = Depends(get_db)) -> dict:
         "latency_ms": elapsed_ms,
         "simulated_feeds": get_settings().SHOW_SIMULATED_FEEDS,
     }
+
+
+@router.get("/healthz")
+async def liveness() -> dict:
+    """Bare liveness for the host's health check: answers on the event loop without touching the database, so a busy or slow
+    server is not restarted just because a model request is running."""
+    return {"status": "ok"}

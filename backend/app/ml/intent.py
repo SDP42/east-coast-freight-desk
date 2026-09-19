@@ -237,8 +237,34 @@ def _xy() -> tuple[list[str], list[str]]:
     return [tag(q) for q in hx + ax], hy + ay
 
 
+ARTIFACTS = Path(__file__).resolve().parent / "artifacts"
+
+
+def signature() -> str:
+    """Fingerprint of the training data and library version: a saved model is used only if it matches, otherwise we retrain."""
+    import hashlib
+
+    import sklearn
+
+    x, y = _xy()
+    h = hashlib.sha256(json.dumps([x, y, sklearn.__version__]).encode())
+    return h.hexdigest()
+
+
 @lru_cache(maxsize=1)
 def model() -> Pipeline:
+    """The intent model. Loaded from a file saved by scripts/build_intent_artifacts.py when it matches the current training
+    data, because fitting it on a small free server takes over a minute."""
+    f = ARTIFACTS / "intent_model.joblib"
+    if f.exists():
+        try:
+            import joblib
+
+            saved = joblib.load(f)
+            if saved.get("signature") == signature():
+                return saved["model"]
+        except Exception:  # noqa: BLE001 - unreadable or from another library version: retrain below
+            pass
     x, y = _xy()
     return _pipeline().fit(x, y)
 
@@ -273,8 +299,16 @@ def classify(question: str, top_k: int = 3) -> list[tuple[str, float]]:
     return [(str(m.classes_[i]), float(probs[i])) for i in order]
 
 
-@lru_cache(maxsize=1)
-def model_info() -> dict:
+def cv_accuracies() -> list[float]:
+    """5-fold accuracy on held-out hand-written questions. Read from the saved file when it matches; otherwise computed."""
+    f = ARTIFACTS / "intent_cv.json"
+    if f.exists():
+        try:
+            saved = json.loads(f.read_text())
+            if saved.get("signature") == signature():
+                return [float(a) for a in saved["accuracies"]]
+        except Exception:  # noqa: BLE001
+            pass
     hx, hy = _handwritten()
     ax, ay = augmented()
     accs = []
@@ -284,6 +318,14 @@ def model_info() -> dict:
         m = _pipeline().fit(xt, yt)
         pred = m.predict([tag(hx[i]) for i in te])
         accs.append(float(np.mean(pred == np.array([hy[i] for i in te]))))
+    return accs
+
+
+@lru_cache(maxsize=1)
+def model_info() -> dict:
+    hx, hy = _handwritten()
+    ax, ay = augmented()
+    accs = cv_accuracies()
     from app.ml import embed
 
     combined = embed.available()

@@ -8,7 +8,6 @@ from itertools import product
 
 import numpy as np
 import pandas as pd
-import shap
 from sklearn.model_selection import TimeSeriesSplit
 from xgboost import XGBRegressor
 
@@ -107,6 +106,8 @@ def compute_shap_values(fit_result: XgbFitResult, top_n: int = 8) -> list[dict]:
     XGBoost version, falls back to XGBoost's own exact tree-SHAP contributions, which are the same quantity."""
     X = fit_result.train_frame[fit_result.feature_names]
     try:
+        import shap  # imported here: it pulls in numba (about 55 MB) that most requests never need
+
         shap_values = shap.TreeExplainer(fit_result.model).shap_values(X)
     except Exception:  # noqa: BLE001 - shap and xgboost version mismatch
         import xgboost as xgb

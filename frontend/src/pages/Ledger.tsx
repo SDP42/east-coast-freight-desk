@@ -8,7 +8,7 @@ interface Entry { id: number; fixture_date: string; vessel_name: string; origin_
 interface Chain { valid: boolean; entries: number; head_hash?: string; first_broken_id: number | null; reason: string | null }
 interface Bench {
   id: number; date: string; vessel: string; route: string; rate: number | null; is_sample: boolean; illustrative_rate?: number; rate_vs_illustrative_pct?: number; note?: string;
-  timing: { index_at_fixture: number; percentile_in_trailing_90d: number; best_bdi_within_30d: number; best_day: string; missed_saving_pct: number; forward_30d_change_pct: number } | null;
+  timing: { index_at_fixture: number; percentile_in_trailing_12m: number; best_within_1m: number; best_month: string; missed_saving_pct: number; forward_1m_change_pct: number } | null;
 }
 const ORIGINS = ["Australia", "United States", "Mozambique", "Russia", "Indonesia"];
 const PORTS = ["Paradip", "Visakhapatnam", "Gangavaram", "Dhamra", "Gopalpur", "Haldia"];
@@ -82,16 +82,16 @@ export default function Ledger() {
             </div>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
-                <thead><tr className="text-xs text-muted"><th className="py-1">Date</th><th>Route</th><th>Index then</th><th>vs 90-day range</th><th>Cheaper day within 30 d</th><th>Missed</th><th>Next 30 d</th><th>Rate check</th></tr></thead>
+                <thead><tr className="text-xs text-muted"><th className="py-1">Date</th><th>Route</th><th>Index then</th><th>vs 12-month range</th><th>Cheaper month (±1)</th><th>Missed</th><th>Next month</th><th>Rate check</th></tr></thead>
                 <tbody>{bench.rows.map((r) => (
                   <tr key={r.id} className="border-t border-border-soft align-top">
                     <td className="py-1.5 text-strong">{r.date}{r.is_sample && <span className="ml-1 rounded bg-amber/10 px-1 text-[9px] text-amber">sample</span>}</td>
                     <td>{r.route}</td>
-                    <td>{r.timing ? r.timing.index_at_fixture.toLocaleString() : "n/a"}</td>
-                    <td>{r.timing ? `${r.timing.percentile_in_trailing_90d}th pct` : "n/a"}</td>
-                    <td>{r.timing ? `${r.timing.best_day} (${r.timing.best_bdi_within_30d.toLocaleString()})` : "n/a"}</td>
+                    <td>{r.timing ? r.timing.index_at_fixture?.toLocaleString() : "n/a"}</td>
+                    <td>{r.timing ? `${r.timing.percentile_in_trailing_12m}th pct` : "n/a"}</td>
+                    <td>{r.timing ? `${r.timing.best_month} (${r.timing.best_within_1m?.toLocaleString()})` : "n/a"}</td>
                     <td className={r.timing && r.timing.missed_saving_pct > 10 ? "font-semibold text-down" : ""}>{r.timing ? `${r.timing.missed_saving_pct}%` : "n/a"}</td>
-                    <td className={r.timing && r.timing.forward_30d_change_pct > 0 ? "text-down" : "text-up"}>{r.timing ? `${r.timing.forward_30d_change_pct > 0 ? "+" : ""}${r.timing.forward_30d_change_pct}%` : "n/a"}</td>
+                    <td className={r.timing && r.timing.forward_1m_change_pct > 0 ? "text-down" : "text-up"}>{r.timing ? `${r.timing.forward_1m_change_pct > 0 ? "+" : ""}${r.timing.forward_1m_change_pct}%` : "n/a"}</td>
                     <td>{r.rate_vs_illustrative_pct !== undefined ? `${r.rate_vs_illustrative_pct > 0 ? "+" : ""}${r.rate_vs_illustrative_pct}% vs $${r.illustrative_rate}` : "n/a"}</td>
                   </tr>
                 ))}</tbody>
@@ -111,7 +111,7 @@ export default function Ledger() {
                 <li key={e.id} className="py-2.5 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium text-strong">#{e.id} · {e.vessel_name}{e.is_sample && <span className="ml-2 rounded bg-amber/10 px-1.5 text-[10px] text-amber">sample</span>}</span>
-                    <span className="text-xs text-muted">{e.fixture_date} · {e.origin_country} to {e.destination_port} · {e.cargo_tonnes.toLocaleString()} t · {e.charter_type}{e.rate_usd_per_tonne !== null ? ` · $${e.rate_usd_per_tonne}/t` : ""}</span>
+                    <span className="text-xs text-muted">{e.fixture_date} · {e.origin_country} to {e.destination_port} · {e.cargo_tonnes?.toLocaleString()} t · {e.charter_type}{e.rate_usd_per_tonne !== null ? ` · $${e.rate_usd_per_tonne}/t` : ""}</span>
                   </div>
                   <p className="mt-0.5 font-mono text-[10px] text-muted">{e.hash.slice(0, 32)}… ← {e.prev_hash.slice(0, 12)}…</p>
                 </li>

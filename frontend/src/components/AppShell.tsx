@@ -6,6 +6,7 @@ import Loading from "./Loading";
 import CommandPalette from "./CommandPalette";
 import { routeAllowed } from "../lib/personas";
 import Sidebar from "./Sidebar";
+import PageErrorBoundary from "./PageErrorBoundary";
 import TickerTape from "./TickerTape";
 import OceanBackdrop from "./OceanBackdrop";
 import { useAuth } from "../lib/auth";
@@ -47,7 +48,7 @@ export default function AppShell() {
         </div>
         {can("market:read") && <TickerTape />}
         <main className="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8" key={scale}>
-          {routeAllowed(pathname.replace(/\/$/, ""), can) ? <Outlet /> : <NoAccess />}
+          {routeAllowed(pathname.replace(/\/$/, ""), can) ? <PageErrorBoundary resetKey={pathname}><Outlet /></PageErrorBoundary> : <NoAccess />}
         </main>
       </div>
     </div>

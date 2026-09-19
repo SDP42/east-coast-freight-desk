@@ -1,13 +1,13 @@
 # Feature List — Baseline vs. Differentiating
 
-47 features (10 baseline + 37 differentiating), split deliberately into two groups: things any competent
+57 features (10 baseline + 47 differentiating), split deliberately into two groups: things any competent
 competing team (there are ~300 submissions per problem statement, and at least
 two public GitHub repos already attempting near-identical ideas) would also
 build, and things that are genuinely ours. This split is itself part of the
 pitch — it shows the judges we know exactly what's "table stakes" versus what's
 the real USP, rather than presenting everything as equally novel.
 
-**Why 16 build sections for 47 features:** the sections in `SECTIONS.md` are
+**Why 16 build sections for 57 features:** the sections in `SECTIONS.md` are
 *build phases* (how the system gets implemented), not a 1:1 map to features
 (what capabilities exist). Several features are delivered together within one
 section because they share the same underlying subsystem — e.g. Section 7
@@ -15,7 +15,7 @@ alone delivered features #1 and #2 (compatibility engine + tidal optimizer);
 Section 8 delivered #5; Section 9 delivered #6. The table below is the actual
 per-feature tracker — updated every session, not just at section boundaries.
 
-## Status tracker (all 47 features)
+## Status tracker (all 57 features)
 
 Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not fully surfaced, or vice versa) · ⬜ not started
 

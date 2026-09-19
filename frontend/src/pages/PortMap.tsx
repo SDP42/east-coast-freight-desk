@@ -17,8 +17,8 @@ interface MapRoute { key: string; origin_country: string; destination: string; t
 interface MapVessel { id: number; name: string; vessel_class: string; route_key: string; progress: number; progress_per_second: number }
 interface Overview { ports: MapPort[]; routes: MapRoute[]; vessels: MapVessel[]; note: string }
 
-const RISK_COLOR: Record<string, string> = { Low: "#34d399", Moderate: "#fbbf24", High: "#f87171", Severe: "#dc2626" };
-const CLASS_COLOR: Record<string, string> = { Capesize: "#a78bfa", Panamax: "#22d3ee", Supramax: "#fbbf24", Handysize: "#34d399" };
+const RISK_COLOR: Record<string, string> = { Low: "#059669", Moderate: "#d97706", High: "#dc2626", Severe: "#dc2626" };
+const CLASS_COLOR: Record<string, string> = { Capesize: "#7c3aed", Panamax: "#0e7490", Supramax: "#d97706", Handysize: "#059669" };
 
 function positionAlong(waypoints: [number, number][], t: number): [number, number] {
   const seg = waypoints.slice(1).map((p, i) => Math.hypot(p[0] - waypoints[i][0], p[1] - waypoints[i][1]));
@@ -37,7 +37,7 @@ function positionAlong(waypoints: [number, number][], t: number): [number, numbe
 const vesselIcon = (color: string) =>
   L.divIcon({
     className: "",
-    html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid #0b0f1a;box-shadow:0 0 8px ${color}"></div>`,
+    html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid #f3f7fb;box-shadow:0 0 8px ${color}"></div>`,
     iconSize: [12, 12],
     iconAnchor: [6, 6],
   });
@@ -84,7 +84,7 @@ export default function PortMap() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-white">Port Map</h1>
+        <h1 className="text-2xl font-bold text-strong">Port Map</h1>
         <p className="mt-1 flex items-start gap-1.5 text-xs text-muted">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {data?.note ?? "Loading map data…"}
@@ -95,28 +95,27 @@ export default function PortMap() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="overflow-hidden rounded-xl border border-border-soft lg:col-span-2" style={{ height: 560 }}>
-          <MapContainer center={[14, 88]} zoom={5} style={{ height: "100%", width: "100%", background: "#0b0f1a" }} scrollWheelZoom>
+          <MapContainer center={[14, 88]} zoom={5} style={{ height: "100%", width: "100%", background: "#f3f7fb" }} scrollWheelZoom>
             {/* Keyless OpenStreetMap tiles (CARTO's free tiles now require an API key),
-                darkened with a CSS filter to fit the theme — see .dark-tiles in index.css. */}
+                shown as-is on the light theme. */}
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-              className="dark-tiles"
             />
             <FlyTo target={focus} />
 
             {data?.routes.map((r) => (
-              <Polyline key={r.key} positions={r.waypoints} pathOptions={{ color: "#22d3ee", weight: 1, opacity: 0.18, dashArray: "4 6" }} />
+              <Polyline key={r.key} positions={r.waypoints} pathOptions={{ color: "#0e7490", weight: 1, opacity: 0.18, dashArray: "4 6" }} />
             ))}
 
             {origins.map((o) => (
-              <CircleMarker key={o.id} center={[o.latitude, o.longitude]} radius={4} pathOptions={{ color: "#8792a8", fillColor: "#8792a8", fillOpacity: 0.7, weight: 1 }}>
+              <CircleMarker key={o.id} center={[o.latitude, o.longitude]} radius={4} pathOptions={{ color: "#64748b", fillColor: "#64748b", fillOpacity: 0.7, weight: 1 }}>
                 <Tooltip>{o.country} export terminal (representative)</Tooltip>
               </CircleMarker>
             ))}
 
             {destinations.map((p) => {
-              const color = RISK_COLOR[p.congestion_label] ?? "#8792a8";
+              const color = RISK_COLOR[p.congestion_label] ?? "#64748b";
               const radius = 6 + Math.min(8, (p.annual_capacity_mtpa ?? 20) / 15);
               return (
                 <CircleMarker key={p.id} center={[p.latitude, p.longitude]} radius={radius} pathOptions={{ color, fillColor: color, fillOpacity: 0.35, weight: 2 }}>
@@ -140,7 +139,7 @@ export default function PortMap() {
               if (!route) return null;
               const pos = positionAlong(route.waypoints, (v.progress + v.progress_per_second * elapsed) % 1);
               return (
-                <Marker key={v.id} position={pos} icon={vesselIcon(CLASS_COLOR[v.vessel_class] ?? "#22d3ee")}>
+                <Marker key={v.id} position={pos} icon={vesselIcon(CLASS_COLOR[v.vessel_class] ?? "#0e7490")}>
                   <Tooltip>{v.name} · {v.vessel_class} · {route.origin_country} → {route.destination} (simulated)</Tooltip>
                 </Marker>
               );
@@ -151,19 +150,19 @@ export default function PortMap() {
         <div className="space-y-4">
           <SpotlightCard>
             <div className="p-4">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-white"><Waves className="h-4 w-4 text-cyan" /> East Coast ports</h2>
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-strong"><Waves className="h-4 w-4 text-cyan" /> East Coast ports</h2>
               <div className="mt-3 space-y-1.5">
                 {[...destinations].sort((a, b) => b.congestion_score - a.congestion_score).map((p) => {
-                  const color = RISK_COLOR[p.congestion_label] ?? "#8792a8";
+                  const color = RISK_COLOR[p.congestion_label] ?? "#64748b";
                   return (
                     <button key={p.id} onClick={() => setFocus([p.latitude, p.longitude])} className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition hover:bg-panel-light/60">
                       <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-xs font-medium text-white">{p.name}</span>
+                        <span className="block truncate text-xs font-medium text-strong">{p.name}</span>
                         <span className="block text-[10px] text-muted">{p.congestion_label} · {p.classes_accepted.length ? p.classes_accepted[p.classes_accepted.length - 1] + " max" : "—"}</span>
                       </span>
                       <span className="text-right">
-                        <span className="block text-xs tabular-nums text-ice/90">{p.simulated_queue}</span>
+                        <span className="block text-xs tabular-nums text-body">{p.simulated_queue}</span>
                         <span className="block text-[10px] text-muted">queued</span>
                       </span>
                     </button>
@@ -175,7 +174,7 @@ export default function PortMap() {
 
           <SpotlightCard>
             <div className="p-4 text-xs">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-white"><Ship className="h-4 w-4 text-cyan" /> Legend</h2>
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-strong"><Ship className="h-4 w-4 text-cyan" /> Legend</h2>
               <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-muted">
                 {Object.entries(CLASS_COLOR).map(([k, c]) => (
                   <span key={k} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />{k}</span>

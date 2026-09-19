@@ -50,7 +50,7 @@ export default function Risk() {
 
   return (
     <div className="space-y-6">
-      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-white">
+      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-strong">
         Risk &amp; Disruptions
       </motion.h1>
 
@@ -62,7 +62,7 @@ export default function Risk() {
 
       <SpotlightCard>
         <div className="p-6">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-strong">
             <Gauge className="h-4 w-4 text-cyan" /> Composite Route Risk Score
           </h2>
           <p className="mt-1 text-xs text-muted">
@@ -73,7 +73,7 @@ export default function Risk() {
             <label className="text-sm text-muted">
               Origin country
               <select
-                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-strong"
                 value={origin}
                 onChange={(e) => setOrigin(e.target.value)}
               >
@@ -85,7 +85,7 @@ export default function Risk() {
             <label className="text-sm text-muted">
               Destination port
               <select
-                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-strong"
                 value={destinationPort ?? ""}
                 onChange={(e) => setDestinationPort(Number(e.target.value))}
               >
@@ -98,7 +98,7 @@ export default function Risk() {
               <button
                 onClick={runScore}
                 disabled={loading || destinationPort == null}
-                className="w-full rounded-md bg-cyan/90 px-4 py-2 text-sm font-medium text-navy transition hover:bg-cyan disabled:opacity-50"
+                className="w-full rounded-md bg-cyan/90 px-4 py-2 text-sm font-medium text-on-accent transition hover:bg-cyan disabled:opacity-50"
               >
                 {loading ? "Scoring…" : "Compute risk score"}
               </button>
@@ -120,7 +120,7 @@ export default function Risk() {
                 <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {risk.factors.map((f) => (
                     <div key={f.name} className="rounded-md border border-border-soft bg-panel-light/50 p-3 text-xs">
-                      <div className="flex items-center justify-between font-medium text-white">
+                      <div className="flex items-center justify-between font-medium text-strong">
                         <span>{f.name.replace(/_/g, " ")}</span>
                         <span>{f.score}/10</span>
                       </div>
@@ -140,7 +140,7 @@ export default function Risk() {
         </div>
       </SpotlightCard>
 
-      <h2 className="text-sm font-semibold text-white">Documented Disruption Events</h2>
+      <h2 className="text-sm font-semibold text-strong">Documented Disruption Events</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {events.map((e, i) => (
           <motion.div key={e.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
@@ -155,7 +155,7 @@ export default function Risk() {
                     <ShieldAlert className="h-3 w-3" /> impact {e.impact_score}/10
                   </span>
                 </div>
-                <p className="mt-1 text-sm font-medium text-white">{e.title}</p>
+                <p className="mt-1 text-sm font-medium text-strong">{e.title}</p>
                 <p className="mt-1 text-xs text-muted">{e.region}</p>
                 {e.source_url && (
                   <a href={e.source_url} target="_blank" rel="noreferrer" className="mt-2 flex items-center gap-1 text-[10px] text-cyan hover:underline">

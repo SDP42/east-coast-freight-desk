@@ -19,7 +19,9 @@ from datetime import date
 import numpy as np
 from sqlalchemy.orm import Session
 
-from app.models import DisruptionEvent, Port
+from sqlalchemy import func
+
+from app.models import DisruptionEvent, PortActivity, Port
 from app.services.freight_data import load_series
 
 NATIONAL_AVG_TURNAROUND_HOURS = 49.5  # our own research compendium, Section 3.3
@@ -96,7 +98,16 @@ def _disruption_score(db: Session, origin_country: str) -> tuple[float, list[Rel
     return min(total, 10.0), relevant
 
 
-def _congestion_score(port: Port) -> tuple[float, str]:
+def activity_pressure(db: Session, port_name: str) -> tuple[float, float] | None:
+    """(last-30-day mean daily dry-bulk calls, all-history mean) from IMF PortWatch, or None."""
+    rows = db.query(PortActivity.activity_date, PortActivity.dry_bulk_calls).filter(PortActivity.port_name == port_name).order_by(PortActivity.activity_date).all()
+    if len(rows) < 120:
+        return None
+    calls = np.array([r[1] for r in rows], dtype=float)
+    return float(calls[-30:].mean()), float(calls.mean())
+
+
+def _congestion_score(port: Port, db: Session | None = None) -> tuple[float, str]:
     if port.avg_turnaround_hours:
         hours = float(port.avg_turnaround_hours)
         score = max(0.0, min(10.0, (hours - 30) / 4))
@@ -105,6 +116,12 @@ def _congestion_score(port: Port) -> tuple[float, str]:
         score, detail = 6.0, f"{port.name} turnaround data unavailable; tide-restricted port defaults to elevated congestion risk"
     else:
         score, detail = 3.0, f"{port.name} turnaround data unavailable; defaulted to moderate risk"
+    pressure = activity_pressure(db, port.name) if db is not None else None
+    if pressure and pressure[1] > 0:
+        recent, base = pressure
+        ratio = recent / base
+        score = max(0.0, min(10.0, score + max(-1.5, min(2.0, (ratio - 1.0) * 4))))
+        detail += f"; dry-bulk calls last 30d {recent:.1f}/day vs {base:.1f}/day since 2019 (PortWatch, {ratio:.0%} of normal)"
     return score, detail
 
 
@@ -131,7 +148,7 @@ def _label(score: float) -> str:
 
 def compute_route_risk(db: Session, origin_country: str, destination_port: Port) -> RouteRiskResult:
     disruption_score, relevant_events = _disruption_score(db, origin_country)
-    congestion_score, congestion_detail = _congestion_score(destination_port)
+    congestion_score, congestion_detail = _congestion_score(destination_port, db)
     volatility_score, volatility_detail = _volatility_score(db)
 
     factors = [

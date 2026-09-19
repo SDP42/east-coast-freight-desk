@@ -45,7 +45,7 @@ export default function Ports() {
 
   return (
     <div className="space-y-6">
-      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-white">
+      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-strong">
         Port Compatibility
       </motion.h1>
 
@@ -58,14 +58,14 @@ export default function Ports() {
       {/* Interactive checker */}
       <SpotlightCard>
         <div className="p-6">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-strong">
             <Anchor className="h-4 w-4 text-cyan" /> Live Compatibility Checker
           </h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4">
             <label className="text-sm text-muted">
               Destination port
               <select
-                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-strong"
                 value={selectedPort ?? ""}
                 onChange={(e) => setSelectedPort(Number(e.target.value))}
               >
@@ -77,7 +77,7 @@ export default function Ports() {
             <label className="text-sm text-muted">
               Vessel class
               <select
-                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-strong"
                 value={selectedClass ?? ""}
                 onChange={(e) => setSelectedClass(Number(e.target.value))}
               >
@@ -90,7 +90,7 @@ export default function Ports() {
               Cargo tonnage
               <input
                 type="number"
-                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-strong"
                 value={cargoTonnes}
                 onChange={(e) => setCargoTonnes(e.target.value)}
               />
@@ -99,7 +99,7 @@ export default function Ports() {
               <button
                 onClick={runCheck}
                 disabled={checking || selectedPort == null}
-                className="w-full rounded-md bg-cyan/90 px-4 py-2 text-sm font-medium text-navy transition hover:bg-cyan disabled:opacity-50"
+                className="w-full rounded-md bg-cyan/90 px-4 py-2 text-sm font-medium text-on-accent transition hover:bg-cyan disabled:opacity-50"
               >
                 {checking ? "Checking…" : "Check compatibility"}
               </button>
@@ -133,7 +133,7 @@ export default function Ports() {
                 <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {result.checks.map((c) => (
                     <div key={c.name} className="rounded-md border border-border-soft bg-panel-light/50 p-3 text-xs">
-                      <div className="flex items-center gap-1.5 font-medium text-white">
+                      <div className="flex items-center gap-1.5 font-medium text-strong">
                         {c.passed ? <CheckCircle2 className="h-3.5 w-3.5 text-up" /> : <XCircle className="h-3.5 w-3.5 text-down" />}
                         {c.name.toUpperCase()}
                       </div>
@@ -180,7 +180,7 @@ export default function Ports() {
             <tbody className="divide-y divide-border-soft/60">
               {matrix.map((row) => (
                 <tr key={row.port_id} className="transition-colors hover:bg-panel-light/60">
-                  <td className="px-4 py-3 font-medium text-white">{row.port}</td>
+                  <td className="px-4 py-3 font-medium text-strong">{row.port}</td>
                   {vesselClasses.map((vc) => (
                     <td key={vc.id} className="px-4 py-3">
                       {row.vessel_classes[vc.name] ? (

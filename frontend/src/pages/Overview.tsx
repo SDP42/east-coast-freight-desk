@@ -49,7 +49,7 @@ export default function Overview() {
                 <SpotlightCard glowColor={view.accent} className="h-full transition hover:border-cyan/30">
                   <div className="p-5">
                     <div className="flex items-start justify-between">
-                      <p className="text-sm font-semibold text-white">{a.label}</p>
+                      <p className="text-sm font-semibold text-strong">{a.label}</p>
                       <ArrowUpRight className="h-4 w-4 text-muted" />
                     </div>
                     <p className="mt-2 text-xs text-muted">{a.hint}</p>
@@ -73,7 +73,7 @@ export default function Overview() {
             <SpotlightCard className="h-full">
               <div className="p-5">
                 <Icon className="h-4 w-4 text-cyan" strokeWidth={1.75} />
-                <p className="mt-3 text-2xl font-bold text-white"><AnimatedCounter value={value} /></p>
+                <p className="mt-3 text-2xl font-bold text-strong"><AnimatedCounter value={value} /></p>
                 <p className="mt-1 text-xs text-muted">{label}</p>
               </div>
             </SpotlightCard>

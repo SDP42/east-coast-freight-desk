@@ -23,11 +23,11 @@ export default function Markets() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-white">Markets</h1>
+        <h1 className="text-2xl font-bold text-strong">Markets</h1>
         <p className="mt-1 flex items-start gap-1.5 text-xs text-muted">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           Charts replay real historical data at accelerated speed so spikes and collapses play out on screen. Freight
-          indices end in July 2019 (the Baltic Exchange feed is a paid subscription); coal, FX and equity series run to 2024–2026.
+          sub-indices end in July 2019 and the headline BDI in February 2026 (the Baltic Exchange feed is a paid subscription); coal, FX and equity series run to 2024–2026.
         </p>
       </motion.div>
 
@@ -41,7 +41,7 @@ export default function Markets() {
         </SpotlightCard>
       )}
 
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-strong">
         <Globe2 className="h-4 w-4 text-cyan" /> Regional boards
         <span className="text-xs font-normal text-muted">click a row to chart it</span>
       </h2>
@@ -51,7 +51,7 @@ export default function Markets() {
           <motion.div key={b.region} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
             <SpotlightCard className={b.series.length === 0 ? "border-dashed" : ""}>
               <div className="p-4">
-                <h3 className="text-sm font-semibold text-white">{b.region}</h3>
+                <h3 className="text-sm font-semibold text-strong">{b.region}</h3>
                 <p className="mt-0.5 text-[11px] text-muted">{b.note}</p>
                 <div className="mt-3 divide-y divide-border-soft/60">
                   {b.series.map((s) => {
@@ -64,12 +64,12 @@ export default function Markets() {
                         className={`flex w-full items-center gap-3 rounded px-2 py-2 text-left transition hover:bg-panel-light/60 ${active ? "bg-panel-light" : ""}`}
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs text-ice/90">{s.label}</p>
+                          <p className="truncate text-xs text-body">{s.label}</p>
                           <p className="text-[10px] text-muted">as of {s.date}</p>
                         </div>
                         <Sparkline values={s.spark} up={up} />
                         <div className="w-24 text-right">
-                          <p className="text-sm font-semibold tabular-nums text-white">{s.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                          <p className="text-sm font-semibold tabular-nums text-strong">{s.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                           <p className={`text-[11px] tabular-nums ${up ? "text-up" : "text-down"}`}>
                             {s.change_pct != null ? `${up ? "▲" : "▼"} ${Math.abs(s.change_pct).toFixed(2)}%` : "—"}
                           </p>

@@ -37,13 +37,13 @@ export default function Recommendation() {
 
   return (
     <div className="space-y-6">
-      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-white">
+      <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-strong">
         Chartering Recommendation
       </motion.h1>
 
       <SpotlightCard>
         <div className="p-6">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-strong">
             <Ship className="h-4 w-4 text-cyan" /> Multi-Origin Comparative Routing
           </h2>
           <p className="mt-1 text-xs text-muted">
@@ -55,7 +55,7 @@ export default function Recommendation() {
             <label className="text-sm text-muted">
               Destination port
               <select
-                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-strong"
                 value={destinationPort ?? ""}
                 onChange={(e) => setDestinationPort(Number(e.target.value))}
               >
@@ -68,7 +68,7 @@ export default function Recommendation() {
               Cargo tonnage
               <input
                 type="number"
-                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-md border border-border-soft bg-panel-light px-3 py-2 text-sm text-strong"
                 value={cargoTonnes}
                 onChange={(e) => setCargoTonnes(e.target.value)}
               />
@@ -77,7 +77,7 @@ export default function Recommendation() {
               <button
                 onClick={runCompare}
                 disabled={loading || destinationPort == null}
-                className="w-full rounded-md bg-cyan/90 px-4 py-2 text-sm font-medium text-navy transition hover:bg-cyan disabled:opacity-50"
+                className="w-full rounded-md bg-cyan/90 px-4 py-2 text-sm font-medium text-on-accent transition hover:bg-cyan disabled:opacity-50"
               >
                 {loading ? "Comparing origins…" : "Compare all 5 origins"}
               </button>
@@ -106,7 +106,7 @@ export default function Recommendation() {
                     <SpotlightCard glowColor={isBest ? "52,211,153" : "34,211,238"} className={isBest ? "ring-1 ring-up/40" : ""}>
                       <div className="p-5">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-sm font-semibold text-white">{rec.origin_country}</h3>
+                          <h3 className="text-sm font-semibold text-strong">{rec.origin_country}</h3>
                           {isBest && (
                             <span className="flex items-center gap-1 rounded-full bg-up/10 px-2 py-0.5 text-[10px] font-medium text-up">
                               <Trophy className="h-3 w-3" /> Best option
@@ -125,7 +125,7 @@ export default function Recommendation() {
                           </span>
                         </div>
 
-                        <p className="mt-3 text-2xl font-bold text-white">
+                        <p className="mt-3 text-2xl font-bold text-strong">
                           {rec.estimated_total_cost_usd != null
                             ? `$${(rec.estimated_total_cost_usd / 1000).toLocaleString(undefined, { maximumFractionDigits: 0 })}k`
                             : "—"}

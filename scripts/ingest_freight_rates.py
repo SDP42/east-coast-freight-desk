@@ -41,7 +41,7 @@ def main() -> None:
     db = SessionLocal()
     existing = db.query(FreightRate).filter(FreightRate.source == SOURCE_CITATION).count()
     if existing:
-        print(f"Already ingested {existing} rows from this source — skipping (delete them first to re-run).")
+        print(f"Already ingested {existing} rows from this source — skipping (delete them first to re-run). BDI itself comes from ingest_real_bdi.py.")
         db.close()
         return
 
@@ -59,20 +59,6 @@ def main() -> None:
                     value=float(value),
                     unit="points",
                     source=SOURCE_CITATION,
-                )
-            )
-        # Composite BDI per the real Baltic Exchange weighting (BCI 40%, BPI 30%,
-        # BSI 30%; Handysize excluded from the composite since Mar 2018 — see
-        # research compendium, Section 3) — the raw file only has sub-indices.
-        if not pd.isna(row["CI"]) and not pd.isna(row["PI"]) and not pd.isna(row["SI"]):
-            bdi = 0.4 * row["CI"] + 0.3 * row["PI"] + 0.3 * row["SI"]
-            rows.append(
-                FreightRate(
-                    rate_date=rate_date,
-                    index_name="BDI",
-                    value=float(bdi),
-                    unit="points",
-                    source=f"{SOURCE_CITATION} (BDI computed: 0.4*BCI + 0.3*BPI + 0.3*BSI)",
                 )
             )
 

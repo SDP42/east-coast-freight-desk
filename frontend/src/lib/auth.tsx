@@ -22,6 +22,9 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName: string, role: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (fullName: string, role: string) => Promise<void>;
+  changePassword: (current: string, next: string) => Promise<void>;
+  sessionExpired: boolean;
 }
 
 const TOKEN_KEY = "freightdesk_token";
@@ -34,11 +37,32 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let onUnauthorized: (() => void) | null = null;
+// A 401 on anything except the login call itself means the token expired or was revoked.
+api.interceptors.response.use(
+  (r) => r,
+  (err) => {
+    const url: string = err?.config?.url ?? "";
+    if (err?.response?.status === 401 && !url.includes("/auth/login") && localStorage.getItem(TOKEN_KEY)) onUnauthorized?.();
+    return Promise.reject(err);
+  },
+);
+
 export const getPersonas = () => api.get<Persona[]>("/auth/personas").then((r) => r.data);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    onUnauthorized = () => {
+      localStorage.removeItem(TOKEN_KEY);
+      setUser(null);
+      setSessionExpired(true);
+    };
+    return () => { onUnauthorized = null; };
+  }, []);
 
   const loadUser = useCallback(async () => {
     if (!localStorage.getItem(TOKEN_KEY)) {
@@ -69,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
       localStorage.setItem(TOKEN_KEY, data.access_token);
+      setSessionExpired(false);
       await loadUser();
     },
     [loadUser],
@@ -87,7 +112,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, login, register, logout }), [user, loading, login, register, logout]);
+  const updateProfile = useCallback(async (fullName: string, role: string) => {
+    const { data } = await api.patch<User>("/auth/me", { full_name: fullName, role });
+    setUser(data);
+  }, []);
+
+  const changePassword = useCallback(async (current: string, next: string) => {
+    await api.post("/auth/change-password", { current_password: current, new_password: next });
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, loading, login, register, logout, updateProfile, changePassword, sessionExpired }),
+    [user, loading, login, register, logout, updateProfile, changePassword, sessionExpired],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
@@ -102,7 +139,10 @@ export function authErrorMessage(err: unknown): string {
   const anyErr = err as { response?: { status?: number; data?: { detail?: unknown } } };
   const detail = anyErr.response?.data?.detail;
   if (typeof detail === "string") return detail;
-  if (Array.isArray(detail)) return "Please check the form: password needs at least 8 characters and a valid email.";
+  if (Array.isArray(detail)) {
+    const msg = (detail[0] as { msg?: string })?.msg ?? "";
+    return msg.replace(/^Value error, /, "") || "Please check the form and try again.";
+  }
   if (!anyErr.response) return "Cannot reach the server — is the backend running?";
   return "Something went wrong. Please try again.";
 }

@@ -12,7 +12,7 @@ export interface PersonaView {
 export const PERSONA_VIEW: Record<string, PersonaView> = {
   procurement_manager: {
     icon: Briefcase,
-    accent: "34,211,238",
+    accent: "14,116,144",
     tagline: "Decide when and how to buy freight.",
     quickActions: [
       { label: "Compare origins for a cargo", to: "/app/recommendation", hint: "Rank all 5 origins by cost and fit" },
@@ -22,7 +22,7 @@ export const PERSONA_VIEW: Record<string, PersonaView> = {
   },
   chartering_analyst: {
     icon: LineChart,
-    accent: "167,139,250",
+    accent: "109,40,217",
     tagline: "Read the market and build the case for a fixture.",
     quickActions: [
       { label: "Watch the live market", to: "/app/markets", hint: "Prices, spikes and regional boards" },
@@ -32,7 +32,7 @@ export const PERSONA_VIEW: Record<string, PersonaView> = {
   },
   port_ops: {
     icon: Anchor,
-    accent: "251,191,36",
+    accent: "180,83,9",
     tagline: "Keep vessels matched to berths and ahead of disruption.",
     quickActions: [
       { label: "Check vessel-to-berth fit", to: "/app/ports", hint: "Draft, LOA, beam and tidal plans" },
@@ -42,7 +42,7 @@ export const PERSONA_VIEW: Record<string, PersonaView> = {
   },
   finance_head: {
     icon: Landmark,
-    accent: "52,211,153",
+    accent: "5,150,105",
     tagline: "Control freight cost exposure and prove the savings.",
     quickActions: [
       { label: "Size the savings", to: "/app/financial", hint: "ROI from better-timed chartering" },
@@ -52,7 +52,7 @@ export const PERSONA_VIEW: Record<string, PersonaView> = {
   },
   admin: {
     icon: ShieldCheck,
-    accent: "248,113,113",
+    accent: "220,38,38",
     tagline: "Full access across every tool.",
     quickActions: [
       { label: "Watch the live market", to: "/app/markets", hint: "Prices and regional boards" },

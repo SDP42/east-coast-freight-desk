@@ -72,7 +72,7 @@ def build_map_overview(db: Session) -> dict:
 
     pins: list[PortPin] = []
     for p in ports:
-        score, _ = _congestion_score(p) if p.is_destination else (0.0, "")
+        score, _ = _congestion_score(p, db) if p.is_destination else (0.0, "")
         accepted = [vc.name for vc in vessel_classes if check_compatibility(p, vc).compatible] if p.is_destination else []
         pins.append(
             PortPin(

@@ -14,7 +14,7 @@ export default function AppShell() {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className="flex min-h-screen text-slate-100">
+    <div className="flex min-h-screen text-strong">
       <OceanBackdrop />
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">

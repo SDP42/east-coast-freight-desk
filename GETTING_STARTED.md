@@ -21,6 +21,7 @@ source .venv/bin/activate
 alembic upgrade head          # creates the database tables
 cd ../scripts
 python run_all.py             # loads all the real/seed data — takes a few seconds
+                              # (optional datasets in data/raw are skipped if the files are missing)
 ```
 
 You only need to do this once (or again if you ever delete `backend/freight_forecast.db`).
@@ -70,10 +71,10 @@ go back and check that terminal window.
 
 Open **http://localhost:5173**. You'll land on the public home page.
 
-1. Click **Get started**, choose the role closest to yours (Procurement Manager, Chartering Analyst, Port & Logistics Officer or Finance & Treasury), fill in name, email and a password of at least 8 characters, and create the account. Any email works — accounts live only in your local database.
+1. Click **Get started**, choose the role closest to yours (Procurement Manager, Chartering Analyst, Port & Logistics Officer or Finance & Treasury), fill in name, email and a password of at least 8 characters, and create the account. Any email works. The password needs at least 8 characters with a letter and a number (the form shows a strength meter). Five wrong attempts lock that email out for ten minutes. Accounts live only in your local database.
 2. You're signed in automatically and land on the dashboard. The **Overview** greets you by name and shows three quick actions for your role; the small dots in the sidebar mark the tools suggested for that role. Every role can still open every tool.
-3. Try, in this order: **Markets** (streaming price chart, click any row in the regional boards to chart it), **Freight Forecast** (click *Run ensemble* and wait about 12 seconds), **Chartering Recommendation**, **Port Map** (click a port in the list), **Scenario Sandbox**.
-4. **Sign out** is at the bottom of the sidebar. Next time use **Sign in** with the same email and password.
+3. Try, in this order: **Ask the Desk** (click a suggestion, or type a question about freight, ports, origins or risk), **Markets** (streaming price chart, click any row in the regional boards to chart it), **Freight Forecast** (click *Run ensemble* and wait about 12 seconds), **Chartering Recommendation**, **Port Map** (click a port in the list), **Scenario Sandbox**.
+4. **Account** (name, role, change password) and **Sign out** are at the bottom of the sidebar. Next time use **Sign in** with the same email and password.
 
 Things to know:
 - The Port Map loads its map tiles from OpenStreetMap, so it needs an internet connection.

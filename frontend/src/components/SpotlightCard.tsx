@@ -6,10 +6,8 @@ interface SpotlightCardProps {
   glowColor?: string;
 }
 
-/** A card with a cursor-tracked radial glow on its border, in the spirit of
- * reactbits.dev's "Spotlight Card" pattern — reimplemented locally (no
- * external dependency) so it fits our own theme tokens. */
-export default function SpotlightCard({ children, className = "", glowColor = "34,211,238" }: SpotlightCardProps) {
+/** Card with a cursor-tracked soft glow (reactbits.dev "Spotlight Card" pattern, reimplemented). */
+export default function SpotlightCard({ children, className = "", glowColor = "14,116,144" }: SpotlightCardProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
@@ -24,13 +22,11 @@ export default function SpotlightCard({ children, className = "", glowColor = "3
     <div
       ref={ref}
       onMouseMove={handleMouseMove}
-      className={`group relative overflow-hidden rounded-xl border border-border-soft bg-panel ${className}`}
+      className={`group relative overflow-hidden rounded-2xl border border-border-soft bg-white/90 shadow-[0_1px_2px_rgba(15,42,67,0.04),0_8px_24px_-12px_rgba(15,42,67,0.12)] backdrop-blur ${className}`}
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background: `radial-gradient(400px circle at var(--x, 50%) var(--y, 50%), rgba(${glowColor}, 0.15), transparent 70%)`,
-        }}
+        style={{ background: `radial-gradient(360px circle at var(--x, 50%) var(--y, 50%), rgba(${glowColor}, 0.10), transparent 70%)` }}
       />
       <div className="relative z-10">{children}</div>
     </div>

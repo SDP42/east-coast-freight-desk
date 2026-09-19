@@ -78,18 +78,18 @@ export default function Forecast() {
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white">Freight Forecast</h1>
+          <h1 className="text-2xl font-bold text-strong">Freight Forecast</h1>
           <p className="mt-1 text-xs text-muted">Real ARIMA model fit on the ingested series, with a 95% confidence band and walk-forward backtest.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {INDICES.map((i) => (
-            <button key={i.key} onClick={() => setIndexKey(i.key)} className={`rounded-md border px-3 py-1.5 text-xs ${indexKey === i.key ? "border-cyan/50 bg-cyan/10 text-cyan" : "border-border-soft bg-panel-light text-muted hover:text-white"}`}>
+            <button key={i.key} onClick={() => setIndexKey(i.key)} className={`rounded-md border px-3 py-1.5 text-xs ${indexKey === i.key ? "border-cyan/50 bg-cyan/10 text-cyan" : "border-border-soft bg-panel-light text-muted hover:text-strong"}`}>
               {i.key}
             </button>
           ))}
           <span className="mx-1 w-px bg-border-soft" />
           {HORIZONS.map((h) => (
-            <button key={h} onClick={() => setHorizon(h)} className={`rounded-md border px-3 py-1.5 text-xs ${horizon === h ? "border-amber/50 bg-amber/10 text-amber" : "border-border-soft bg-panel-light text-muted hover:text-white"}`}>
+            <button key={h} onClick={() => setHorizon(h)} className={`rounded-md border px-3 py-1.5 text-xs ${horizon === h ? "border-amber/50 bg-amber/10 text-amber" : "border-border-soft bg-panel-light text-muted hover:text-strong"}`}>
               {h}d
             </button>
           ))}
@@ -101,7 +101,7 @@ export default function Forecast() {
       <SpotlightCard>
         <div className="p-6">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-strong">
               <LineChartIcon className="h-4 w-4 text-cyan" /> {INDICES.find((i) => i.key === indexKey)?.label}: last 90 observations and {horizon}-day forecast
             </h2>
             {moveInfo != null && (
@@ -116,14 +116,14 @@ export default function Forecast() {
             <div className="mt-4">
               <ResponsiveContainer width="100%" height={320}>
                 <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#232d45" />
-                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#8792a8" }} tickLine={false} axisLine={{ stroke: "#232d45" }} minTickGap={40} />
-                  <YAxis domain={["auto", "auto"]} tick={{ fontSize: 10, fill: "#8792a8" }} tickLine={false} axisLine={false} width={48} />
-                  <Tooltip contentStyle={{ background: "#131a2b", border: "1px solid #232d45", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "#8792a8" }} />
-                  <Area dataKey="band" stroke="none" fill="#fbbf24" fillOpacity={0.15} isAnimationActive={false} name="95% band" />
-                  <Line dataKey="actual" stroke="#22d3ee" strokeWidth={2} dot={false} isAnimationActive={false} name="Actual" />
-                  <Line dataKey="forecast" stroke="#fbbf24" strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} name="ARIMA forecast" />
-                  {ensemble && <Line dataKey="hybrid" stroke="#a78bfa" strokeWidth={2} dot={false} isAnimationActive={false} name="Hybrid (ARIMA+XGBoost)" />}
+                  <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={{ stroke: "#dbe4ee" }} minTickGap={40} />
+                  <YAxis domain={["auto", "auto"]} tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} width={48} />
+                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #232d45", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "#64748b" }} />
+                  <Area dataKey="band" stroke="none" fill="#d97706" fillOpacity={0.15} isAnimationActive={false} name="95% band" />
+                  <Line dataKey="actual" stroke="#0e7490" strokeWidth={2} dot={false} isAnimationActive={false} name="Actual" />
+                  <Line dataKey="forecast" stroke="#d97706" strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} name="ARIMA forecast" />
+                  {ensemble && <Line dataKey="hybrid" stroke="#7c3aed" strokeWidth={2} dot={false} isAnimationActive={false} name="Hybrid (ARIMA+XGBoost)" />}
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -143,7 +143,7 @@ export default function Forecast() {
             <SpotlightCard key={m.label}>
               <div className="p-4">
                 <p className="text-[11px] uppercase tracking-wide text-muted">{m.label}</p>
-                <p className="mt-1 text-xl font-bold text-white">{m.value}</p>
+                <p className="mt-1 text-xl font-bold text-strong">{m.value}</p>
                 <p className="text-[10px] text-muted">{m.hint}</p>
               </div>
             </SpotlightCard>
@@ -155,15 +155,15 @@ export default function Forecast() {
         <div className="p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
-                <Brain className="h-4 w-4 text-violet-400" /> Ensemble and explainability
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-strong">
+                <Brain className="h-4 w-4 text-violet-600" /> Ensemble and explainability
               </h2>
               <p className="mt-1 text-xs text-muted">
                 Adds XGBoost (with S&amp;P 500, dollar index and coal prices as features), blends the two by inverse error, tests the
                 improvement statistically, and shows what drives the forecast. Takes about 12 seconds.
               </p>
             </div>
-            <button onClick={runEnsemble} disabled={ensembleLoading} className="rounded-md bg-violet-400/90 px-4 py-2 text-sm font-medium text-navy transition hover:bg-violet-300 disabled:opacity-50">
+            <button onClick={runEnsemble} disabled={ensembleLoading} className="rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-on-accent transition hover:bg-violet-700 disabled:opacity-50">
               {ensembleLoading ? "Training models…" : ensemble ? "Re-run" : "Run ensemble"}
             </button>
           </div>
@@ -183,7 +183,7 @@ export default function Forecast() {
                       { name: "XGBoost", m: ensemble.xgb_metrics, w: ensemble.weights.xgb },
                       { name: "Hybrid", m: ensemble.hybrid_metrics, w: null },
                     ].map((r) => (
-                      <tr key={r.name} className={r.name === "Hybrid" ? "text-violet-300" : "text-ice/90"}>
+                      <tr key={r.name} className={r.name === "Hybrid" ? "text-violet-700" : "text-body"}>
                         <td className="py-2 font-medium">{r.name}</td>
                         <td>{r.m.rmse.toFixed(1)}</td><td>{r.m.mae.toFixed(1)}</td><td>{r.m.mape.toFixed(2)}%</td>
                         <td>{r.w != null ? `${(r.w * 100).toFixed(0)}%` : "—"}</td>
@@ -198,7 +198,7 @@ export default function Forecast() {
                   ].map(({ label, s }) => (
                     <div key={label} className="flex items-center gap-2">
                       {s.significant_at_05 ? <CheckCircle2 className="h-4 w-4 shrink-0 text-up" /> : <CircleSlash className="h-4 w-4 shrink-0 text-muted" />}
-                      <span className="text-ice/90">
+                      <span className="text-body">
                         {label}: Wilcoxon p = {s.p_value < 0.0001 ? s.p_value.toExponential(1) : s.p_value.toFixed(4)}{" "}
                         <span className={s.significant_at_05 ? "text-up" : "text-muted"}>{s.significant_at_05 ? "(significant)" : "(not significant)"}</span>
                       </span>
@@ -212,9 +212,9 @@ export default function Forecast() {
                 <div className="space-y-1.5">
                   {ensemble.top_features.map((f) => (
                     <div key={f.feature} className="flex items-center gap-2 text-xs">
-                      <span className="w-32 shrink-0 truncate text-ice/90">{prettyFeature(f.feature)}</span>
+                      <span className="w-32 shrink-0 truncate text-body">{prettyFeature(f.feature)}</span>
                       <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel-light">
-                        <div className="h-full rounded-full bg-violet-400" style={{ width: `${Math.max(2, (f.mean_abs_shap / maxShap) * 100)}%` }} />
+                        <div className="h-full rounded-full bg-violet-600" style={{ width: `${Math.max(2, (f.mean_abs_shap / maxShap) * 100)}%` }} />
                       </div>
                       <span className="w-12 text-right tabular-nums text-muted">{f.mean_abs_shap.toFixed(1)}</span>
                     </div>

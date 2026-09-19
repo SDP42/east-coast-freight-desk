@@ -1,13 +1,13 @@
 # Feature List — Baseline vs. Differentiating
 
-39 features (10 baseline + 29 differentiating), split deliberately into two groups: things any competent
+42 features (10 baseline + 32 differentiating), split deliberately into two groups: things any competent
 competing team (there are ~300 submissions per problem statement, and at least
 two public GitHub repos already attempting near-identical ideas) would also
 build, and things that are genuinely ours. This split is itself part of the
 pitch — it shows the judges we know exactly what's "table stakes" versus what's
 the real USP, rather than presenting everything as equally novel.
 
-**Why 16 build sections for 39 features:** the sections in `SECTIONS.md` are
+**Why 16 build sections for 42 features:** the sections in `SECTIONS.md` are
 *build phases* (how the system gets implemented), not a 1:1 map to features
 (what capabilities exist). Several features are delivered together within one
 section because they share the same underlying subsystem — e.g. Section 7
@@ -15,7 +15,7 @@ alone delivered features #1 and #2 (compatibility engine + tidal optimizer);
 Section 8 delivered #5; Section 9 delivered #6. The table below is the actual
 per-feature tracker — updated every session, not just at section boundaries.
 
-## Status tracker (all 39 features)
+## Status tracker (all 42 features)
 
 Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not fully surfaced, or vice versa) · ⬜ not started
 
@@ -48,7 +48,7 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 8 | Idle-time/ballast-leg minimizer | 🔧 | Section 10 backend done (`/financial/ballast-options`), no UI yet |
 | 9 | Demurrage risk estimator | 🔧 | Section 10 backend done (`/financial/demurrage`), no UI yet |
 | 10 | Historical fixture ledger & benchmarking | ⬜ | `Fixture` model exists in the schema (Section 2); no ingestion/UI yet |
-| 11 | "Ask the Freight Desk" NL query assistant | ⬜ | Planned Section 15 |
+| 11 | "Ask the Freight Desk" NL query assistant | ✅ | `Ask.tsx` + `/assistant/ask`: local TF-IDF + logistic-regression intent model (11 intents, 75% held-out accuracy on hand-written questions) routes to the forecast, origin, berth, risk, congestion, Haldia, COA and demand engines. No external LLM. |
 | 12 | Scenario/stress-testing sandbox | ✅ | Section 11, live in `Scenario.tsx` (freight spike, port closure with reroute alternatives, Red Sea closure) |
 | 13 | Monsoon/cyclone-adjusted ETA & laycan risk engine | ⬜ | Disruption events include a `weather` category (Section 9) as a building block; the ETA-shifting logic itself isn't built |
 | 14 | WhatsApp/SMS disruption alerts | ⬜ | Not started |
@@ -57,7 +57,7 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 17 | Rail-sea-rail coastal modal-shift recommender | ⬜ | Not started |
 | 18 | Hash-chained fixture ledger (audit trail) | ⬜ | Not started |
 | 19 | AIS-lite vessel congestion heatmap | ✅ | `PortMap.tsx` — real port congestion rings + simulated vessels on sea lanes and simulated anchorage queues, clearly labelled as simulated (no free real AIS) |
-| 20 | "Explain like a broker" auto-briefing narrative | ⬜ | Not started |
+| 20 | "Explain like a broker" auto-briefing narrative | 🔧 | Every assistant answer is a short broker-style briefing with the figures used; an always-on briefing on the Overview page is not built |
 | 21 | Macroeconomic Cargo Demand Estimator | ⬜ | SP500/DXY/coal prices are used as XGBoost *rate* features (Section 6); the separate GDP/production-based *demand* (tonnes) regression module itself isn't built |
 | 22 | Berth Slot Availability Forecaster | ⬜ | Not started |
 | 23 | Cross-Port Congestion Transfer / Rerouting Signal | ⬜ | Not started |
@@ -67,8 +67,11 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 27 | Configurable Alerting | ⬜ | Not started |
 | 28 | Role personas (tailored starting point per user type) | ✅ | Backend personas + self-register validation (admin not self-selectable); persona picker at sign-up, persona-specific Overview quick actions and sidebar hints |
 | 29 | Regional market boards with live-replay charts | ✅ | `Markets.tsx` — freight, coal, FX and equity series grouped by origin region; regions with no real series (Indonesia, Russia) are shown empty rather than invented |
+| 30 | Haldia digital-twin landing scene (three.js) | ✅ | `HaldiaScene.tsx`: anchorage and lightering, river transit, the 330 x 39 m lock with animated gates, berth 4A unloaders, coal pile and rail, with labels and a step caption. Schematic, built from public port-trust figures |
+| 31 | Real Haldia coal-vessel ledger from port-trust reports | ✅ | `ingest_haldia_positions.py` parses SMP Kolkata's daily morning-position PDFs into 90+ distinct coal vessels (LOA, draft, cargo, importer); served at `/haldia/summary` and shown on the landing page |
+| 32 | Account security: password policy, login lockout, change password, session expiry | ✅ | Backend policy (8+ chars, letter and number), 5-failure 10-minute lockout, `PATCH /auth/me`, `POST /auth/change-password`; frontend strength meter, show/hide, profile page, automatic sign-out on expired token |
 
-**Running total: 19 done, 5 partial, 15 not started** (of 39), counted directly from the rows above (an earlier version of this line was miscounted; the table is the source of truth). Remaining ⬜ items mostly land in the NL assistant, alerting/monitoring and deployment sections, plus the data-driven ones (demand estimator, congestion transfer, fixture ledger) that need the additional datasets being collected — see `SECTIONS.md`. There's also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here — a bonus beyond the tracked count.
+**Running total: 23 done, 6 partial, 13 not started** (of 42), counted directly from the rows above (an earlier version of this line was miscounted; the table is the source of truth). Remaining ⬜ items mostly land in the NL assistant, alerting/monitoring and deployment sections, plus the data-driven ones (demand estimator, congestion transfer, fixture ledger) that need the additional datasets being collected — see `SECTIONS.md`. There's also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here — a bonus beyond the tracked count.
 
 ## A. Baseline features (10) — expected of any serious attempt at this problem
 

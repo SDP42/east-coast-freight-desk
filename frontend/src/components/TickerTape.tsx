@@ -8,13 +8,13 @@ function Tick({ item, justChanged }: { item: TickerItem; justChanged: boolean })
   const down = (item.change ?? 0) < 0;
   return (
     <div
-      className={`flex items-center gap-2 px-5 py-2 border-r border-white/5 whitespace-nowrap ${
+      className={`flex items-center gap-2 px-5 py-2 border-r border-border-soft whitespace-nowrap ${
         justChanged ? (up ? "flash-up" : down ? "flash-down" : "") : ""
       }`}
       title={`As of ${item.date}${item.prev_date ? ` (prev: ${item.prev_date})` : ""} — real ingested data, not a live streaming feed`}
     >
       <span className="text-xs font-semibold text-muted tracking-wide">{item.index_name}</span>
-      <span className="text-sm font-semibold text-white tabular-nums">
+      <span className="text-sm font-semibold text-strong tabular-nums">
         {item.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
       </span>
       {item.change !== null && item.change !== 0 && (
@@ -63,20 +63,20 @@ export default function TickerTape() {
 
   if (error) {
     return (
-      <div className="w-full border-b border-white/5 bg-black/40 px-5 py-2 text-xs text-down">
+      <div className="w-full border-b border-border-soft bg-white/80 px-5 py-2 text-xs text-down">
         Live market data unavailable — is the backend running?
       </div>
     );
   }
 
   if (items.length === 0) {
-    return <div className="w-full border-b border-white/5 bg-black/40 px-5 py-2 text-xs text-muted">Loading market data…</div>;
+    return <div className="w-full border-b border-border-soft bg-white/80 px-5 py-2 text-xs text-muted">Loading market data…</div>;
   }
 
   const track = [...items, ...items];
 
   return (
-    <div className="relative w-full overflow-hidden border-b border-white/5 bg-black/40 backdrop-blur">
+    <div className="relative w-full overflow-hidden border-b border-border-soft bg-white/80 backdrop-blur">
       <div className="flex w-max animate-marquee">
         {track.map((item, i) => (
           <Tick key={`${item.index_name}-${i}`} item={item} justChanged={changedKeys.has(item.index_name)} />

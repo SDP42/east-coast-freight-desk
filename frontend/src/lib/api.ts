@@ -350,3 +350,26 @@ export const getRouteRisk = (originCountry: string, destinationPortId: number) =
   api
     .get<RouteRisk>("/risk/score", { params: { origin_country: originCountry, destination_port_id: destinationPortId } })
     .then((r) => r.data);
+
+export interface HaldiaSummary {
+  facts: Record<string, number>;
+  observed: {
+    vessels: number; period_start: string | null; period_end: string | null;
+    median_cargo_t: number | null; min_cargo_t: number | null; max_cargo_t: number | null;
+    median_draft_m: number | null; min_draft_m: number | null; max_draft_m: number | null; median_loa_m: number | null;
+    by_importer: Record<string, number>; by_cargo: Record<string, number>;
+  };
+  recent_vessels: { name: string; loa_m: number | null; draft_m: number | null; cargo: string; tonnage_t: number | null; importer: string; date: string }[];
+}
+export const getHaldiaSummary = () => api.get<HaldiaSummary>("/haldia/summary").then((r) => r.data);
+
+export interface AskAnswer {
+  intent: string; confidence: number; alternatives: { intent: string; confidence: number }[]; entities: Record<string, string | number>;
+  text: string; figures: { label: string; value: string }[]; links: { label: string; to: string }[]; assumptions: string[];
+}
+export interface AssistantInfo {
+  model: { algorithm: string; intents: number; training_examples: number; cv_accuracy_mean: number; cv_accuracy_std: number; note: string };
+  suggestions: string[];
+}
+export const askDesk = (question: string) => api.post<AskAnswer>("/assistant/ask", { question }).then((r) => r.data);
+export const getAssistantInfo = () => api.get<AssistantInfo>("/assistant/info").then((r) => r.data);

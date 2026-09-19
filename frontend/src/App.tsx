@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import AppShell from "./components/AppShell";
+import Ask from "./pages/Ask";
+import Profile from "./pages/Profile";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -30,6 +32,8 @@ export default function App() {
         <Route path="risk" element={<Risk />} />
         <Route path="financial" element={<Financial />} />
         <Route path="scenario" element={<Scenario />} />
+        <Route path="ask" element={<Ask />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

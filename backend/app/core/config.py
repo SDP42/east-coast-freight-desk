@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     ALLOW_DEMO_LOGIN: bool = True
     # Live ship feed from a public web page whose reuse terms we could not confirm. Off unless you decide otherwise.
     LIVE_SHIP_FEED: bool = False
+    # Simulated demo feeds (moving dots and anchorage queues on the port map, minute ticks on the Live Desk). Off by default: no mock data in a deployment.
+    SHOW_SIMULATED_FEEDS: bool = False
 
     @field_validator("DATABASE_URL")
     @classmethod

@@ -8,16 +8,15 @@ Sign in with one click on the sign-in page. Use **Chrome or Edge** if you want v
 
 ---
 
-## 1. The landing page (30 seconds)
+## 1. The landing page (45 seconds)
 
-**What it does:** shows the problem physically. A real-layout 3D scene of Haldia Dock Complex loops through the five stages a coal ship goes through: anchorage and lightering at Sagar, the river, the lock, berth 4A, rail. The camera follows the ship. The numbers underneath are real.
+**What it does:** shows where the coal comes from and why each end matters. The hero has an animated aurora background, a particle headline that re-forms under the mouse, and shimmering badges.
 
 **Show:**
-- Move the mouse over the big headline: the particles scatter and re-form.
-- Watch the scene: tug boat leading the ship, gates opening, grabs working, a train leaving.
+- Scroll to **Five origins, seven ports, one desk**. Switch the four views: **Globe** (real Earth with arcs from each loading terminal to the Bay of Bengal, drag to spin), **Flat map** (Natural Earth coastline, sea lanes, hover a terminal), **Loading regions** (terminal, published draft, distance to Paradip) and **East Coast ports** (draft and one fact each, including Paradip's first Capesize).
 - Point at the four stat cards: **87%** of SAIL's clean coking coal is imported (16.92 of 19.37 MT, FY24), **94%** of imported coal on long-term agreements, **374** demurrage cases in four years (CAG), **69 h** average turnaround at Visakhapatnam vs 45 h at Paradip (Ministry of Ports).
 
-**Say:** "The port, not the market, sets the parcel size at Haldia: about 35,000 t reaches the dock. That is why generic freight tools don't fit."
+**Say:** "A ship has to fit where it loads and where it discharges. Nacala takes 14 m, Balikpapan 13 m, Haldia is a river dock behind a lock. That is why generic freight tools don't fit."
 
 ---
 
@@ -106,8 +105,8 @@ Also try typing `/app/financial` into the address bar as the Port Officer: a "Th
 **Freight Forecast:** choose the Gulf-to-Japan ocean rate, 3 months, press *Run ensemble* (about 10 seconds the first time, then cached). Shows a 95% band, per-split backtest, SHAP drivers and two significance tests. Blend vs ARIMA: p = 0.053, so say "borderline, not proven".
 
 **Model Lab:** the retrained models on the same walk-forward test (about 200 monthly forecasts).
-- 1-month MAE: no change **$2.58/t**, ARIMA 2.45, XGBoost 2.50, blend 2.42, Ridge **2.33** (p = 0.016; about 0.06 after correcting for four models). GRU neural network **2.60** (p = 0.38): it does not help.
-- At 3 months nothing beats "no change". Say it before anyone asks: "The rate is close to a random walk, and our tests say so."
+- 1-month MAE: no change **$2.58/t**, ARIMA 2.45, ETS 2.61, ExtraTrees 2.45, XGBoost 2.50, ARIMA + XGBoost 2.42, Ridge **2.33**, Ridge + ARIMA **2.34** (p = 0.0071, on the edge of significance after correcting for seven models). GRU neural network **2.60** (p = 0.38): it does not help.
+- At 3 months nothing beats "no change" and the damped-trend smoother is significantly worse. Say it before anyone asks: "The rate is close to a random walk, and our tests say so."
 - The "Proof the models are real" panel refits models live (20 fits in about 2 seconds) and lists saved artifacts with fingerprints.
 
 ---

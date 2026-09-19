@@ -70,3 +70,23 @@ def test_stale_and_sample_lists_are_flagged(db):
     tonnage.add_rows(db, tonnage.sample_rows(), None, is_sample=True)
     m = tonnage.match(db, "Paradip", 60000, 30)
     assert m["any_sample"] is True and m["total_on_lists"] == 10 and m["suitable_count"] >= 1
+
+
+def test_pasted_broker_text_is_read_into_rows_and_unread_lines_are_reported():
+    text = """MV AURORA - 82,000 dwt built 2015 - open Hay Point 22/09 - 14.2 m draft
+M.V. Kestrel 180k dwt, Hay Point, open 25 Sep, LOA 292
+TBN 76,000 mt Panamax, spot Nacala
+MV Coral Star 63,000 dwt prompt Vostochny
+Best regards, Ship Brokers Ltd
+MV Nowhere 70,000 dwt open 3 Oct"""
+    rows, skipped = tonnage.parse_text(text, today=date(2026, 9, 19))
+    by = {r["vessel_name"]: r for r in rows}
+    assert by["Aurora"]["dwt"] == 82000 and by["Aurora"]["open_port"] == "Hay Point" and by["Aurora"]["open_date"] == date(2026, 9, 22) and by["Aurora"]["draft_m"] == 14.2
+    assert by["Kestrel"]["dwt"] == 180000 and by["Kestrel"]["loa_m"] == 292.0 and by["Kestrel"]["open_date"] == date(2026, 9, 25)
+    assert by["TBN"]["open_port"] == "Nacala" and by["Coral Star"]["open_port"] == "Vostochny"
+    assert any("Nowhere" in s for s in skipped) and any("Best regards" in s for s in skipped)  # no known port: reported, not guessed
+
+
+def test_a_year_like_number_is_not_read_as_deadweight():
+    rows, _ = tonnage.parse_text("MV Old Timer built 2015 60,000 dwt open Hay Point 22/09", today=date(2026, 9, 19))
+    assert rows and rows[0]["dwt"] == 60000

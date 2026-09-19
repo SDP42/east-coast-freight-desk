@@ -66,6 +66,9 @@ def _simulated_queue(port: Port, now: float) -> int:
 
 
 def build_map_overview(db: Session, scope: list[str] | None = None) -> dict:
+    from app.core.config import get_settings
+
+    simulate = get_settings().SHOW_SIMULATED_FEEDS
     now = time.time()
     vessel_classes = db.query(VesselClass).order_by(VesselClass.dwt_min).all()
     ports = db.query(Port).filter(Port.latitude.isnot(None)).all()
@@ -87,7 +90,7 @@ def build_map_overview(db: Session, scope: list[str] | None = None) -> dict:
                 avg_turnaround_hours=float(p.avg_turnaround_hours) if p.avg_turnaround_hours else None,
                 congestion_score=round(score, 1), congestion_label=_label(score) if p.is_destination else "",
                 classes_accepted=accepted,
-                simulated_queue=_simulated_queue(p, now) if p.is_destination else 0,
+                simulated_queue=_simulated_queue(p, now) if (simulate and p.is_destination) else 0,
             )
         )
 
@@ -104,7 +107,7 @@ def build_map_overview(db: Session, scope: list[str] | None = None) -> dict:
                 "waypoints": [list(w) for w in LANES[country]] + [[float(dest.latitude), float(dest.longitude)]],
             })
 
-    vessels_db = db.query(Vessel).order_by(Vessel.id).limit(MAX_VESSELS).all()
+    vessels_db = db.query(Vessel).order_by(Vessel.id).limit(MAX_VESSELS).all() if simulate else []
     allowed_routes = {r["key"] for r in routes}
     classes_by_id = {vc.id: vc.name for vc in vessel_classes}
     vessels = []
@@ -126,10 +129,11 @@ def build_map_overview(db: Session, scope: list[str] | None = None) -> dict:
         "ports": [p.__dict__ for p in pins],
         "routes": routes,
         "vessels": vessels,
-        "simulated": True,
+        "simulated": simulate,
         "note": (
-            "Ports, berth fit and congestion scores are real. Vessel positions and anchorage queues are SIMULATED "
-            "(real AIS is a paid feed): synthetic vessels sail hand-placed sea lanes at accelerated speed. "
+            "Ports, berth fit and congestion scores are real. Vessel positions and anchorage queues are SIMULATED (real AIS needs an account or key): synthetic vessels sail hand-placed sea lanes at accelerated speed. "
             "Russia and US routes run via Suez or the Cape and fall outside this map."
+            if simulate else
+            "Real ports, berth limits and sea lanes only. No simulated vessels or queues are shown; ships from your uploaded broker lists appear as amber rings."
         ),
     }

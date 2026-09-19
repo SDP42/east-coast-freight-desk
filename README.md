@@ -134,12 +134,15 @@ All models are trained on the public-domain USDA ocean rate with US BLS, EIA and
 |---|---|---|
 | No change (naive) | 2.58 | |
 | ARIMA(1,1,1) | 2.45 | 0.089 |
+| ETS (damped trend) | 2.61 | 0.902 |
 | Ridge on lags, coal, oil, rupee | **2.33** | 0.016 |
+| ExtraTrees | 2.45 | 0.154 |
 | XGBoost | 2.50 | 0.116 |
 | ARIMA + XGBoost | 2.42 | 0.042 |
+| Ridge + ARIMA | 2.34 | **0.0071** |
 | GRU neural network (3 seeds) | 2.60 | 0.383 |
 
-The rate is close to a random walk: at 3 months no model beats no-change, the neural network does not help, and with four models compared a p just under 0.05 needs caution. The assistant's intent model scores about 87% ± 4% on held-out, hand-written questions using Hugging Face sentence embeddings (73.5% without them; an in-distribution figure, not an external benchmark).
+The rate is close to a random walk: at 3 months no model beats no-change (the damped-trend smoother is significantly worse), the neural network does not help, and with seven models compared only the Ridge + ARIMA blend is on the edge of significance after correction. The assistant's intent model scores about 87% ± 4% on held-out, hand-written questions using Hugging Face sentence embeddings (73.5% without them; an in-distribution figure, not an external benchmark).
 
 ## 8. Security and privacy
 

@@ -9,6 +9,8 @@ secrets yourself; nobody else needs your passwords or connection strings.
 (the first request after a sleep takes about 30-60 seconds). The heaviest model call (the ARIMA + XGBoost
 ensemble) may be slow or run out of memory there. If that happens, the rest of the app still works.
 
+**No mock data in a deployment.** Leave `SHOW_SIMULATED_FEEDS` and `LIVE_SHIP_FEED` unset (both default to off), set `ALLOW_DEMO_LOGIN=false`, and after loading the database run `python scripts/prepare_production.py` (a dry run that lists what would go) then `python scripts/prepare_production.py --apply` to remove the demo accounts, sample ledger entries, sample tonnage and synthetic vessels. See REQUIREMENTS_CHECK.md.
+
 **Data licences.** Only public-domain data is loaded: USDA ocean rates, US BLS and EIA series, Federal Reserve rates, NOAA
 cyclone tracks and Ministry of Ports figures, all downloaded free with no account or key (see LICENCES.md). Ship availability
 is uploaded by your own users. Keep `LIVE_SHIP_FEED` unset: that feed was removed. Refresh the market series any time with

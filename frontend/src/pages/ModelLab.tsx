@@ -49,9 +49,9 @@ export default function ModelLab() {
             <h2 className="text-sm font-semibold text-strong">1-month forecast error, US$/t (lower is better)</h2>
             <div className="mt-3 h-72"><ResponsiveContainer><BarChart data={board} layout="vertical" margin={{ left: 40 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" horizontal={false} /><XAxis type="number" tick={{ fontSize: px(11), fill: "#64748b" }} /><YAxis type="category" dataKey="model" tick={{ fontSize: px(11), fill: "#334155" }} width={px(110)} />
-              <Tooltip /><Bar dataKey="mae" radius={4} isAnimationActive={false}>{board.map((b) => <Cell key={b.model} fill={b.model === "naive" ? "#94a3b8" : b.p !== null && b.p < 0.05 ? "#0e7490" : "#7c3aed"} />)}</Bar>
+              <Tooltip /><Bar dataKey="mae" radius={4} isAnimationActive={false}>{board.map((b) => <Cell key={b.model} fill={b.model === "naive" ? "#94a3b8" : b.p !== null && b.p < 0.05 ? (b.mae > t1.models.naive.mae_usd_per_t ? "#dc2626" : "#0e7490") : "#7c3aed"} />)}</Bar>
             </BarChart></ResponsiveContainer></div>
-            <p className="mt-2 text-xs text-muted">Teal: significantly better than no-change (Wilcoxon, p under 0.05). With four models compared, treat a p just under 0.05 with caution. {t1.test_from} to {t1.test_to}.</p>
+            <p className="mt-2 text-xs text-muted">Teal: significantly better than no-change (Wilcoxon, p under 0.05); red: significantly worse. Eight models are compared, so a p just under 0.05 needs a multiple-testing correction (see the verdict). {t1.test_from} to {t1.test_to}.</p>
           </div>
         </SpotlightCard>
         <SpotlightCard>

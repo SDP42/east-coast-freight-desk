@@ -1,5 +1,5 @@
 {
- "trained_at": "2026-09-19T15:47:29",
+ "trained_at": "2026-09-19T16:41:58",
  "model": "GRU(16) on 12-month windows, 3 seeds, retrained every 24 months",
  "target": "next-month USDA Gulf-to-Japan ocean rate",
  "origins": 199,

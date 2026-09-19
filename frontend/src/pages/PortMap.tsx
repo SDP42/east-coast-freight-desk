@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { CircleMarker, GeoJSON, MapContainer, Marker, Polyline, Popup, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { motion } from "framer-motion";
@@ -15,7 +15,8 @@ interface MapPort {
 }
 interface MapRoute { key: string; origin_country: string; destination: string; transit_days: number; waypoints: [number, number][] }
 interface MapVessel { id: number; name: string; vessel_class: string; route_key: string; progress: number; progress_per_second: number }
-interface Overview { ports: MapPort[]; routes: MapRoute[]; vessels: MapVessel[]; note: string }
+interface OpenTonnageAt { ships: number; dwt: number; sample: boolean; names: string[] }
+interface Overview { simulated?: boolean; ports: MapPort[]; routes: MapRoute[]; vessels: MapVessel[]; note: string; open_tonnage?: Record<string, OpenTonnageAt> }
 
 const RISK_COLOR: Record<string, string> = { Low: "#059669", Moderate: "#d97706", High: "#dc2626", Severe: "#dc2626" };
 const CLASS_COLOR: Record<string, string> = { Capesize: "#7c3aed", Panamax: "#0e7490", Supramax: "#d97706", Handysize: "#059669" };
@@ -76,10 +77,19 @@ export default function PortMap() {
     return () => clearInterval(id);
   }, []);
 
+  const [land, setLand] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [allPorts, setAllPorts] = useState<{ n: string; lat: number; lon: number }[]>([]);
+  useEffect(() => {
+    fetch("/geo/land.json").then((r) => r.json()).then(setLand).catch(() => undefined);
+    fetch("/geo/ports.json").then((r) => r.json()).then(setAllPorts).catch(() => undefined);
+  }, []);
+
   const routeByKey = useMemo(() => new Map(data?.routes.map((r) => [r.key, r])), [data]);
   const destinations = data?.ports.filter((p) => p.is_destination) ?? [];
   const origins = data?.ports.filter((p) => !p.is_destination) ?? [];
   const elapsed = (now - fetchedAt) / 1000;
+  const ours = new Set(["Paradip", "Visakhapatnam", "Haldia", "Calcutta", "Gangavaram", "Dhamra", "Gopalpur"]);
+  const otherPorts = allPorts.filter((p) => p.lon > 60 && p.lon < 130 && p.lat > -12 && p.lat < 32 && !ours.has(p.n));
 
   return (
     <div className="space-y-6">
@@ -95,13 +105,14 @@ export default function PortMap() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="overflow-hidden rounded-xl border border-border-soft lg:col-span-2" style={{ height: "35rem" }}>
-          <MapContainer center={[14, 88]} zoom={5} style={{ height: "100%", width: "100%", background: "#f3f7fb" }} scrollWheelZoom>
-            {/* Keyless OpenStreetMap tiles (CARTO's free tiles now require an API key),
-                shown as-is on the light theme. */}
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+          <MapContainer center={[14, 88]} zoom={5} style={{ height: "100%", width: "100%", background: "#cfe6f4" }} scrollWheelZoom>
+            {/* Real coastline and ports from Natural Earth (public domain), drawn directly: no map tiles, no licence. */}
+            {land && <GeoJSON data={land} style={() => ({ color: "#94a3b8", weight: 0.6, fillColor: "#eef2f6", fillOpacity: 1 })} />}
+            {otherPorts.map((p) => (
+              <CircleMarker key={`${p.n}-${p.lon}`} center={[p.lat, p.lon]} radius={2} pathOptions={{ color: "#94a3b8", fillColor: "#94a3b8", fillOpacity: 0.7, weight: 0 }}>
+                <Tooltip>{p.n} (Natural Earth port)</Tooltip>
+              </CircleMarker>
+            ))}
             <FlyTo target={focus} />
 
             {data?.routes.map((r) => (
@@ -113,6 +124,12 @@ export default function PortMap() {
                 <Tooltip>{o.country} export terminal (representative)</Tooltip>
               </CircleMarker>
             ))}
+
+            {origins.map((o) => { const t = data?.open_tonnage?.[o.country]; if (!t) return null; return (
+              <CircleMarker key={`ot-${o.id}`} center={[o.latitude, o.longitude]} radius={10 + Math.min(10, t.ships * 2)} pathOptions={{ color: "#d97706", fillColor: "#f59e0b", fillOpacity: 0.35, weight: 2 }}>
+                <Popup><div style={{ minWidth: 200, color: "#111827", fontSize: 12 }}><strong>{t.ships} open ship{t.ships > 1 ? "s" : ""} in {o.country}</strong>{t.sample && <div>(sample list, invented ships)</div>}<div>{t.dwt.toLocaleString()} t deadweight</div>{t.names.map((n) => <div key={n}>{n}</div>)}</div></Popup>
+              </CircleMarker>
+            ); })}
 
             {destinations.map((p) => {
               const color = RISK_COLOR[p.congestion_label] ?? "#64748b";
@@ -127,7 +144,7 @@ export default function PortMap() {
                       <div>Turnaround: {p.avg_turnaround_hours ? `${p.avg_turnaround_hours} h` : "no data on file"}</div>
                       <div>Accepts: {p.classes_accepted.join(", ") || "—"}</div>
                       {p.tidal_restricted && <div>Tide-restricted port</div>}
-                      <div>Simulated queue: {p.simulated_queue} vessels</div>
+                      {data?.simulated && <div>Simulated queue: {p.simulated_queue} vessels</div>}
                     </div>
                   </Popup>
                 </CircleMarker>
@@ -161,10 +178,10 @@ export default function PortMap() {
                         <span className="block truncate text-xs font-medium text-strong">{p.name}</span>
                         <span className="block text-[10px] text-muted">{p.congestion_label} · {p.classes_accepted.length ? p.classes_accepted[p.classes_accepted.length - 1] + " max" : "—"}</span>
                       </span>
-                      <span className="text-right">
+                      {data?.simulated && <span className="text-right">
                         <span className="block text-xs tabular-nums text-body">{p.simulated_queue}</span>
                         <span className="block text-[10px] text-muted">queued</span>
-                      </span>
+                      </span>}
                     </button>
                   );
                 })}
@@ -186,7 +203,7 @@ export default function PortMap() {
                 ))}
               </div>
               <p className="mt-3 text-[10px] leading-relaxed text-muted">
-                Ring colour is the port's congestion score (real); ring size is annual capacity. Dots are simulated vessels; "queued" is a simulated anchorage count.
+                Ring colour is the port's congestion score (real); ring size is annual capacity. Amber rings are ships from your uploaded broker lists (real availability). Grey dots are other real ports (Natural Earth, public domain). No vessel positions are shown: no free, keyless AIS feed exists for India.
               </p>
             </div>
           </SpotlightCard>

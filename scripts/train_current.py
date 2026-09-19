@@ -16,7 +16,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon
+from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.linear_model import Ridge
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from statsmodels.tsa.arima.model import ARIMA
 from xgboost import XGBRegressor
 
@@ -55,7 +57,7 @@ def walk_forward_gulf(df: pd.DataFrame, h: int, start: str = "2010-01-01") -> di
     X, y = lag_frame(df.loc[s.index[0]:], h)
     ok = X.dropna().index.intersection(y.dropna().index)
     origins = [t for t in s.index if t >= pd.Timestamp(start) and t + pd.DateOffset(months=h) in s.index]
-    preds = {k: [] for k in ("naive", "ARIMA(1,1,1)", "Ridge", "XGBoost", "ARIMA+XGBoost")}
+    preds = {k: [] for k in ("naive", "ARIMA(1,1,1)", "ETS (damped trend)", "Ridge", "ExtraTrees", "XGBoost", "ARIMA+XGBoost", "Ridge+ARIMA")}
     actual, dates = [], []
     for t in origins:
         train_idx = [i for i in ok if i + pd.DateOffset(months=h) <= t]  # only rows whose outcome was known at t
@@ -67,7 +69,13 @@ def walk_forward_gulf(df: pd.DataFrame, h: int, start: str = "2010-01-01") -> di
         f_ar = float(np.exp(np.log(last) + (ARIMA(np.log(s.loc[:t]).iloc[-240:], order=(1, 1, 1)).fit().forecast(h).iloc[-1] - np.log(last))))
         f_r = last * float(np.exp(Ridge(alpha=1.0).fit(Xt, yt).predict(X.loc[[t]])[0]))
         f_x = last * float(np.exp(XGBRegressor(n_estimators=120, max_depth=2, learning_rate=0.05, subsample=0.9, random_state=7, n_jobs=1).fit(Xt, yt).predict(X.loc[[t]])[0]))
-        for k, v in (("naive", last), ("ARIMA(1,1,1)", f_ar), ("Ridge", f_r), ("XGBoost", f_x), ("ARIMA+XGBoost", (f_ar + f_x) / 2)):
+        try:
+            ets = ExponentialSmoothing(np.log(s.loc[:t]).iloc[-240:], trend="add", damped_trend=True).fit()
+            f_e = float(np.exp(ets.forecast(h).iloc[-1]))
+        except Exception:  # noqa: BLE001
+            f_e = last
+        f_t = last * float(np.exp(ExtraTreesRegressor(n_estimators=150, min_samples_leaf=5, random_state=7, n_jobs=1).fit(Xt, yt).predict(X.loc[[t]])[0]))
+        for k, v in (("naive", last), ("ARIMA(1,1,1)", f_ar), ("ETS (damped trend)", f_e), ("Ridge", f_r), ("ExtraTrees", f_t), ("XGBoost", f_x), ("ARIMA+XGBoost", (f_ar + f_x) / 2), ("Ridge+ARIMA", (f_r + f_ar) / 2)):
             preds[k].append(v)
         actual.append(truth)
         dates.append(t.date().isoformat())

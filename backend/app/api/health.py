@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.redis_client import get_redis
 from app.db.session import get_db
 
@@ -35,4 +36,5 @@ def health_check(db: Session = Depends(get_db)) -> dict:
         "database": "up" if db_ok else "down",
         "cache": "redis" if redis_ok else "in-memory",
         "latency_ms": elapsed_ms,
+        "simulated_feeds": get_settings().SHOW_SIMULATED_FEEDS,
     }

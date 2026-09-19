@@ -106,6 +106,68 @@ def sample_rows(today: date | None = None) -> list[dict]:
              "speed_knots": kn, "broker": "Illustrative sample (invented ships)", "notes": "Sample data, not real ships"} for n, dwt, port, days, loa, bm, dr, kn in spec]
 
 
+MONTHS = {m: i for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], 1)}
+_NAME = re.compile(r"\b(?:M\.?/?V\.?|MV)\s+([A-Za-z][A-Za-z0-9'\-]*(?:\s+[A-Za-z0-9'\-]+){0,3}?)(?=\s*[,;:\-\u2013(]|\s+\d|\s+(?:dwt|built|open|opening|ppt|prompt|spot|abt|about)\b|$)", re.I)
+_DWT = re.compile(r"(\d{2,3})\s*k\s*(?:dwt|mt|t)?\b|(\d{2,3}[,.]?\d{3})\s*(?:mt\b|mts\b|dwt|t\b)?", re.I)
+
+
+def _parse_date(t: str, today: date) -> date | None:
+    m = re.search(r"\b(\d{1,2})(?:st|nd|rd|th)?[\s\-/]*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b", t, re.I)
+    if m:
+        d, mo = int(m.group(1)), MONTHS[m.group(2).lower()]
+    else:
+        m = re.search(r"\b(\d{1,2})[/.\-](\d{1,2})(?:[/.\-](\d{2,4}))?\b", t)
+        if not m:
+            return None
+        d, mo = int(m.group(1)), int(m.group(2))
+        if mo > 12 and d <= 12:
+            d, mo = mo, d
+    try:
+        cand = date(today.year, mo, d)
+    except ValueError:
+        return None
+    return cand if cand >= today - timedelta(days=30) else date(today.year + 1, mo, d)
+
+
+def parse_text(text: str, today: date | None = None) -> tuple[list[dict], list[str]]:
+    """Read broker position text (one ship per line, as in a typical email) into rows for the user to check.
+
+    Recognises 'MV NAME', deadweight ('82,000 dwt', '82k dwt'), an open port from the known loading ports, an open date
+    ('22/09', '22 Sep', 'prompt', 'spot'), and optional draft ('14.2 m draft') and LOA. Returns (rows, lines it could not read).
+    Every row is only a suggestion: the user confirms before anything is saved.
+    """
+    today = today or date.today()
+    rows, skipped = [], []
+    for raw in text.splitlines():
+        line = raw.strip(" \t-*\u2022")
+        if len(line) < 8:
+            continue
+        nm = _NAME.search(line)
+        name = nm.group(1).strip().title() if nm else ("TBN" if re.search(r"\btbn\b", line, re.I) else None)
+        dwt = None
+        for m in _DWT.finditer(line):
+            v = int(m.group(1)) * 1000 if m.group(1) else int(re.sub(r"[,.]", "", m.group(2)))
+            if 8_000 <= v <= 400_000 and not (1990 <= v <= 2030):
+                dwt = v
+                break
+        port = next((m.group(0) for pat, _c in PORT_ORIGIN for m in [re.search(pat, line, re.I)] if m), None)
+        d = _parse_date(line, today)
+        if d is None:
+            if re.search(r"\b(ppt|prompt)\b", line, re.I):
+                d = today + timedelta(days=2)
+            elif re.search(r"\bspot\b", line, re.I):
+                d = today + timedelta(days=1)
+        if not (dwt and port and d):
+            skipped.append(raw.strip())
+            continue
+        dm = re.search(r"(\d{1,2}[.,]\d{1,2})\s*m\s*(?:draft|draught|sdwt)", line, re.I) or re.search(r"(?:draft|draught)\s*(\d{1,2}[.,]\d{1,2})", line, re.I)
+        lm = re.search(r"\bloa\s*(\d{3}(?:[.,]\d)?)", line, re.I)
+        rows.append({"vessel_name": name or "Unnamed", "dwt": dwt, "open_port": port.title(), "open_date": d, "imo": None,
+                     "draft_m": float(dm.group(1).replace(",", ".")) if dm else None, "loa_m": float(lm.group(1).replace(",", ".")) if lm else None, "beam_m": None,
+                     "speed_knots": None, "broker": "Pasted text", "notes": line[:200], "needs_review": name is None})
+    return rows, skipped
+
+
 def _class_of(classes: list[VesselClass], dwt: int) -> VesselClass | None:
     for c in classes:
         if float(c.dwt_min) <= dwt <= float(c.dwt_max):

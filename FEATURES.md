@@ -1,6 +1,6 @@
 # Feature List — Baseline vs. Differentiating
 
-80 rows (73 live, 4 removed in the licence purge, 3 re-based; 10 baseline + 70 differentiating), split deliberately into two groups: things any competent
+81 rows (74 live, 4 removed in the licence purge, 3 re-based; 10 baseline + 70 differentiating), split deliberately into two groups: things any competent
 competing team (there are ~300 submissions per problem statement, and at least
 two public GitHub repos already attempting near-identical ideas) would also
 build, and things that are genuinely ours. This split is itself part of the
@@ -108,6 +108,9 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 68 | Verdict track record | ✅ | `services/verdict_eval.py`, `GET /verdict/evidence`, also inside every verdict: momentum tested on the USDA ocean rate (borderline edge, p = 0.04) and on Brent crude (none), so the signal carries a modest weight |
 | 69 | Hugging Face embeddings in the assistant | ✅ | `app/ml/embed.py`: BAAI/bge-small-en-v1.5 (MIT), run locally through fastembed, averaged with the TF-IDF model. Intent accuracy 73.5% to 86.9% (15 held-out folds, p = 0.0007). Falls back to TF-IDF automatically; `INTENT_EMBEDDINGS=0` switches it off |
 | 70 | Cross-checked feature honesty | ✅ | Every new feature ships with its limits: assumptions returned in the response, and negative results (GRU, deep-sea PPI, Capesize nowcast, momentum) kept in the documentation |
+| 71 | Loading-terminal constraints | ✅ | `scripts/seed_origin_constraints.py`: published draft (and length or beam where available) for Hay Point / Dalrymple Bay, Hampton Roads, Nacala, Vostochny and Balikpapan, with sources; the Urgent Desk, Verdict and recommendation now require the ship to fit where it loads as well as where it discharges (a Capesize cannot load at Balikpapan; at Nacala it loads part-laden) |
+| 72 | Real port map | ✅ | `PortMap.tsx`: Natural Earth coastline and 331 real ports (public domain, drawn directly, no map tiles); amber rings show ships from uploaded broker lists; simulated vessels and queues are off unless `SHOW_SIMULATED_FEEDS` is set |
+| 73 | Broker email paste-in | ✅ | `POST /tonnage/parse-text`, `Tonnage.tsx`: paste position text, review the ships it read, save; unreadable lines are reported, never guessed |
 
 **Running total: 56 done, 1 partial, 0 not started** (of 57), counted directly from the rows above. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
 

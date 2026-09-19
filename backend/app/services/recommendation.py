@@ -115,6 +115,16 @@ def compare_origins(
         )
 
         compatibility = check_compatibility(destination_port, vessel_class, cargo_tonnes)
+        # The ship must also fit where it loads: check the origin terminal's published limits.
+        origin_port = route.origin_port if False else (route and db.query(Port).filter(Port.id == route.origin_port_id).first())
+        if origin_port is not None and origin_port.max_draft_m is not None:
+            oc = check_compatibility(origin_port, vessel_class, cargo_tonnes)
+            if oc.compatible:
+                notes.append(f"Fits the loading terminal ({origin_port.name}, {float(origin_port.max_draft_m):g} m draft).")
+            elif oc.partial_load_ok:
+                notes.append(f"At {origin_port.name} ({float(origin_port.max_draft_m):g} m draft) a {vessel_class.name} can only load part-laden, about {oc.max_load_fraction:.0%} of full deadweight.")
+            else:
+                notes.append(f"A {vessel_class.name} does not fit the loading terminal {origin_port.name} ({float(origin_port.max_draft_m):g} m draft): use a smaller class or a different terminal.")
 
         cost_per_tonne = None
         total_cost = None

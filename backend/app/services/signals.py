@@ -40,6 +40,11 @@ def cyclone_eta_risk(db: Session, port_name: str, laycan_start: date, laycan_end
     }
 
 
+# SAIL annual-report figures (crude steel and imported coking coal, MT): the two data points the demand estimate is calibrated on.
+DEMAND_POINTS = [("FY24", 19.24, 16.92), ("FY25", 19.17, 16.32)]
+REPORTED_CRUDE = {"Q1 FY26": 4.854, "Q2 FY26": 9.503 - 4.854, "FY26": 19.434, "Q1 FY27": 4.757}
+
+
 def demand_estimate(growth_pct: float = 0.0, parcel_tonnes: float = 33_000) -> dict:
     ratios = [imp / cs for _, cs, imp in DEMAND_POINTS]
     k, spread = float(np.mean(ratios)), float(np.std(ratios))

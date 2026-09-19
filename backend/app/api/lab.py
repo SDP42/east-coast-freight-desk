@@ -74,8 +74,12 @@ LIVE_SERIES = [("BRENT", "Brent crude", "usd/bbl"), ("INR", "INR per USD", "inr"
 
 @router.get("/live/seed", dependencies=MARKET)
 def live_seed(db: Session = Depends(get_db)) -> dict:
-    """Real anchors for the simulated minute ticks: last two closes and daily volatility per series."""
+    """Real anchors for the simulated minute ticks: last two closes and daily volatility per series. Off unless SHOW_SIMULATED_FEEDS is set."""
     import numpy as np
+    from app.core.config import get_settings
+
+    if not get_settings().SHOW_SIMULATED_FEEDS:
+        raise HTTPException(status_code=404, detail="Simulated feeds are switched off in this deployment.")
 
     out = []
     for key, label, unit in LIVE_SERIES:

@@ -76,3 +76,54 @@ def match(p: MatchIn, db: Session = Depends(get_db)) -> dict:
         return tonnage.match(db, p.port, p.cargo_tonnes, p.need_by_days)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
+
+
+class TextIn(BaseModel):
+    text: str = Field(min_length=8, max_length=20000)
+
+
+@router.post("/parse-text")
+def parse_text(p: TextIn, user: User = Depends(require("ledger:write"))) -> dict:
+    """Turn pasted broker position text into suggested rows. Nothing is saved until the user confirms."""
+    rows, skipped = tonnage.parse_text(p.text)
+    return {"rows": [{**r, "open_date": r["open_date"].isoformat()} for r in rows], "unread_lines": skipped[:30], "note": "Suggestions only: check each row, then save."}
+
+
+class RowIn(BaseModel):
+    vessel_name: str = Field(min_length=1, max_length=120)
+    dwt: int = Field(ge=8000, le=400000)
+    open_port: str = Field(min_length=2, max_length=80)
+    open_date: str
+    draft_m: float | None = None
+    loa_m: float | None = None
+    broker: str | None = None
+    notes: str | None = None
+
+
+class RowsIn(BaseModel):
+    rows: list[RowIn] = Field(min_length=1, max_length=200)
+
+
+@router.post("/save-rows")
+def save_rows(p: RowsIn, db: Session = Depends(get_db), user: User = Depends(require("ledger:write"))) -> dict:
+    from datetime import date as _date
+
+    rows = []
+    for r in p.rows:
+        try:
+            d = _date.fromisoformat(r.open_date)
+        except ValueError:
+            raise HTTPException(status_code=422, detail=f"Bad date '{r.open_date}' for {r.vessel_name}")
+        rows.append({"vessel_name": r.vessel_name.strip(), "dwt": r.dwt, "open_port": r.open_port.strip(), "open_date": d, "draft_m": r.draft_m, "loa_m": r.loa_m,
+                     "broker": r.broker, "notes": r.notes or "", "imo": None, "beam_m": None, "speed_knots": None})
+    added = tonnage.add_rows(db, rows, user.id)
+    record(db, user, "tonnage_upload", f"pasted text: {added} ships added")
+    return {"added": added}
+
+
+@router.get("/template.csv")
+def template() -> "Response":
+    from fastapi.responses import PlainTextResponse
+
+    body = "vessel_name,imo,dwt,loa_m,beam_m,draft_m,open_port,open_date,speed_knots,broker,notes\nMV Example,,82000,229,32.3,14.2,Hay Point,2026-10-01,12.5,Your broker,Example row\n"
+    return PlainTextResponse(body, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=open_tonnage_template.csv"})

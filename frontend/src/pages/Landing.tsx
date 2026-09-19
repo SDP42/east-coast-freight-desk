@@ -1,4 +1,3 @@
-import { lazy, Suspense, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -9,22 +8,23 @@ import OceanBackdrop from "../components/OceanBackdrop";
 import TickerTape from "../components/TickerTape";
 import LiveChart from "../components/LiveChart";
 import SpotlightCard from "../components/SpotlightCard";
-import AnimatedCounter from "../components/AnimatedCounter";
 import Magnet from "../components/Magnet";
 import Marquee from "../components/Marquee";
-import Loading from "../components/Loading";
-import SupplyGlobe from "../components/SupplyGlobe";
+import MapExplorer from "../components/MapExplorer";
 import ParticleTextRaw from "../components/rb/ParticleText";
 import BorderGlowRaw from "../components/rb/BorderGlow";
 import CarouselRaw from "../components/rb/Carousel";
 import { Ripple } from "../components/rb/Ripple";
-import { HALDIA_PHASES } from "../lib/haldiaPhases";
+import Aurora from "../components/rb/Aurora";
+import ShinyText from "../components/rb/ShinyText";
+import BlurText from "../components/rb/BlurText";
+import GradientText from "../components/rb/GradientText";
+import CountUp from "../components/rb/CountUp";
 import { useAuth } from "../lib/auth";
 
 const ParticleText = ParticleTextRaw as unknown as React.ComponentType<Record<string, unknown>>;
 const BorderGlow = BorderGlowRaw as unknown as React.ComponentType<Record<string, unknown> & { children?: React.ReactNode }>;
 const Carousel = CarouselRaw as unknown as React.ComponentType<Record<string, unknown>>;
-const HaldiaScene = lazy(() => import("../components/HaldiaScene"));
 
 const GLOW = { backgroundColor: "#ffffff", glowColor: "190 85 38", colors: ["#0e7490", "#7c3aed", "#d97706"], borderRadius: 22, glowRadius: 26, fillOpacity: 0.28, edgeSensitivity: 26 };
 
@@ -58,8 +58,6 @@ const SCENES = [
 
 export default function Landing() {
   const { user } = useAuth();
-  const [phase, setPhase] = useState(0);
-  const current = HALDIA_PHASES[phase] ?? HALDIA_PHASES[0];
   const primary = "flex items-center gap-2 rounded-full bg-strong px-7 py-3.5 text-sm font-semibold text-on-accent shadow-xl shadow-slate-900/15 transition hover:bg-cyan";
   const stats = [
     { v: 87, s: "%", l: "of SAIL's clean coking coal is imported", d: "16.92 of 19.37 MT, FY24 annual report" },
@@ -81,7 +79,7 @@ export default function Landing() {
             <span className="text-sm font-semibold text-strong">East Coast Freight Desk</span>
           </Link>
           <nav className="hidden items-center gap-7 text-sm text-muted md:flex">
-            <a href="#haldia" className="hover:text-strong">Haldia</a>
+            <a href="#map" className="hover:text-strong">Map</a>
             <a href="#decide" className="hover:text-strong">Decide fast</a>
             <a href="#capabilities" className="hover:text-strong">Capabilities</a>
             <a href="#roles" className="hover:text-strong">Roles</a>
@@ -101,9 +99,12 @@ export default function Landing() {
 
       {/* Hero */}
       <section className="relative mx-auto max-w-6xl px-6 pb-6 pt-10 text-center">
+        <div className="pointer-events-none absolute inset-x-0 -top-16 h-[36rem] opacity-80 [mask-image:linear-gradient(to_bottom,black_30%,transparent)]" aria-hidden>
+          <Aurora colorStops={["#67e8f9", "#c4b5fd", "#fcd34d"]} amplitude={0.9} blend={0.65} speed={0.6} lightMode />
+        </div>
         <Ripple baseSize={260} circles={5} className="[mask-image:radial-gradient(ellipse_at_50%_35%,black,transparent_70%)]" />
         <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative mx-auto inline-flex items-center gap-2 rounded-full border border-border-soft bg-white/80 px-3.5 py-1.5 text-xs font-medium text-cyan shadow-sm backdrop-blur">
-          <Ship className="h-3.5 w-3.5" /> Smart India Hackathon 2026 · Coal chartering for India's East Coast
+          <Ship className="h-3.5 w-3.5" /> <ShinyText text="Smart India Hackathon 2026 · Coal chartering for India's East Coast" color="#0e7490" shineColor="#38bdf8" speed={3} />
         </motion.p>
         <div className="relative mx-auto mt-2 h-[13rem] max-w-4xl sm:h-[16rem]">
           <ParticleText
@@ -111,9 +112,7 @@ export default function Landing() {
             pointerRepel={46} repelRadius={130} idleDrift={0.8} trigger="hover" fontSize="clamp(2.6rem, 8.4vw, 6.4rem)" fontWeight={800} glow={false}
           />
         </div>
-        <motion.h2 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="relative -mt-4 bg-gradient-to-r from-cyan via-violet-600 to-amber bg-clip-text text-2xl font-bold text-transparent sm:text-4xl">
-          Every fixture counts.
-        </motion.h2>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="relative -mt-4"><GradientText colors={["#0e7490", "#7c3aed", "#d97706", "#0e7490"]} animationSpeed={6} className="text-2xl font-bold sm:text-4xl">Every fixture counts.</GradientText></motion.div>
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="relative mx-auto mt-5 max-w-2xl text-base leading-relaxed text-body">
           A coking-coal ship bound for SAIL is lightened at Sagar, sails six hours up the Hooghly and passes a tide-timed lock. This desk forecasts the market, checks what each port can take,
           and answers the last-minute call: <b className="text-strong">what if freight jumps, the port stalls, or we need coal in two weeks?</b>
@@ -127,32 +126,20 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Haldia scene */}
-      <section id="haldia" className="mx-auto max-w-6xl px-6 pb-14 pt-6">
-        <div className="relative overflow-hidden rounded-[2rem] border border-border-soft bg-gradient-to-b from-sky-50 to-white shadow-[0_40px_100px_-40px_rgba(11,37,69,0.45)]">
-          <Suspense fallback={<div className="flex h-[32rem] items-center justify-center"><Loading label="Loading Haldia" pattern="spiral" /></div>}>
-            <HaldiaScene className="h-[26rem] sm:h-[38rem]" onPhase={setPhase} />
-          </Suspense>
-          <div className="pointer-events-none absolute left-4 top-4 rounded-xl border border-border-soft bg-white/90 px-3 py-2 backdrop-blur">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-cyan">Haldia Dock Complex</p>
-            <p className="text-xs text-body">Syama Prasad Mookerjee Port, Kolkata</p>
-          </div>
-          <div className="absolute inset-x-3 bottom-3 rounded-2xl border border-border-soft bg-white/92 p-3 shadow-lg backdrop-blur sm:inset-x-auto sm:bottom-4 sm:left-4 sm:w-[26rem]">
-            <div className="flex gap-1.5">
-              {HALDIA_PHASES.map((p) => <div key={p.index} className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${p.index === phase ? "bg-cyan" : p.index < phase ? "bg-cyan/40" : "bg-border-soft"}`} />)}
-            </div>
-            <p className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-cyan">Step {phase + 1} of {HALDIA_PHASES.length}</p>
-            <p className="text-sm font-semibold text-strong">{current.title}</p>
-            <p className="mt-0.5 text-xs leading-relaxed text-body">{current.text}</p>
-          </div>
-          <p className="pointer-events-none absolute bottom-2 right-4 hidden text-[10px] text-muted sm:block">Schematic, not to scale. Port dimensions from SMP Kolkata; ship motion is illustrative.</p>
+      {/* Where the coal comes from: globe, flat map, regions and ports */}
+      <section id="map" className="mx-auto max-w-6xl px-6 pb-14 pt-6">
+        <div className="mb-5 text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-cyan">Where the coal comes from</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-strong">Five origins, seven ports, one desk.</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-body">More than half of India's coking coal comes from Australia; Mozambique, the US and Russia fill the rest, and the mix is shifting. Every lane has its own distance, weather and canal risk, and each end has its own draft limit. Switch views to explore.</p>
         </div>
+        <MapExplorer />
 
         <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {stats.map((c) => (
             <BorderGlow key={c.l} {...GLOW}>
               <div className="p-5">
-                <p className="text-3xl font-bold text-strong"><AnimatedCounter value={c.v} suffix={c.s} decimals={0} /></p>
+                <p className="text-3xl font-bold text-strong"><CountUp to={c.v} duration={1.6} separator="," />{c.s}</p>
                 <p className="mt-1 text-sm font-medium text-body">{c.l}</p>
                 <p className="text-[11px] text-muted">{c.d}</p>
               </div>
@@ -165,7 +152,7 @@ export default function Landing() {
       {/* Decide fast */}
       <section id="decide" className="mx-auto max-w-6xl px-6 pb-16">
         <p className="text-xs font-semibold uppercase tracking-widest text-cyan">When the call comes in at 6 pm</p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-bold text-strong">Built for the urgent decision, not just the quarterly report.</h2>
+        <BlurText text="Built for the urgent decision, not just the quarterly report." delay={70} animateBy="words" direction="top" className="mt-2 max-w-2xl text-3xl font-bold text-strong" />
         <div className="mt-8 grid gap-5 lg:grid-cols-2">
           <BorderGlow {...GLOW} glowColor="24 90 45" colors={["#d97706", "#dc2626", "#7c3aed"]}>
             <div className="grid gap-5 p-6 sm:grid-cols-5">
@@ -201,23 +188,6 @@ export default function Landing() {
               </div>
             </div>
           </BorderGlow>
-        </div>
-      </section>
-
-      {/* Supply lanes */}
-      <section id="lanes" className="mx-auto max-w-6xl px-6 pb-16">
-        <div className="grid items-center gap-10 lg:grid-cols-2">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-cyan">Where the coal comes from</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-strong">Five origins, one coast, and a ship for every parcel.</h2>
-            <p className="mt-4 text-sm leading-relaxed text-body">More than half of India's coking coal comes from Australia; Mozambique, the US and Russia fill the rest, and the mix is shifting. Every lane has its own distance, weather and canal risk, and each East Coast port takes a different ship. The desk prices each combination and tells you when to rent and which ship to take.</p>
-            <ul className="mt-5 space-y-2 text-sm text-body">
-              <li>• Ships available now at the main loading port, read from a live public feed</li>
-              <li>• Part-laden calls, tide-timed locks and lightering handled per port</li>
-              <li>• One verdict: rent now, wait, or split the parcel</li>
-            </ul>
-          </div>
-          <div className="flex justify-center"><SupplyGlobe size={520} /></div>
         </div>
       </section>
 

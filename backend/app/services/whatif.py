@@ -236,9 +236,14 @@ def urgent_desk(db: Session, port_name: str, cargo_tonnes: float, deadline_days:
             _route(db, origin, port)
         except ValueError:
             continue
+        origin_port = db.query(Port).filter(Port.country == origin, Port.is_destination.is_(False)).first()  # the loading terminal
         for vc in classes:
             for speed in (12.0, 13.0, 14.0):
                 fit = _berth_fit(port, vc_objs[vc], cargo_tonnes)
+                if origin_port is not None and origin_port.max_draft_m is not None:
+                    lf = _berth_fit(origin_port, vc_objs[vc], cargo_tonnes)  # the ship must also fit where it loads
+                    fit = {"fits": fit["fits"] and lf["fits"], "part_laden": fit["part_laden"] or lf["part_laden"],
+                           "note": "; ".join(x for x in (fit["note"], (f"at {origin_port.name}: " + lf["note"]) if lf["note"] else "") if x)}
                 base = landed_cost(db, Levers(origin=origin, port=port_name, cargo_tonnes=cargo_tonnes, vessel_class=vc, speed_knots=speed))
                 slack = deadline_days - base.total_days
                 premium_pct = BASE_URGENCY_PREMIUM_PCT + max(0.0, 3.0 * (10 - slack)) if slack < 10 else BASE_URGENCY_PREMIUM_PCT

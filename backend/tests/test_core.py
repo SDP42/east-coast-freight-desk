@@ -126,3 +126,9 @@ def test_intent_recognises_permission_sensitive_questions():
     assert classify("show my fixtures")[0][0] == "ledger"
     assert classify("what can I access?")[0][0] == "my_access"
     assert classify("how many users have accounts?")[0][0] == "users_admin"
+
+
+def test_demand_estimate_runs_and_uses_the_reported_figures():
+    from app.services import signals
+    d = signals.demand_estimate(0, 33000)
+    assert 0.8 < d["ratio_imported_to_crude"] < 1.0 and d["estimates"] and d["next_quarter"]["parcels"] > 0

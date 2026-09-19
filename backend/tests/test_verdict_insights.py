@@ -70,3 +70,15 @@ def test_current_models_report_results_honestly(db):
 def test_verdict_uses_the_current_freight_signal(db):
     names = [s["signal"] for s in verdict.build(db, "Paradip", 60000, 30)["signals"]]
     assert "Dry-bulk freight momentum" in names
+
+
+def test_loading_port_limits_are_published_and_used(db):
+    from app.models import Port
+    origins = {p.country: p for p in db.query(Port).filter(Port.is_destination.is_(False)).all()}
+    assert set(origins) >= {"Australia", "United States", "Mozambique", "Russia", "Indonesia"}
+    assert all(p.max_draft_m is not None and p.source for p in origins.values())
+    from app.services import whatif
+    r = whatif.urgent_desk(db, "Paradip", 120000, 45)
+    by = {(o["origin"], o["vessel_class"]): o for o in r["options"]}
+    assert by[("Indonesia", "Capesize")]["fits_berth"] is False  # Balikpapan cannot load a Capesize
+    assert by[("Australia", "Capesize")]["fits_berth"] is True   # Hay Point can

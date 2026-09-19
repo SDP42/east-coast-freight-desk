@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CornerDownLeft, MessageSquareText, Search } from "lucide-react";
 import { NAV_GROUPS } from "../lib/nav";
+import { useFeatures } from "../lib/features";
 import { routeAllowed } from "../lib/personas";
 import { useAuth } from "../lib/auth";
 
 /** Cmd/Ctrl+K: jump to any page you may open, or send what you typed to the assistant. */
 export default function CommandPalette() {
+  const features = useFeatures();
   const { can } = useAuth();
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
@@ -25,10 +27,10 @@ export default function CommandPalette() {
   useEffect(() => { if (open) setTimeout(() => input.current?.focus(), 30); }, [open]);
 
   const items = useMemo(() => {
-    const all = NAV_GROUPS.flatMap((g) => g.links.filter((l) => routeAllowed(l.to, can)).map((l) => ({ ...l, group: g.title })));
+    const all = NAV_GROUPS.flatMap((g) => g.links.filter((l) => routeAllowed(l.to, can) && (l.key !== "live" || features.simulated)).map((l) => ({ ...l, group: g.title })));
     const t = q.trim().toLowerCase();
     return t ? all.filter((l) => (l.label + " " + (l.hint ?? "") + " " + l.group).toLowerCase().includes(t)) : all;
-  }, [q, can]);
+  }, [q, can, features.simulated]);
   const askRow = q.trim().length > 2 && can("assistant:use");
   const total = items.length + (askRow ? 1 : 0);
 

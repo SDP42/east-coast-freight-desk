@@ -1,5 +1,5 @@
 {
- "trained_at": "2026-09-19T15:46:38",
+ "trained_at": "2026-09-19T16:44:49",
  "data_through": "2026-08-01",
  "months_used": 344,
  "forecast_gulf_rate": [
@@ -19,10 +19,20 @@
      "mape_pct": 4.79,
      "p_vs_naive": 0.0891
     },
+    "ETS (damped trend)": {
+     "mae_usd_per_t": 2.61,
+     "mape_pct": 5.09,
+     "p_vs_naive": 0.9022
+    },
     "Ridge": {
      "mae_usd_per_t": 2.33,
      "mape_pct": 4.5,
      "p_vs_naive": 0.0159
+    },
+    "ExtraTrees": {
+     "mae_usd_per_t": 2.45,
+     "mape_pct": 4.79,
+     "p_vs_naive": 0.1535
     },
     "XGBoost": {
      "mae_usd_per_t": 2.5,
@@ -33,6 +43,11 @@
      "mae_usd_per_t": 2.42,
      "mape_pct": 4.72,
      "p_vs_naive": 0.0415
+    },
+    "Ridge+ARIMA": {
+     "mae_usd_per_t": 2.34,
+     "mape_pct": 4.54,
+     "p_vs_naive": 0.0071
     }
    }
   },
@@ -52,10 +67,20 @@
      "mape_pct": 10.64,
      "p_vs_naive": 0.8481
     },
+    "ETS (damped trend)": {
+     "mae_usd_per_t": 5.93,
+     "mape_pct": 11.94,
+     "p_vs_naive": 0.0008
+    },
     "Ridge": {
      "mae_usd_per_t": 5.13,
      "mape_pct": 10.18,
      "p_vs_naive": 0.3281
+    },
+    "ExtraTrees": {
+     "mae_usd_per_t": 5.32,
+     "mape_pct": 10.55,
+     "p_vs_naive": 0.9856
     },
     "XGBoost": {
      "mae_usd_per_t": 5.49,
@@ -66,6 +91,11 @@
      "mae_usd_per_t": 5.2,
      "mape_pct": 10.41,
      "p_vs_naive": 0.5859
+    },
+    "Ridge+ARIMA": {
+     "mae_usd_per_t": 5.09,
+     "mape_pct": 10.2,
+     "p_vs_naive": 0.1767
     }
    }
   }

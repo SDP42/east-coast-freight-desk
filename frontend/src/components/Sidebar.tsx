@@ -4,9 +4,11 @@ import { api } from "../lib/api";
 import { Anchor, LogOut, UserCircle } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { NAV_GROUPS as groups } from "../lib/nav";
+import { useFeatures } from "../lib/features";
 import { PERSONA_LABEL, personaView, routeAllowed } from "../lib/personas";
 
 export default function Sidebar() {
+  const features = useFeatures();
   const { user, logout, can } = useAuth();
   const view = personaView(user?.persona ?? user?.role);
   const focus = new Set(
@@ -35,7 +37,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
-        {groups.map((g) => ({ ...g, links: g.links.filter((l) => routeAllowed(l.to, can)) })).filter((g) => g.links.length > 0).map((g) => (
+        {groups.map((g) => ({ ...g, links: g.links.filter((l) => routeAllowed(l.to, can) && (l.key !== "live" || features.simulated)) })).filter((g) => g.links.length > 0).map((g) => (
           <div key={g.title}>
             <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted/80">{g.title}</p>
             <div className="flex flex-col gap-0.5">

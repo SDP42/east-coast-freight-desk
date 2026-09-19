@@ -14,12 +14,15 @@ About 200 monthly forecasts, Jan 2010 to Jul 2026. Wilcoxon signed-rank test on 
 |---|---|---|---|---|
 | No change (naive) | 2.58 | | 5.27 | |
 | ARIMA(1,1,1) | 2.45 | 0.089 | 5.27 | 0.848 |
-| Ridge on lags, coal, oil, rupee | **2.33** | **0.016** | 5.13 | 0.328 |
+| ETS (damped trend) | 2.61 | 0.902 | 5.93 | **0.0008 (worse)** |
+| Ridge on lags, coal, oil, rupee | **2.33** | 0.016 | 5.13 | 0.328 |
+| ExtraTrees | 2.45 | 0.154 | 5.32 | 0.986 |
 | XGBoost | 2.50 | 0.116 | 5.49 | 0.936 |
 | ARIMA + XGBoost | 2.42 | 0.042 | 5.20 | 0.586 |
+| Ridge + ARIMA | 2.34 | **0.0071** | 5.09 | 0.177 |
 | GRU neural network (3 seeds, retrained every 24 months) | 2.60 | 0.383 | not run | |
 
-Reading it honestly: at one month, Ridge and the ARIMA + XGBoost blend beat "no change" by 6% to 10%, but four models were compared, so p = 0.016 is about 0.06 after a Bonferroni correction, and 0.042 does not survive it. At three months nothing beats no change. The neural network does not help: about 300 monthly points is too few. Best guidance: treat the direction of the forecast with caution and use the bands.
+Reading it honestly: seven models were compared against "no change", so p-values need a correction (Bonferroni: multiply by 7). At one month only the Ridge + ARIMA blend (0.0071 x 7 = 0.05) is on the edge of significance; Ridge alone (0.016 x 7 = 0.11) is not. At three months nothing beats no change, and the damped-trend smoother is significantly worse. The neural network does not help: about 300 monthly points is too few. Guidance: treat the direction of the forecast with caution and use the bands.
 
 Live ensemble on the Forecast page (ARIMA + XGBoost + SHAP, 5 walk-forward splits, 3-month horizon): ARIMA MAE 4.62, XGBoost 4.03, blend 4.25 (blend vs ARIMA p = 0.053). SHAP shows last month's rate and the rupee as the main drivers. (SHAP uses XGBoost's own exact tree-SHAP if the shap library cannot read the installed XGBoost.)
 

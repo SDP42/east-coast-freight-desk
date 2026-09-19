@@ -31,7 +31,14 @@ export default function Explorer() {
   }, [q]);
 
   const meta = series.find((s) => s.index_name === idx);
-  const csvUrl = `${api.defaults.baseURL}/data/export.csv?index_name=${idx}${start ? `&start=${start}` : ""}${end ? `&end=${end}` : ""}`;
+  async function downloadCsv() {
+    // The export needs the sign-in token, so fetch it with the API client and save the file (a plain link would be refused).
+    const r = await api.get("/data/export.csv", { params: { index_name: idx, ...(start ? { start } : {}), ...(end ? { end } : {}) }, responseType: "blob" });
+    const url = URL.createObjectURL(r.data as Blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${idx}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  }
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader title="Data explorer" subtitle="Every series the models use. Filter, search and export." />
@@ -73,7 +80,7 @@ export default function Explorer() {
                 <Stat label="Min" value={res.summary ? res.summary.min.toLocaleString(undefined, { maximumFractionDigits: 2 }) : "n/a"} />
                 <Stat label="Mean" value={res.summary ? res.summary.mean.toLocaleString(undefined, { maximumFractionDigits: 2 }) : "n/a"} />
                 <Stat label="Max" value={res.summary ? res.summary.max.toLocaleString(undefined, { maximumFractionDigits: 2 }) : "n/a"} />
-                <div className="flex items-end"><a href={csvUrl} className={btnCls + " flex w-full items-center justify-center gap-2"}><Download className="h-4 w-4" /> CSV</a></div>
+                <div className="flex items-end"><button type="button" onClick={downloadCsv} className={btnCls + " flex w-full items-center justify-center gap-2"}><Download className="h-4 w-4" /> CSV</button></div>
               </div>
               {res.rows.length > 1 && <div className="h-16"><Sparkline width={px(640)} height={px(64)} values={[...res.rows].reverse().map((r) => r.value)} up={res.rows[0].value >= res.rows[res.rows.length - 1].value} /></div>}
               <div className="max-h-96 overflow-y-auto rounded-xl border border-border-soft">

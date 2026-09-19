@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 from app.db.session import SessionLocal  # noqa: E402
 from app.models import Port  # noqa: E402
 
-FILE = Path(__file__).resolve().parents[1] / "data" / "raw" / "candidates" / "shipmin_avg_turnround_time_hours_major_ports.csv"
+FILE = Path(__file__).resolve().parents[1] / "data" / "seed" / "ministry_of_ports_avg_turnaround_hours.csv"  # small government table, kept in the repo
 PORT_MAP = {"Paradip Port Authority": "Paradip", "Visakhapatnam Port Authority": "Visakhapatnam", "SMP Haldia DC": "Haldia"}
 SOURCE = "Ministry of Ports, Shipping & Waterways, Update on the Indian Ports Sector (to 31.03.2025), FY2024-25P avg turn-round time"
 

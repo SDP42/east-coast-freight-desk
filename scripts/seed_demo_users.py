@@ -4,6 +4,7 @@ Demo accounts are flagged `is_demo`, get random unusable passwords, and sign in 
 login (ALLOW_DEMO_LOGIN). Re-running is safe: existing demo accounts are updated, not duplicated."""
 
 import json
+import os
 import secrets
 import sys
 from datetime import date
@@ -15,6 +16,9 @@ from app.core.security import hash_password  # noqa: E402
 from app.db.session import SessionLocal  # noqa: E402
 from app.models import LedgerEntry, User  # noqa: E402
 from app.services import ledger  # noqa: E402
+
+# Optional shared password so the demo accounts can also sign in by typing it. Unset: one-click demo sign-in only.
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD")
 
 DEMO = [
     ("admin@demo.example.com", "Asha Verma", "admin", None, "finance_head"),
@@ -41,8 +45,10 @@ def main() -> None:
     for email, name, role, ports, persona in DEMO:
         u = db.query(User).filter(User.email == email).first()
         if u is None:
-            u = User(email=email, hashed_password=hash_password(secrets.token_urlsafe(24)))
+            u = User(email=email, hashed_password=hash_password(DEMO_PASSWORD or secrets.token_urlsafe(24)))
             db.add(u)
+        elif DEMO_PASSWORD:
+            u.hashed_password = hash_password(DEMO_PASSWORD)
         u.full_name, u.role, u.persona, u.is_demo, u.is_active = name, role, persona, True, True
         u.assigned_ports = json.dumps(ports) if ports else None
         db.flush()

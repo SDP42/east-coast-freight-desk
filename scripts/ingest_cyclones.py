@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
 from app.db.session import SessionLocal  # noqa: E402
 from app.models import CycloneExposure, Port  # noqa: E402
+import _download  # noqa: E402
 
 FILE = Path(__file__).resolve().parents[1] / "data" / "raw" / "candidates" / "ibtracs_NI.csv"
 RADIUS_KM = 400
@@ -25,8 +26,8 @@ def haversine(lat1, lon1, lat2, lon2):
 
 
 def main() -> None:
-    if not FILE.exists():
-        print("IBTrACS file not found - skipping.")
+    if not _download.ensure(FILE, "https://www.ncei.noaa.gov/data/international-best-track-archive-for-climate-stewardship-ibtracs/v04r01/access/csv/ibtracs.NI.list.v04r01.csv", "NOAA IBTrACS North Indian Ocean tracks (28 MB)"):
+        print("IBTrACS file not available - skipping.")
         return
     df = pd.read_csv(FILE, skiprows=[1], usecols=["SID", "ISO_TIME", "LAT", "LON", "WMO_WIND", "USA_WIND"], low_memory=False)
     df["time"] = pd.to_datetime(df["ISO_TIME"], errors="coerce")

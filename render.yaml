@@ -21,6 +21,10 @@ services:
       - key: CORS_ORIGINS
         sync: false
       - key: PREWARM
-        value: "true"
+        value: "false"   # the free plan has 512 MB; warming the slowest models at start-up can exhaust it
       - key: ALLOW_DEMO_LOGIN
-        value: "true"
+        value: "true"    # one-click demo accounts for reviewers; set to false for real users
+      - key: SHOW_SIMULATED_FEEDS
+        value: "false"
+      - key: LIVE_SHIP_FEED
+        value: "false"

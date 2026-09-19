@@ -52,7 +52,7 @@ export default function Tonnage() {
             <input ref={file} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
             <button onClick={() => file.current?.click()} disabled={busy} className={`${btnCls} flex items-center gap-2`}><FileUp className="h-4 w-4" />Upload broker list</button>
             <button onClick={sample} disabled={busy} className="rounded-lg border border-border-soft px-4 py-2 text-sm text-body hover:bg-panel-light">Load a sample list</button>
-            <a href="/api/v1/tonnage/template.csv" className="flex items-center gap-1.5 rounded-lg border border-border-soft px-3 py-2 text-xs text-body hover:bg-panel-light"><Download className="h-3.5 w-3.5" />CSV template</a>
+            <a href={`${import.meta.env.VITE_API_BASE_URL ?? "/api/v1"}/tonnage/template.csv`} className="flex items-center gap-1.5 rounded-lg border border-border-soft px-3 py-2 text-xs text-body hover:bg-panel-light"><Download className="h-3.5 w-3.5" />CSV template</a>
             <p className="text-xs text-muted">Columns: vessel_name, dwt, open_port, open_date (required); imo, loa_m, beam_m, draft_m, speed_knots, broker, notes.</p>
           </div></SpotlightCard>
         )}

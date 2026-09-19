@@ -20,6 +20,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
+import _download  # noqa: E402
 from app.db.session import SessionLocal  # noqa: E402
 from app.models import FreightRate  # noqa: E402
 
@@ -35,6 +36,9 @@ FILES = {
 }
 
 
+FRED_ID = {"DXY": "DTWEXBGS", "INR": "DEXINUS", "AUD": "DEXUSAL", "ZAR": "DEXSFUS"}
+
+
 def main() -> None:
     db = SessionLocal()
     total = 0
@@ -42,8 +46,8 @@ def main() -> None:
         if db.query(FreightRate).filter(FreightRate.index_name == series_name).count():
             print(f"{series_name}: already ingested — skipping.")
             continue
-        if not path.exists():
-            print(f"{series_name}: {path.name} not found — skipping.")
+        if not _download.fred(FRED_ID[series_name], path):
+            print(f"{series_name}: {path.name} not available — skipping.")
             continue
 
         df = pd.read_csv(path)

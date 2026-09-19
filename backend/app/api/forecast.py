@@ -24,7 +24,7 @@ from app.services.freight_data import available_index_names, load_series
 
 router = APIRouter(prefix="/forecast", tags=["forecast"], dependencies=[Depends(require("market:read"))])
 
-EXOGENOUS_CANDIDATES = ["SP500", "DXY", "COAL_AUS", "COAL_ZA"]
+EXOGENOUS_CANDIDATES = ["DXY", "BRENT", "COAL_PPI", "DEEPSEA_PPI", "INR"]  # all US-government or Federal Reserve series
 
 
 @router.get("/indices", response_model=list[str])
@@ -35,7 +35,7 @@ def list_indices(db: Session = Depends(get_db)) -> list[str]:
 @router.get("/{index_name}", response_model=ForecastResponse)
 def get_forecast(
     index_name: str,
-    horizon: int = Query(default=7, ge=1, le=90),
+    horizon: int = Query(default=3, ge=1, le=12),
     db: Session = Depends(get_db),
 ) -> ForecastResponse:
     key = f"forecast:{index_name.upper()}:{horizon}:{data_version(db, index_name.upper())}"
@@ -55,7 +55,7 @@ def _compute_forecast(index_name: str, horizon: int, db: Session) -> ForecastRes
         fitted = ARIMA(train, order=best.order).fit()
         return fitted.forecast(steps=h).to_numpy()
 
-    backtest = walk_forward_backtest(series, fit_predict, horizon=min(horizon, 30), n_splits=5)
+    backtest = walk_forward_backtest(series, fit_predict, horizon=min(horizon, 12), n_splits=5)
 
     mean, lower, upper = forecast_with_ci(best, horizon)
     forecast_points = [
@@ -90,7 +90,7 @@ def _compute_forecast(index_name: str, horizon: int, db: Session) -> ForecastRes
 @router.get("/{index_name}/ensemble", response_model=EnsembleForecastResponse)
 def get_ensemble_forecast(
     index_name: str,
-    horizon: int = Query(default=7, ge=1, le=30),
+    horizon: int = Query(default=3, ge=1, le=12),
     db: Session = Depends(get_db),
 ) -> EnsembleForecastResponse:
     names = [index_name.upper(), *EXOGENOUS_CANDIDATES]
@@ -100,9 +100,8 @@ def get_ensemble_forecast(
 
 def _compute_ensemble(index_name: str, horizon: int, db: Session) -> EnsembleForecastResponse:
     """ARIMA + XGBoost ensemble with inverse-RMSE weighting and a Wilcoxon
-    signed-rank significance test — the validated methodology from Baghel
-    (2025, NCI MSc thesis), with S&P 500 / US Dollar Index / coal price
-    exogenous features per Kim, Kim & Choi (2025, PLOS ONE)'s SHAP findings."""
+    signed-rank significance test, with dollar index, oil, coal PPI, deep-sea PPI and rupee as exogenous features.
+    Horizon is in steps of the series: months for the USDA ocean rate."""
     index_name = index_name.upper()
     series = load_series(db, index_name)
     if series.empty:
@@ -130,7 +129,10 @@ def _compute_ensemble(index_name: str, horizon: int, db: Session) -> EnsembleFor
     xgb_forecast_values = forecast_recursive(xgb_final, series, exogenous, horizon)
     hybrid_forecast_values = weights.arima_weight * arima_forecast_values + weights.xgb_weight * xgb_forecast_values
 
-    future_dates = pd.date_range(start=series.index[-1] + pd.Timedelta(days=1), periods=horizon)
+    from app.services.freight_data import step_offset
+
+    off = step_offset(series)
+    future_dates = [series.index[-1] + off * (i + 1) for i in range(horizon)]
 
     hybrid_vs_arima = wilcoxon_significance(report.hybrid_abs_errors, report.arima_abs_errors)
     hybrid_vs_xgb = wilcoxon_significance(report.hybrid_abs_errors, report.xgb_abs_errors)

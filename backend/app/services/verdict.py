@@ -2,7 +2,7 @@
 
 This is decision support built from transparent rules over current data, NOT a trained model, and the weights below are
 judgement, not fitted values. Each signal casts a vote from -1 (wait) to +1 (charter now); the call is the weighted average.
-The freight indices end in July 2019, so no signal claims to know today's freight rate; the walk-away price is the desk's
+No signal claims to know today's exact freight rate (there is no free live index); the walk-away price is the desk's
 cost model, not a market quote.
 """
 
@@ -11,7 +11,7 @@ from datetime import date, timedelta
 from sqlalchemy.orm import Session
 
 from app.models import Port
-from app.services import pulse, signals, supply, whatif
+from app.services import pulse, signals, whatif
 
 NOW_AT, WAIT_AT = 0.25, -0.20
 SOON_DAYS = 7
@@ -49,16 +49,21 @@ def build(db: Session, port_name: str, cargo_tonnes: float, need_by_days: float 
     else:
         votes.append(_vote("Time pressure", 3.0, 1.0, "no safe option by the date", "Nothing safe arrives in time, so acting today is the only way to improve the position."))
 
-    # 2. Ship supply at the loading port (Australia only: it is the feed we have).
-    if ship and ship["origin"] == "Australia":
-        s = supply.newcastle_supply()
-        if s["window_movements"]:
-            v = {"Tonnage thinning": 0.7, "Tonnage building": -0.5}.get(s["signal"], 0.0)
-            votes.append(_vote("Ship supply at Newcastle", 1.5, v, f"{s['open_ships_arriving']} coal ships arriving vs {s['coal_cargoes_loaded']} leaving loaded", s["meaning"]))
-        else:
-            notes.append("The live Newcastle ship feed is off or unreachable, so ship supply was not scored.")
+    # 2. Ship availability from the user's uploaded broker lists.
+    from app.services import tonnage
+
+    avail = tonnage.match(db, port_name, cargo_tonnes, need_by_days)
+    if avail["total_on_lists"]:
+        n = avail["suitable_count"]
+        v = 0.9 if n == 0 else 0.5 if n == 1 else -0.3 if n >= 3 else 0.0
+        votes.append(_vote("Open ships on your lists", 2.0, v, f"{n} of {avail['total_on_lists']} listed ships could carry it by day {need_by_days:g}",
+                           "No listed ship fits: book early or ask brokers for more positions." if n == 0 else "Only one suitable ship is on the lists: it may go quickly." if n == 1 else "Several suitable ships are on the lists, so there is choice." if n >= 3 else "Two suitable ships are on the lists."))
+        if avail["lists_stale"]:
+            notes.append("The uploaded broker lists are more than a week old, so ship availability may have changed.")
+        if avail["any_sample"]:
+            notes.append("Ship availability here uses the illustrative SAMPLE list (invented ships). Upload real broker lists for a real answer.")
     else:
-        notes.append("Ship supply was not scored: the live ship feed covers Newcastle (Australia) only, and the recommended origin is different.")
+        notes.append("No broker open-tonnage list has been uploaded, so ship availability was not scored.")
 
     # 3. Season: is the arrival window riskier if we wait two weeks?
     transit = ship["days"] if ship else 20
@@ -69,23 +74,22 @@ def build(db: Session, port_name: str, cargo_tonnes: float, need_by_days: float 
     votes.append(_vote("Storm season", 1.5, dp * 6, f"storm chance {now_r['probability_storm_in_window']:.0%} now vs {later_r['probability_storm_in_window']:.0%} if fixed in two weeks",
                        "Waiting moves the arrival into a stormier period." if dp > 0.02 else "Waiting moves the arrival into a calmer period." if dp < -0.02 else "Storm risk is about the same either way."))
 
-    # 4-6. Current market context.
+    # 4-6. Current market context (US-government and Federal Reserve series).
     p = pulse.market_pulse(db)
     cards = {c["series"]: c for c in p["cards"]}
     if "OCEAN_GULF_JAPAN" in cards and cards["OCEAN_GULF_JAPAN"]["change_3m_pct"] is not None:
         ch = cards["OCEAN_GULF_JAPAN"]["change_3m_pct"]
-        votes.append(_vote("Dry-bulk freight momentum", 1.0, ch / 15, f"USDA grain ocean rate {ch:+.1f}% over 3 months (to {cards['OCEAN_GULF_JAPAN']['as_of']})",
-                           "Rising dry-bulk rates mean a dearer ship later: rent sooner. It tracks Baltic Supramax and Panamax moves closely (monthly-change correlation about 0.7 in 2012 to 2019), but momentum itself has only a weak record (see the evidence below), so it carries a small weight."))
-    if "COAL_AUS" in cards and cards["COAL_AUS"]["change_3m_pct"] is not None:
-        ch = cards["COAL_AUS"]["change_3m_pct"]
-        votes.append(_vote("Coal price momentum", 1.0, ch / 15, f"Australian coal {ch:+.1f}% over 3 months", "Rising coal prices lift demand for ships; falling prices ease it. A weak, indirect signal."))
+        votes.append(_vote("Dry-bulk freight momentum", 1.5, ch / 15, f"USDA grain ocean rate {ch:+.1f}% over 3 months (to {cards['OCEAN_GULF_JAPAN']['as_of']})",
+                           "Rising dry-bulk rates mean a dearer ship later: rent sooner. Momentum has only a weak record (see the evidence below), so it carries a modest weight."))
+    if "BRENT" in cards and cards["BRENT"]["change_3m_pct"] is not None:
+        ch = cards["BRENT"]["change_3m_pct"]
+        votes.append(_vote("Fuel price momentum", 1.0, ch / 20, f"Brent crude {ch:+.1f}% over 3 months", "Bunker fuel is a large part of freight; a rising oil price pushes rates up."))
+    if "COAL_PPI" in cards and cards["COAL_PPI"]["change_3m_pct"] is not None:
+        ch = cards["COAL_PPI"]["change_3m_pct"]
+        votes.append(_vote("Coal price momentum", 0.5, ch / 15, f"US coal price index {ch:+.1f}% over 3 months", "Rising coal prices lift demand for ships. A weak, indirect signal."))
     if "INR" in cards and cards["INR"]["change_3m_pct"] is not None:
         ch = cards["INR"]["change_3m_pct"]
         votes.append(_vote("Rupee trend", 1.0, ch / 6, f"rupee {ch:+.1f}% per dollar over 3 months", "A weaker rupee makes a dollar freight bill dearer each week you wait."))
-    row = next((r for r in p["ports"] if r["port"] == port_name), None)
-    if row and row["vs_previous_28d_pct"] is not None:
-        ch = row["vs_previous_28d_pct"]
-        votes.append(_vote(f"{port_name} traffic", 1.0, ch / 60, f"dry-bulk calls {ch:+.0f}% vs the previous 4 weeks", "Rising traffic means a longer queue for the berth; book earlier."))
 
     score = sum(v["weight"] * v["vote"] for v in votes) / sum(v["weight"] for v in votes)
     if split is not None:
@@ -102,7 +106,7 @@ def build(db: Session, port_name: str, cargo_tonnes: float, need_by_days: float 
     agree = sum(1 for v in votes if (v["vote"] > 0.05) == (score > 0) and abs(v["vote"]) > 0.05)
     lean = sum(1 for v in votes if abs(v["vote"]) > 0.05)
     confidence = "High" if lean and agree / lean >= 0.75 and abs(score) >= 0.3 else "Medium" if lean and agree / lean >= 0.55 else "Low"
-    notes.append("The Baltic series ends in July 2019. The freight signal here is the USDA grain ocean rate (a proxy that tracked Baltic moves in 2012 to 2019), so treat the timing as guidance, not a rate forecast.")
+    notes.append("There is no free live freight index. The freight signal is the USDA grain ocean rate, a public-domain dry-bulk proxy, so treat the timing as guidance, not a rate forecast.")
 
     if ship:
         cls = f"{ship['vessel_class']} from {ship['origin']} at {ship['speed_knots']:g} knots"
@@ -126,9 +130,9 @@ def build(db: Session, port_name: str, cargo_tonnes: float, need_by_days: float 
     flips = []
     if verdict != "RENT NOW":
         flips.append("Slack under 5 days (the plant date moves earlier or the ship is delayed) turns this into RENT NOW.")
-        flips.append("Newcastle showing more ships leaving than arriving turns it towards RENT NOW.")
+        flips.append("Fewer open ships matching your cargo on the broker lists turns it towards RENT NOW.")
     if verdict != "WAIT AND RECHECK":
-        flips.append("Two weeks of falling traffic at the port and a stronger rupee would turn this towards WAIT.")
+        flips.append("Two weeks of falling freight and oil prices and a stronger rupee would turn this towards WAIT.")
     from app.services import verdict_eval
     try:
         ev = verdict_eval.evidence(db)
@@ -136,6 +140,7 @@ def build(db: Session, port_name: str, cargo_tonnes: float, need_by_days: float 
         ev = None
     return {
         "evidence": ev,
+        "availability": {k: avail[k] for k in ("total_on_lists", "suitable_count", "summary", "lists_stale")},
         "verdict": verdict, "headline": headline, "score": round(score, 2), "confidence": confidence, "act_by": act.isoformat(),
         "port": port_name, "cargo_tonnes": cargo_tonnes, "need_by_days": need_by_days,
         "ship": ship, "walk_away_usd_per_t": desk["walk_away_usd_per_t"], "safe_options": desk["feasible_count"], "options_evaluated": desk["options_evaluated"],

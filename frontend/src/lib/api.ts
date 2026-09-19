@@ -361,7 +361,6 @@ export interface HaldiaSummary {
   };
   recent_vessels: { name: string; loa_m: number | null; draft_m: number | null; cargo: string; tonnage_t: number | null; importer: string; date: string }[];
 }
-export const getHaldiaSummary = () => api.get<HaldiaSummary>("/haldia/summary").then((r) => r.data);
 
 export interface AskAnswer {
   intent: string; confidence: number; alternatives: { intent: string; confidence: number }[]; entities: Record<string, string | number>;

@@ -13,12 +13,10 @@ SCRIPTS = [
     "seed_routes.py",
     "generate_synthetic_vessels.py",
     "seed_disruption_events.py",
-    "ingest_freight_rates.py",
-    "ingest_commodity_prices.py",
     "ingest_macro_indicators.py",
-    "ingest_portwatch.py",
+    "ingest_latest.py",
+    "ingest_usda_ocean.py",
     "ingest_port_turnaround.py",
-    "ingest_haldia_positions.py",
     "ingest_cyclones.py",
 ]
 

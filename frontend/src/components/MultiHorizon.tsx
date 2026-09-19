@@ -8,7 +8,7 @@ import { api } from "../lib/api";
 
 interface Res { index_name: string; last_date: string; last_value: number; horizons: { horizon: number; value: number; change_pct: number; lower: number; upper: number }[]; note: string }
 
-/** 7 / 14 / 30 / 60 / 90-day outlook side by side, with the band widening. */
+/** 1 / 3 / 6 / 12-month outlook side by side, with the band widening. */
 export default function MultiHorizon({ indexName }: { indexName: string }) {
   const [res, setRes] = useState<Res | null>(null);
   useEffect(() => { setRes(null); api.get<Res>(`/forecast-multi/${indexName}`).then((r) => setRes(r.data)).catch(() => setRes(null)); }, [indexName]);
@@ -34,7 +34,7 @@ export default function MultiHorizon({ indexName }: { indexName: string }) {
             <table className="w-full text-left text-sm">
               <thead><tr className="text-xs text-muted"><th className="py-1">Horizon</th><th>Forecast</th><th>Change vs {res.last_date}</th><th>95% band</th><th>Band width</th></tr></thead>
               <tbody>{res.horizons.map((h) => (
-                <tr key={h.horizon} className="border-t border-border-soft"><td className="py-1.5 font-medium text-strong">{h.horizon} days</td><td>{h.value.toLocaleString()}</td><td className={h.change_pct >= 0 ? "text-down" : "text-up"}>{h.change_pct > 0 ? "+" : ""}{h.change_pct}%</td><td>{h.lower.toLocaleString()} to {h.upper.toLocaleString()}</td><td className="text-muted">±{(((h.upper - h.lower) / 2 / res.last_value) * 100).toFixed(0)}%</td></tr>
+                <tr key={h.horizon} className="border-t border-border-soft"><td className="py-1.5 font-medium text-strong">{h.horizon} month{h.horizon > 1 ? "s" : ""}</td><td>{h.value.toLocaleString()}</td><td className={h.change_pct >= 0 ? "text-down" : "text-up"}>{h.change_pct > 0 ? "+" : ""}{h.change_pct}%</td><td>{h.lower.toLocaleString()} to {h.upper.toLocaleString()}</td><td className="text-muted">±{(((h.upper - h.lower) / 2 / res.last_value) * 100).toFixed(0)}%</td></tr>
               ))}</tbody>
             </table>
             <Note>{res.note}</Note>

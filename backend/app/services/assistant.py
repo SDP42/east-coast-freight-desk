@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 from app.core.permissions import PERMISSION_LABELS, ROLES, assigned_ports, has, permissions_of, port_scope, role_of
 from app.ml.intent import Entities, classify, extract_entities
 from app.models import AlertEvent, AlertRule, AuditLog, LedgerEntry, Port, User, VesselClass
-from app.services import haldia as haldia_service
 from app.services import whatif as whatif_service
 from app.services.compatibility import check_compatibility
 from app.services.freight_data import load_series
@@ -22,11 +21,13 @@ from app.services.risk import _congestion_score, compute_route_risk
 
 CONFIDENCE_FLOOR = 0.35
 DEFAULT_ORIGINS = ["Australia", "United States", "Mozambique", "Russia", "Indonesia"]
-INDEX_LABEL = {"BCI": "Capesize (BCI)", "BPI": "Panamax (BPI)", "BSI": "Supramax (BSI)", "BHSI": "Handysize (BHSI)"}
-CLASS_INDEX = {"Capesize": "BCI", "Panamax": "BPI", "Supramax": "BSI", "Handysize": "BHSI"}
+INDEX_LABEL = {"OCEAN_GULF_JAPAN": "the USDA grain ocean rate, US Gulf to Japan", "OCEAN_PNW_JAPAN": "the USDA grain ocean rate, Pacific NW to Japan"}
+CLASS_INDEX: dict[str, str] = {}
+PRIMARY = "OCEAN_GULF_JAPAN"
+HALDIA_FACTS = {"lock_length_m": 330, "lock_width_m": 39, "sandheads_distance_km": 130, "transit_hours_sandheads_to_jetty": 6, "coal_berth_4a_unloaders": 2, "coal_berth_4a_rate_t_per_day": 14000, "cargo_ceiling_t": 35000}
 
 SUGGESTIONS = [
-    "What will Panamax rates do over the next 14 days?",
+    "What will the ocean freight rate do over the next 3 months?",
     "Cheapest origin for 75,000 t to Paradip?",
     "How risky is Australia to Haldia?",
     "Can a Capesize berth at Haldia?",
@@ -79,41 +80,39 @@ def _pct(x: float) -> str:
 
 
 def _market_now(db: Session, e: Entities, a: list[str], user=None) -> Answer:
-    idx = e.index_name or "BPI"
+    idx = e.index_name or PRIMARY
     s = load_series(db, idx)
     if s.empty:
         return Answer("market_now", 0, [], {}, f"I have no data for {idx}.")
     last, d = float(s.iloc[-1]), s.index[-1].date()
-    wk = (last / float(s.iloc[-6]) - 1) * 100 if len(s) > 6 else 0.0
-    mo = (last / float(s.iloc[-22]) - 1) * 100 if len(s) > 22 else 0.0
+    m1 = (last / float(s.iloc[-2]) - 1) * 100 if len(s) > 2 else 0.0
+    m3 = (last / float(s.iloc[-4]) - 1) * 100 if len(s) > 4 else 0.0
     pctile = float((s < last).mean() * 100)
-    cv = float(s.iloc[-90:].std() / s.iloc[-90:].mean() * 100)
+    cv = float(s.iloc[-12:].std() / s.iloc[-12:].mean() * 100)
     regime = "cheap by its own history" if pctile < 30 else "expensive by its own history" if pctile > 70 else "mid-range for its history"
-    text = (f"{INDEX_LABEL.get(idx, idx)} last printed {last:,.0f} on {d}. That is {_pct(wk)} over a week and {_pct(mo)} over a month, "
-            f"and {regime} (higher than {pctile:.0f}% of {len(s):,} daily readings). The last 90 days swung {cv:.0f}% around their mean.")
-    if str(d) < "2026-01-01":
-        text += f" Note: our {idx} series stops on {d}, so this is not today's print."
+    label = INDEX_LABEL.get(idx, idx)
+    text = (f"{label[0].upper() + label[1:]} was ${last:,.2f} a tonne in {d:%B %Y}. That is {_pct(m1)} over a month and {_pct(m3)} over three months, "
+            f"and {regime} (higher than {pctile:.0f}% of {len(s):,} monthly readings). The last 12 months swung {cv:.0f}% around their mean. It is a public-domain dry-bulk proxy (US grain routes), not a coal rate.")
     return Answer("market_now", 0, [], {}, text,
-                  [("Last", f"{last:,.0f}"), ("1 week", _pct(wk)), ("1 month", _pct(mo)), ("History percentile", f"{pctile:.0f}%")],
+                  [("Latest", f"${last:,.2f}/t"), ("1 month", _pct(m1)), ("3 months", _pct(m3)), ("History percentile", f"{pctile:.0f}%")],
                   [("Open the live board", "/app/markets")])
 
 
 def _forecast(db: Session, e: Entities, a: list[str], user=None) -> Answer:
-    idx = e.index_name or "BPI"
-    h = e.horizon_days or 14
+    idx = e.index_name or PRIMARY
+    h = max(1, round(e.horizon_days / 30)) if e.horizon_days else 3
     if not e.horizon_days:
-        a.append("No horizon given, so I used 14 days.")
+        a.append("No horizon given, so I used 3 months.")
     f = quick_forecast(db, idx, h)
     if f is None:
         return Answer("forecast", 0, [], {}, f"Not enough {idx} history to forecast.")
     span = (f.upper - f.lower) / 2 / f.last_value * 100
     direction = "drift up" if f.change_pct > 1 else "drift down" if f.change_pct < -1 else "stay roughly flat"
-    text = (f"ARIMA(2,1,2) has {INDEX_LABEL.get(idx, idx)} going from {f.last_value:,.0f} ({f.last_date}) to about {f.forecast_end:,.0f} in {h} days, "
-            f"a move of {_pct(f.change_pct)}: it should {direction}. The 95% band runs {f.lower:,.0f} to {f.upper:,.0f} (about ±{span:.0f}%), so treat direction with caution")
-    text += "."
-    text += _stale(idx, f.last_date)
+    text = (f"ARIMA(2,1,2) has {INDEX_LABEL.get(idx, idx)} going from ${f.last_value:,.2f} ({f.last_date}) to about ${f.forecast_end:,.2f} in {h} month(s), "
+            f"a move of {_pct(f.change_pct)}: it should {direction}. The 95% band runs ${f.lower:,.2f} to ${f.upper:,.2f} (about ±{span:.0f}%). "
+            "Tests show no model reliably beats assuming no change, so treat direction with caution.")
     return Answer("forecast", 0, [], {}, text,
-                  [("Now", f"{f.last_value:,.0f}"), (f"In {h}d", f"{f.forecast_end:,.0f}"), ("Change", _pct(f.change_pct)), ("95% band", f"{f.lower:,.0f}–{f.upper:,.0f}")],
+                  [("Now", f"${f.last_value:,.2f}"), (f"In {h} mo", f"${f.forecast_end:,.2f}"), ("Change", _pct(f.change_pct)), ("95% band", f"${f.lower:,.0f}–${f.upper:,.0f}")],
                   [("Full forecast with backtest", "/app/forecast")], a)
 
 
@@ -124,7 +123,7 @@ def _recommend(db: Session, e: Entities, a: list[str], user=None) -> Answer:
         a.append("No cargo size given, so I used 75,000 t.")
     origins = [e.origin] if False else DEFAULT_ORIGINS
     cls = db.query(VesselClass).all()
-    sig = MarketSignal("BPI", None, None)
+    sig = MarketSignal("OCEAN_GULF_JAPAN", None, None)
     res = compare_origins(db, port, cargo, origins, market_signal=sig)
     ranked = [r for r in res if r.estimated_freight_usd_per_tonne is not None]
     if not ranked:
@@ -153,11 +152,7 @@ def _port_fit(db: Session, e: Entities, a: list[str], user=None) -> Answer:
         text += f"Do not fit as designed: {', '.join(no)}."
     figs = [("Max draft", f"{port.max_draft_m} m" if port.max_draft_m else "tide-dependent"), ("Max LOA", f"{port.max_loa_m} m"), ("Accepted", ", ".join(ok) or "none")]
     if port.name == "Haldia":
-        h = haldia_service.summary(db)["observed"]
-        text += (f" In practice, coal vessels observed at Haldia carried a median {h['median_cargo_t']:,.0f} t on {h['median_draft_m']} m draft "
-                 f"({h['vessels']} vessels, {h['period_start']} to {h['period_end']}), because larger ships are lightened before the river.")
-    if e.index_name and e.index_name in CLASS_INDEX.values():
-        pass
+        text += f" In practice a vessel carries about {HALDIA_FACTS['cargo_ceiling_t']:,} t up the river (an assumed planning ceiling), because larger ships are lightened at Sagar first."
     return Answer("port_fit", 0, [], {}, text, figs, [("Open the berth-fit checker", "/app/ports")], a)
 
 
@@ -196,34 +191,30 @@ def _congestion(db: Session, e: Entities, a: list[str], user=None) -> Answer:
     if len(scored) == 1:
         return Answer("congestion", 0, [], {}, f"{p0.name} congestion scores {s0:.1f}/10. {d0}.", [("Score", f"{s0:.1f}/10")], [("Port signals", "/app/signals")], a)
     text = (f"{p0.name} is the most congested at {s0:.1f}/10 ({d0}). {p1.name} is the calmest at {s1:.1f}/10. "
-            "Scores blend official average turnaround with recent IMF PortWatch dry-bulk call counts; ports without official turnaround data get a default.")
+            "Scores use the Ministry of Ports' average turnaround; ports without official turnaround data get a default.")
     return Answer("congestion", 0, [], {}, text, [(p.name, f"{sc[0]:.1f}") for sc, p in scored[:5]], [("Open the port map", "/app/map")], a)
 
 
 def _haldia(db: Session, e: Entities, a: list[str], user=None) -> Answer:
-    d = haldia_service.summary(db)
-    f, o = d["facts"], d["observed"]
-    text = (f"Haldia is an impounded dock: ships pass a {f['lock_length_m']} m by {f['lock_width_m']} m lock. It sits about {f['sandheads_distance_km']} km from Sandheads and "
-            f"{f['sagar_pilotage_upstream_km']} km above the Sagar pilot station, roughly {f['transit_hours_sandheads_to_jetty']} hours' passage. Big ships are lightened by floating cranes at Sagar or Sandheads. "
-            f"Berth 4A has {f['coal_berth_4a_unloaders']} grab unloaders at about {f['coal_berth_4a_rate_t_per_day']:,} t/day. In the port trust's daily reports we found {o['vessels']} coal vessels "
-            f"({o['by_importer'].get('SAIL', 0)} for SAIL) with a median cargo of {o['median_cargo_t']:,.0f} t and expected draft {o['min_draft_m']}–{o['max_draft_m']} m.")
-    return Answer("haldia", 0, [], {}, text,
-                  [("Vessels seen", str(o["vessels"])), ("Median cargo", f"{o['median_cargo_t']:,.0f} t"), ("Median draft", f"{o['median_draft_m']} m")],
-                  [("Back to the Haldia scene", "/")], a)
+    f = HALDIA_FACTS
+    text = (f"Haldia is an impounded dock: ships pass a {f['lock_length_m']} m by {f['lock_width_m']} m lock. It sits about {f['sandheads_distance_km']} km from Sandheads, "
+            f"roughly {f['transit_hours_sandheads_to_jetty']} hours' passage. Big ships are lightened by floating cranes at Sagar or Sandheads, so a vessel reaches the dock with about {f['cargo_ceiling_t']:,} t (an assumed ceiling). "
+            f"Berth 4A has {f['coal_berth_4a_unloaders']} grab unloaders at about {f['coal_berth_4a_rate_t_per_day']:,} t/day.")
+    return Answer("haldia", 0, [], {}, text, [("Lock", f"{f['lock_length_m']} x {f['lock_width_m']} m"), ("Cargo ceiling", f"{f['cargo_ceiling_t']:,} t"), ("Berth 4A", f"{f['coal_berth_4a_rate_t_per_day']:,} t/day")], [("Back to the Haldia scene", "/")], a)
 
 
 def _coa(db: Session, e: Entities, a: list[str], user=None) -> Answer:
-    idx = e.index_name or "BPI"
+    idx = e.index_name or PRIMARY
     s = load_series(db, idx)
-    f = quick_forecast(db, idx, 30)
-    cv = float(s.iloc[-90:].std() / s.iloc[-90:].mean() * 100) if len(s) > 90 else 0
+    f = quick_forecast(db, idx, 3)
+    cv = float(s.iloc[-12:].std() / s.iloc[-12:].mean() * 100) if len(s) > 12 else 0
     if f is None:
         return Answer("coa_vs_spot", 0, [], {}, "Not enough history to compare.")
     lean = "lean towards locking a contract" if (f.change_pct > 2 or cv > 25) else "spot is reasonable for now"
-    text = (f"Rule of thumb from the data: {INDEX_LABEL.get(idx, idx)} is projected {_pct(f.change_pct)} over 30 days and its 90-day swing is {cv:.0f}% of the mean, so I would {lean}. "
+    text = (f"Rule of thumb from the data: {INDEX_LABEL.get(idx, idx)} is projected {_pct(f.change_pct)} over 3 months and its 12-month swing is {cv:.0f}% of the mean, so I would {lean}. "
             "A contract of affreightment fixes the rate for several voyages, which pays when the market is expected to rise or is very volatile, and costs you if it falls. "
             "The Financial Tools page simulates the exact savings with your cargo and interval." + _stale(idx, str(s.index[-1].date())))
-    return Answer("coa_vs_spot", 0, [], {}, text, [("30d outlook", _pct(f.change_pct)), ("90d volatility", f"{cv:.0f}%")], [("Run the COA vs spot simulator", "/app/financial")], a)
+    return Answer("coa_vs_spot", 0, [], {}, text, [("3-month outlook", _pct(f.change_pct)), ("12-month volatility", f"{cv:.0f}%")], [("Run the COA vs spot simulator", "/app/financial")], a)
 
 
 def _demand(db: Session, e: Entities, a: list[str], user=None) -> Answer:
@@ -234,14 +225,14 @@ def _demand(db: Session, e: Entities, a: list[str], user=None) -> Answer:
 
 
 def _sources(db: Session, e: Entities, a: list[str], user=None) -> Answer:
-    text = ("Real: Baltic Capesize, Panamax, Supramax and Handysize indices (daily, Aug 2012 to Jul 2019, Mendeley dataset, CC BY 4.0), coal, iron ore, FX and equity series, IMF PortWatch port calls and chokepoint transits, "
-            "the Ministry of Ports turnaround figures, and 90+ coal vessels parsed from SMP Kolkata's daily Haldia reports. The freight indices end in July 2019 because later data is a paid feed. Simulated and labelled: vessel positions on the map, "
-            "anchorage queues, and cost figures (illustrative, not quotes). See the Forecast and Model Monitor pages for measured forecast accuracy.")
+    text = ("Only public-domain data, fetched free with no accounts or keys: the USDA monthly grain ocean rates (a dry-bulk freight proxy), US BLS deep-sea freight and coal price indices, US EIA Brent crude, "
+            "Federal Reserve exchange rates and dollar index, NOAA IBTrACS cyclone tracks, and the Ministry of Ports turnaround figures. Ship availability comes from broker open-tonnage lists you upload. "
+            "Simulated and labelled: vessel positions on the map and cost figures (illustrative, not quotes). See the Forecast and Model Lab pages for measured forecast accuracy.")
     return Answer("data_sources", 0, [], {}, text, [], [("Model details", "/app/forecast")], a)
 
 
 def _help(db: Session, e: Entities, a: list[str], user=None) -> Answer:
-    return Answer("help", 0, [], {}, "I can answer questions about the freight market and forecasts, origin comparison, berth fit, route risk, port congestion, Haldia operations, "
+    return Answer("help", 0, [], {}, "I can answer questions about the freight market and forecasts, origin comparison, berth fit, route risk, port congestion, Haldia operations, ship availability, "
                   "COA versus spot, SAIL's coal demand and where our data comes from. Try one of the suggestions.", [], [])
 
 

@@ -104,7 +104,7 @@ def landed_cost(db: Session, lv: Levers) -> Outcome:
     turnaround_days = float(port.avg_turnaround_hours or 49.5) / 24
     port_days = turnaround_days + lv.port_delay_days + lv.storm_delay_days
 
-    ceiling = 35000.0  # practical Haldia cargo ceiling from real vessel calls (see lightering planner)
+    ceiling = 35000.0  # assumed practical Haldia cargo ceiling (see lightering planner)
     lightering_usd, lightering_days, notes = 0.0, 0.0, []
     if port.name == "Haldia" and lv.cargo_tonnes > ceiling:
         excess = lv.cargo_tonnes - ceiling
@@ -188,16 +188,18 @@ PLAYBOOKS = [
 
 
 # ------------------------------------------------------------------ urgent fixture desk
-def _australia_supply() -> dict | None:
-    """Live ship availability at Newcastle, shown next to the recommendation; None if the feed is unreachable."""
+def _availability(db: Session, port_name: str, cargo_tonnes: float, deadline_days: float) -> dict | None:
+    """Open ships from the user's uploaded broker lists that could carry this cargo in time; None if no list has been uploaded."""
+    from app.services import tonnage
+
     try:
-        from app.services.supply import newcastle_supply
-        s = newcastle_supply()
-        if not s["window_movements"]:
-            return None
-        return {k: s[k] for k in ("signal", "meaning", "open_ships_arriving", "coal_cargoes_loaded", "fetched_at", "stale")}
-    except Exception:  # noqa: BLE001
+        m = tonnage.match(db, port_name, cargo_tonnes, deadline_days)
+    except ValueError:
         return None
+    if not m["total_on_lists"]:
+        return None
+    return {"suitable_count": m["suitable_count"], "total_on_lists": m["total_on_lists"], "summary": m["summary"], "lists_stale": m["lists_stale"], "any_sample": m["any_sample"],
+            "top": [{k: r[k] for k in ("vessel", "dwt", "class", "open_port", "eta", "status")} for r in m["matches"][:3]]}
 
 
 def _size_ok(vc, cargo_tonnes: float) -> bool:
@@ -274,6 +276,6 @@ def urgent_desk(db: Session, port_name: str, cargo_tonnes: float, deadline_days:
     else:
         verdict = "No priced routes to this port."
     return {"port": port_name, "cargo_tonnes": cargo_tonnes, "deadline_days": deadline_days, "storm_chance_in_window": cyc["probability_storm_in_window"], "verdict": verdict,
-            "fastest": fastest, "cheapest_feasible": cheapest, "best": best, "walk_away_usd_per_t": walk_away, "options": options[:12], "options_evaluated": len(options), "feasible_count": len(feasible), "australia_supply": _australia_supply(),
+            "fastest": fastest, "cheapest_feasible": cheapest, "best": best, "walk_away_usd_per_t": walk_away, "options": options[:12], "options_evaluated": len(options), "feasible_count": len(feasible), "open_tonnage": _availability(db, port_name, cargo_tonnes, deadline_days),
             "method": "Every origin, vessel class and speed (12, 13, 14 knots) is costed with the What-If engine. The urgency premium is an assumed 4% plus 3 points for each day of slack below ten. On-time probability comes from 2,000 simulated arrivals (port wait lognormal around the real average turnaround, plus cyclone delay). Score = cost inflated by twice the chance of being late. Options whose vessel does not fit the berth, or whose origin ships mainly thermal coal (Indonesia), are listed but never recommended. The walk-away price is 12% above the recommended option's rate.",
             "_lab": bool(lab_service)}

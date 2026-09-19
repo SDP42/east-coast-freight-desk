@@ -9,19 +9,17 @@ import SpotlightCard from "../components/SpotlightCard";
 import { getEnsemble, getForecast, getHistory, type EnsembleResult, type ForecastResult, type HistoryPoint } from "../lib/api";
 
 const INDICES = [
-  { key: "BCI", label: "Capesize" },
-  { key: "BPI", label: "Panamax" },
-  { key: "BSI", label: "Supramax" },
-  { key: "BHSI", label: "Handysize" },
+  { key: "OCEAN_GULF_JAPAN", label: "Grain ocean rate, US Gulf to Japan" },
+  { key: "OCEAN_PNW_JAPAN", label: "Grain ocean rate, US Pacific NW to Japan" },
 ];
-const HORIZONS = [7, 14, 30];
+const HORIZONS = [1, 3, 6, 12];  // months
 
 const prettyFeature = (f: string) =>
-  f.replace("exog_", "").replace(/_/g, " ").replace("coal aus", "Australian coal").replace("coal za", "S. African coal").replace("sp500", "S&P 500").replace("dxy", "US dollar index");
+  f.replace("exog_", "").replace(/_/g, " ").replace("coal ppi", "US coal price index").replace("deepsea ppi", "deep-sea freight index").replace("brent", "Brent crude").replace("inr", "rupee").replace("dxy", "US dollar index");
 
 export default function Forecast() {
-  const [indexKey, setIndexKey] = useState("BPI");
-  const [horizon, setHorizon] = useState(14);
+  const [indexKey, setIndexKey] = useState("OCEAN_GULF_JAPAN");
+  const [horizon, setHorizon] = useState(3);
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [forecast, setForecast] = useState<ForecastResult | null>(null);
   const [ensemble, setEnsemble] = useState<EnsembleResult | null>(null);
@@ -34,7 +32,7 @@ export default function Forecast() {
     setLoading(true);
     setError(null);
     setEnsemble(null);
-    Promise.all([getHistory(indexKey, 90), getForecast(indexKey, horizon)])
+    Promise.all([getHistory(indexKey, 60), getForecast(indexKey, horizon)])
       .then(([h, f]) => {
         if (cancelled) return;
         setHistory(h);
@@ -50,7 +48,7 @@ export default function Forecast() {
   async function runEnsemble() {
     setEnsembleLoading(true);
     try {
-      setEnsemble(await getEnsemble(indexKey, Math.min(horizon, 30)));
+      setEnsemble(await getEnsemble(indexKey, Math.min(horizon, 12)));
     } catch {
       setError("The ensemble run failed or timed out.");
     } finally {
@@ -92,7 +90,7 @@ export default function Forecast() {
           <span className="mx-1 w-px bg-border-soft" />
           {HORIZONS.map((h) => (
             <button key={h} onClick={() => setHorizon(h)} className={`rounded-md border px-3 py-1.5 text-xs ${horizon === h ? "border-amber/50 bg-amber/10 text-amber" : "border-border-soft bg-panel-light text-muted hover:text-strong"}`}>
-              {h}d
+              {h} mo
             </button>
           ))}
         </div>
@@ -104,7 +102,7 @@ export default function Forecast() {
         <div className="p-6">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-strong">
-              <LineChartIcon className="h-4 w-4 text-cyan" /> {INDICES.find((i) => i.key === indexKey)?.label}: last 90 observations and {horizon}-day forecast
+              <LineChartIcon className="h-4 w-4 text-cyan" /> {INDICES.find((i) => i.key === indexKey)?.label}: last 60 months and {horizon}-month forecast
             </h2>
             {moveInfo != null && (
               <span className={`text-sm font-semibold ${moveInfo >= 0 ? "text-up" : "text-down"}`}>
@@ -223,7 +221,7 @@ export default function Forecast() {
                   ))}
                 </div>
                 <p className="mt-3 text-[11px] text-muted">
-                  Yesterday's value dominates, which is expected for a highly autocorrelated daily index; the smaller bars show what the
+                  Last month's value dominates, which is expected for a highly autocorrelated monthly rate; the smaller bars show what the
                   macro and commodity features add on top.
                 </p>
               </div>
@@ -236,7 +234,7 @@ export default function Forecast() {
         <SpotlightCard>
           <div className="p-6">
             <h2 className="text-sm font-semibold text-strong">Backtest, split by split</h2>
-            <p className="mt-1 text-xs text-muted">Each row retrains on everything up to the date shown and forecasts the next {horizon} days. Steady error across rows is what a trustworthy model looks like.</p>
+            <p className="mt-1 text-xs text-muted">Each row retrains on everything up to the date shown and forecasts the next {horizon} month(s). Steady error across rows is what a trustworthy model looks like.</p>
             <table className="mt-3 w-full text-left text-sm">
               <thead><tr className="text-xs text-muted"><th className="py-1">Split</th><th>Trained to</th><th>RMSE</th><th>MAE</th><th>MAPE</th></tr></thead>
               <tbody>{forecast.backtest_splits.map((b) => (

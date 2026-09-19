@@ -2,17 +2,18 @@
 
 Each entry's hash covers its own fields and the previous entry's hash, so editing or deleting an old
 entry invalidates every later one. Benchmarking compares each fixture's date to the freight market
-around it (real Panamax index, BPI) and its rate to the illustrative rate for that route."""
+around it (the USDA monthly grain ocean rate) and its rate to the illustrative rate for that route."""
 
 import hashlib
 import json
 from datetime import date, datetime, timedelta
 
 import numpy as np
+import pandas as pd
 from sqlalchemy.orm import Session
 
 from app.models import LedgerEntry, Port, Route, VesselClass
-from app.services.freight_data import load_series
+from app.services.freight_data import PRIMARY_INDEX, load_series
 from app.services.recommendation import BASE_RATE_USD_PER_TONNE_PER_1000NM, VESSEL_CLASS_COST_MULTIPLIER, pick_vessel_class
 
 GENESIS = "0" * 64
@@ -63,25 +64,27 @@ def verify_chain(db: Session) -> dict:
 
 
 def benchmark(db: Session) -> list[dict]:
-    bdi = load_series(db, "BPI")
+    rate = load_series(db, PRIMARY_INDEX)  # monthly USDA ocean rate
     classes = db.query(VesselClass).order_by(VesselClass.dwt_min).all()
     out = []
     for r in db.query(LedgerEntry).order_by(LedgerEntry.fixture_date).all():
         d = np.datetime64(r.fixture_date)
         row: dict = {"id": r.id, "date": str(r.fixture_date), "vessel": r.vessel_name, "route": f"{r.origin_country} to {r.destination_port}",
                      "cargo_tonnes": float(r.cargo_tonnes), "rate": float(r.rate_usd_per_tonne) if r.rate_usd_per_tonne is not None else None, "is_sample": r.is_sample}
-        window = bdi[(bdi.index >= str(r.fixture_date - timedelta(days=30))) & (bdi.index <= str(r.fixture_date + timedelta(days=30)))]
-        trailing = bdi[(bdi.index >= str(r.fixture_date - timedelta(days=90))) & (bdi.index <= str(r.fixture_date))]
-        if len(window) < 30 or trailing.empty or bdi.index[0] > np.datetime64(r.fixture_date) or bdi.index[-1] < d:
-            row.update({"timing": None, "note": "BPI history does not cover this date (it ends July 2019)"})
+        m = pd.Timestamp(r.fixture_date).to_period("M").to_timestamp()
+        window = rate[(rate.index >= m - pd.DateOffset(months=1)) & (rate.index <= m + pd.DateOffset(months=1))]
+        trailing = rate[(rate.index >= m - pd.DateOffset(months=12)) & (rate.index <= m)]
+        if len(window) < 3 or trailing.empty or rate.index[0] > m or rate.index[-1] < m:
+            row.update({"timing": None, "note": "The ocean-rate history does not cover this month"})
         else:
-            at = float(bdi[bdi.index <= str(r.fixture_date)].iloc[-1])
+            at = float(rate.loc[m])
             best = float(window.min())
+            ahead = rate[rate.index > m]
             row["timing"] = {
-                "index_at_fixture": round(at, 0), "percentile_in_trailing_90d": round(float((trailing < at).mean() * 100), 0),
-                "best_bdi_within_30d": round(best, 0), "best_day": str(window.idxmin().date()),
+                "index_at_fixture": round(at, 1), "percentile_in_trailing_12m": round(float((trailing < at).mean() * 100), 0),
+                "best_within_1m": round(best, 1), "best_month": str(window.idxmin().date())[:7],
                 "missed_saving_pct": round(max(0.0, (at - best) / at * 100), 1),
-                "forward_30d_change_pct": round(float((bdi[bdi.index >= str(r.fixture_date)].iloc[min(30, len(bdi[bdi.index >= str(r.fixture_date)]) - 1)] / at - 1) * 100), 1),
+                "forward_1m_change_pct": round(float((ahead.iloc[0] / at - 1) * 100), 1) if not ahead.empty else None,
             }
         port = db.query(Port).filter(Port.name == r.destination_port).first()
         route = (db.query(Route).join(Port, Route.origin_port_id == Port.id).filter(Port.country == r.origin_country, Route.destination_port_id == port.id).first()) if port else None

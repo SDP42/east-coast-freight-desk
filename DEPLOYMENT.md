@@ -9,10 +9,10 @@ secrets yourself; nobody else needs your passwords or connection strings.
 (the first request after a sleep takes about 30-60 seconds). The heaviest model call (the ARIMA + XGBoost
 ensemble) may be slow or run out of memory there. If that happens, the rest of the app still works.
 
-**Data licences.** The datasets loaded into the database are the Mendeley Baltic sub-indices (CC BY 4.0), World Bank
-and FRED series, IMF PortWatch, Ministry of Ports figures and public port-trust reports. The Baltic Dry Index has been
-removed from the project. Keep the attribution in the sources list on the landing page. PortWatch's licence terms
-should be confirmed on its website before a public launch.
+**Data licences.** Only public-domain data is loaded: USDA ocean rates, US BLS and EIA series, Federal Reserve rates, NOAA
+cyclone tracks and Ministry of Ports figures, all downloaded free with no account or key (see LICENCES.md). Ship availability
+is uploaded by your own users. Keep `LIVE_SHIP_FEED` unset: that feed was removed. Refresh the market series any time with
+`python scripts/ingest_latest.py` and `python scripts/ingest_usda_ocean.py`.
 
 ## Step 1: Neon (database)
 
@@ -67,8 +67,8 @@ redeploys. Then open the Vercel address, register an account and click around.
 The sign-in page offers one-click demo accounts (one per role) when `ALLOW_DEMO_LOGIN` is `true` (the default). They hold
 sample data only, but the demo Administrator can see the audit log and user list, so for a real launch set
 `ALLOW_DEMO_LOGIN` to `false` in Render's Environment tab and assign roles to real users with
-`python scripts/set_role.py you@example.com admin` (run against the Neon database as in Step 2). The deep-learning
-training (`scripts/train_dl.py`) is done on a laptop; the deployed API only needs the small weight files already in the repository.
+`python scripts/set_role.py you@example.com admin` (run against the Neon database as in Step 2). Model training
+(`scripts/train_current.py`, `train_current_dl.py`) is done on a laptop; the deployed API only reads the small result files already in the repository.
 
 ## If something goes wrong
 

@@ -1,50 +1,44 @@
 import { useEffect, useState } from "react";
 import Loading from "../components/Loading";
-import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, Area } from "recharts";
 import { Brain } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
-import { Note, PageHeader, Stat } from "../components/ui";
+import { Note, PageHeader, Stat, errText } from "../components/ui";
 import { api } from "../lib/api";
 import { px } from "../lib/scale";
 
-interface Row { model: string; mae: number; rmse: number; mape: number; parameters?: number; vs_arima_p?: number; train_seconds?: number }
-interface Lab {
-  index: string; horizon_days: number; paired_forecasts: number; splits: number; lookback_days: number; seeds_per_model: number; verdict: string; served_models: string[]; trained_at: string; note: string;
-  weather_experiment: { verdict: string; pooled_p_weather_better: number | null; note: string; ports: { port: string; mae_naive: number; mae_calls_only: number; mae_with_weather: number; weather_gain_pct: number }[] } | null;
-  data: { rows: number; from: string; to: string }; leaderboard: Row[]; curves: Record<string, { train: number[]; val: number[] }>;
+interface Test { horizon_months: number; origins: number; test_from: string; test_to: string; models: Record<string, { mae_usd_per_t: number; mape_pct: number; p_vs_naive: number | null }> }
+interface Cur {
+  data_through: string; trained_at: string; inputs?: string[]; gulf_rate_history: { month: string; usd_per_t: number }[];
+  gulf_rate_forecast: { last_month: string; last_value: number; method: string; path: { month: string; forecast: number; low: number; high: number }[] };
+  forecast_tests: Test[]; deep_learning: { gru_mae_usd_per_t: number; naive_mae_usd_per_t: number; p_vs_naive: number; origins: number; model: string; note: string } | null; verdicts: string[]; caveat: string;
 }
-interface Deep { dates: string[]; last_value: number; last_date: string; forecasts: Record<string, number[]>; note: string }
-interface Arima { forecast: { date: string; value: number }[] }
-const DEEP = ["LSTM", "GRU", "TCN", "Transformer", "Deep ensemble (mean of 4)"];
+interface Proof { live_refit: { mae: Record<string, number>; timings_seconds: { total: number; models_fitted: number }; window: { from: string; to: string }; note: string }; artifacts: { file: string; bytes: number; sha256: string }[]; serving: { result: string; how: string; live: boolean }[] }
 
 export default function ModelLab() {
-  const [lab, setLab] = useState<Lab | null>(null);
-  const [deep, setDeep] = useState<Deep | null>(null);
-  const [arima, setArima] = useState<Arima | null>(null);
+  const [c, setC] = useState<Cur | null>(null);
+  const [proof, setProof] = useState<Proof | null>(null);
   const [err, setErr] = useState("");
   useEffect(() => {
-    api.get<Lab>("/lab/models").then((r) => setLab(r.data)).catch(() => setErr("The deep-learning experiment has not been run on this deployment."));
-    api.get<Deep>("/forecast-deep/BPI").then((r) => setDeep(r.data)).catch(() => undefined);
-    api.get<Arima>("/forecast/BPI", { params: { horizon: 7 } }).then((r) => setArima(r.data)).catch(() => undefined);
+    api.get<Cur>("/lab/current").then((r) => setC(r.data)).catch((e) => setErr(errText(e)));
+    api.get<Proof>("/lab/proof/OCEAN_GULF_JAPAN").then((r) => setProof(r.data)).catch(() => undefined);
   }, []);
   if (err) return <p className="text-sm text-muted">{err}</p>;
-  if (!lab) return <Loading label="Loading the leaderboard" block />;
-  const best = lab.leaderboard[0];
-  const curveKeys = Object.keys(lab.curves);
-  const maxLen = Math.max(...curveKeys.map((k) => lab.curves[k].val.length));
-  const curveData = Array.from({ length: maxLen }, (_, i) => Object.fromEntries([["epoch", i + 1], ...curveKeys.map((k) => [k, lab.curves[k].val[i] ?? null])]));
-  const pathData = deep ? deep.dates.map((d, i) => ({ d: d.slice(5), ...Object.fromEntries(Object.entries(deep.forecasts).map(([k, v]) => [k.toUpperCase(), v[i]])), ARIMA: arima?.forecast[i]?.value })) : [];
+  if (!c) return <Loading label="Loading the models" block />;
+  const t1 = c.forecast_tests[0];
+  const board = Object.entries(t1.models).map(([model, v]) => ({ model, mae: v.mae_usd_per_t, p: v.p_vs_naive })).sort((a, b) => a.mae - b.mae);
+  const path = [...c.gulf_rate_history.slice(-36).map((h) => ({ m: h.month.slice(0, 7), actual: h.usd_per_t })), ...c.gulf_rate_forecast.path.map((p) => ({ m: p.month.slice(0, 7), forecast: p.forecast, band: [p.low, p.high] as [number, number] }))];
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <PageHeader title="Model lab" subtitle="Deep learning against the classical models on the same forecasts. Real numbers, including where the neural networks did not clearly win." />
+      <PageHeader title="Model lab" subtitle="Machine-learning and deep-learning models on public-domain data, tested honestly. Real numbers, including where the models did not beat 'no change'." />
       <SpotlightCard>
         <div className="space-y-4 p-6">
           <div className="flex items-start gap-4">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-violet-100"><Brain className="h-5 w-5 text-violet-700" /></div>
-            <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-strong">Verdict</p><p className="mt-1 text-sm leading-relaxed text-body">{lab.verdict}</p></div>
+            <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-strong">Verdict</p><ul className="mt-1 space-y-1 text-sm leading-relaxed text-body">{c.verdicts.map((v) => <li key={v}>• {v}</li>)}</ul></div>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label="Best model" value={<span className="text-sm">{best.model.replace(" (mean of 4)", "")}</span>} /><Stat label="Best MAE" value={best.mae} tone="up" /><Stat label="Paired forecasts" value={lab.paired_forecasts} /><Stat label="Training rows" value={lab.data.rows.toLocaleString()} />
+            <Stat label="Data through" value={c.data_through} /><Stat label="Forecasts tested" value={t1.origins} /><Stat label="Best 1-month MAE" value={`$${board[0].mae}/t`} tone="up" /><Stat label="No-change MAE" value={`$${t1.models.naive.mae_usd_per_t}/t`} />
           </div>
         </div>
       </SpotlightCard>
@@ -52,92 +46,37 @@ export default function ModelLab() {
       <div className="grid gap-6 lg:grid-cols-2">
         <SpotlightCard>
           <div className="p-6">
-            <h2 className="text-sm font-semibold text-strong">Leaderboard: mean absolute error (points, lower is better)</h2>
-            <div className="mt-3 h-72">
-              <ResponsiveContainer>
-                <BarChart data={lab.leaderboard} layout="vertical" margin={{ left: 40 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: px(11), fill: "#64748b" }} />
-                  <YAxis type="category" dataKey="model" tick={{ fontSize: px(11), fill: "#334e68" }} width={px(150)} />
-                  <Tooltip />
-                  <Bar dataKey="mae" isAnimationActive={false} radius={[0, 6, 6, 0]}>{lab.leaderboard.map((r) => <Cell key={r.model} fill={DEEP.includes(r.model) ? "#7c3aed" : "#0e7490"} />)}</Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <p className="mt-2 flex gap-4 text-[11px] text-muted"><span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-violet-600" />deep learning</span><span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-cyan" />classical</span></p>
+            <h2 className="text-sm font-semibold text-strong">1-month forecast error, US$/t (lower is better)</h2>
+            <div className="mt-3 h-72"><ResponsiveContainer><BarChart data={board} layout="vertical" margin={{ left: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" horizontal={false} /><XAxis type="number" tick={{ fontSize: px(11), fill: "#64748b" }} /><YAxis type="category" dataKey="model" tick={{ fontSize: px(11), fill: "#334155" }} width={px(110)} />
+              <Tooltip /><Bar dataKey="mae" radius={4} isAnimationActive={false}>{board.map((b) => <Cell key={b.model} fill={b.model === "naive" ? "#94a3b8" : b.p !== null && b.p < 0.05 ? "#0e7490" : "#7c3aed"} />)}</Bar>
+            </BarChart></ResponsiveContainer></div>
+            <p className="mt-2 text-xs text-muted">Teal: significantly better than no-change (Wilcoxon, p under 0.05). With four models compared, treat a p just under 0.05 with caution. {t1.test_from} to {t1.test_to}.</p>
           </div>
         </SpotlightCard>
         <SpotlightCard>
           <div className="p-6">
-            <h2 className="text-sm font-semibold text-strong">Training curves (validation loss, last split)</h2>
-            <div className="mt-3 h-72">
-              <ResponsiveContainer>
-                <LineChart data={curveData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
-                  <XAxis dataKey="epoch" tick={{ fontSize: px(11), fill: "#64748b" }} />
-                  <YAxis tick={{ fontSize: px(11), fill: "#64748b" }} width={px(44)} />
-                  <Tooltip /><Legend wrapperStyle={{ fontSize: px(11) }} />
-                  {curveKeys.map((k, i) => <Line key={k} dataKey={k} name={k.toUpperCase()} stroke={["#7c3aed", "#0e7490", "#d97706", "#dc2626"][i % 4]} strokeWidth={2} dot={false} isAnimationActive={false} connectNulls />)}
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <h2 className="text-sm font-semibold text-strong">Rate history and 6-month ARIMA path</h2>
+            <div className="mt-3 h-72"><ResponsiveContainer><ComposedChart data={path}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" /><XAxis dataKey="m" tick={{ fontSize: px(10), fill: "#64748b" }} interval={5} /><YAxis tick={{ fontSize: px(11), fill: "#64748b" }} domain={["auto", "auto"]} /><Tooltip />
+              <Area dataKey="band" stroke="none" fill="#0e7490" fillOpacity={0.12} isAnimationActive={false} /><Line dataKey="actual" stroke="#0b2545" dot={false} isAnimationActive={false} /><Line dataKey="forecast" stroke="#0e7490" strokeDasharray="5 3" dot={false} isAnimationActive={false} />
+            </ComposedChart></ResponsiveContainer></div>
+            <p className="mt-2 text-xs text-muted">{c.gulf_rate_forecast.method}. US Gulf to Japan grain ocean rate, US$ per tonne.</p>
           </div>
         </SpotlightCard>
       </div>
 
-      <SpotlightCard>
-        <div className="overflow-x-auto p-6">
-          <h2 className="text-sm font-semibold text-strong">Full table</h2>
-          <table className="mt-3 w-full min-w-[640px] text-left text-sm">
-            <thead><tr className="text-xs text-muted"><th className="py-1">Model</th><th>MAE</th><th>RMSE</th><th>MAPE</th><th>Parameters</th><th>vs ARIMA (p)</th><th>Train time</th></tr></thead>
-            <tbody>{lab.leaderboard.map((r) => (
-              <tr key={r.model} className="border-t border-border-soft">
-                <td className="py-1.5 font-medium text-strong">{r.model}</td><td>{r.mae}</td><td>{r.rmse}</td><td>{r.mape}%</td><td>{r.parameters?.toLocaleString() ?? "n/a"}</td>
-                <td>{r.vs_arima_p === undefined ? <span className="text-muted">baseline</span> : <span className={r.vs_arima_p < 0.05 ? "font-semibold text-up" : "text-muted"}>{r.vs_arima_p}{r.vs_arima_p < 0.05 ? " significant" : ""}</span>}</td>
-                <td className="text-muted">{r.train_seconds ? `${r.train_seconds}s` : "n/a"}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-          <div className="mt-3"><Note>{lab.note} Each deep model is the average of {lab.seeds_per_model} random seeds, looks back {lab.lookback_days} days at the index and four exogenous series, and is retrained at each of {lab.splits} walk-forward splits on data available at that point.</Note></div>
-        </div>
-      </SpotlightCard>
+      {c.deep_learning && <SpotlightCard><div className="p-6"><h2 className="text-sm font-semibold text-strong">Deep learning</h2><p className="mt-1 text-sm text-body">{c.deep_learning.model}: MAE ${c.deep_learning.gru_mae_usd_per_t}/t against ${c.deep_learning.naive_mae_usd_per_t}/t for no change over {c.deep_learning.origins} monthly forecasts (p = {c.deep_learning.p_vs_naive}). {c.deep_learning.note}</p></div></SpotlightCard>}
 
-      {lab.weather_experiment && (
-        <SpotlightCard>
-          <div className="overflow-x-auto p-6">
-            <h2 className="text-sm font-semibold text-strong">Does weather help predict port traffic?</h2>
-            <p className="mt-1 text-sm text-body">{lab.weather_experiment.verdict} Pooled test p = {lab.weather_experiment.pooled_p_weather_better}.</p>
-            <table className="mt-3 w-full min-w-[520px] text-left text-sm">
-              <thead><tr className="text-xs text-muted"><th className="py-1">Port</th><th>Naive</th><th>Calls only</th><th>With weather</th><th>Weather gain</th></tr></thead>
-              <tbody>{lab.weather_experiment.ports.map((p) => (
-                <tr key={p.port} className="border-t border-border-soft"><td className="py-1.5 font-medium text-strong">{p.port}</td><td>{p.mae_naive}</td><td>{p.mae_calls_only}</td><td>{p.mae_with_weather}</td><td className={p.weather_gain_pct > 0 ? "text-up" : "text-down"}>{p.weather_gain_pct > 0 ? "+" : ""}{p.weather_gain_pct}%</td></tr>
-              ))}</tbody>
-            </table>
-            <div className="mt-3"><Note>{lab.weather_experiment.note} MAE in calls per day; a negative is worse. Weather data: Open-Meteo (CC BY 4.0).</Note></div>
-          </div>
-        </SpotlightCard>
+      {proof && (
+        <SpotlightCard><div className="p-6">
+          <h2 className="text-sm font-semibold text-strong">Proof the models are real</h2>
+          <p className="mt-1 text-sm text-body">A live refit just ran {proof.live_refit.timings_seconds.models_fitted} model fits in {proof.live_refit.timings_seconds.total} s (windows {proof.live_refit.window.from} to {proof.live_refit.window.to}). MAE: {Object.entries(proof.live_refit.mae).map(([k, v]) => `${k} ${v}`).join(" · ")}.</p>
+          <table className="mt-3 w-full text-left text-xs"><thead className="text-muted"><tr><th className="py-1">Result</th><th>How it is produced</th></tr></thead><tbody>{proof.serving.map((s) => <tr key={s.result} className="border-t border-border-soft"><td className="py-1.5 pr-3 font-medium text-strong">{s.result}</td><td className="text-body">{s.how}</td></tr>)}</tbody></table>
+          {proof.artifacts.length > 0 && <p className="mt-3 text-xs text-muted">Saved artifacts: {proof.artifacts.map((a) => `${a.file} (${a.sha256})`).join(", ")}.</p>}
+        </div></SpotlightCard>
       )}
-
-      {deep && (
-        <SpotlightCard>
-          <div className="p-6">
-            <h2 className="text-sm font-semibold text-strong">Live 7-day paths from the saved deep models (served without PyTorch)</h2>
-            <div className="mt-3 h-64">
-              <ResponsiveContainer>
-                <LineChart data={pathData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
-                  <XAxis dataKey="d" tick={{ fontSize: px(11), fill: "#64748b" }} />
-                  <YAxis domain={["auto", "auto"]} tick={{ fontSize: px(11), fill: "#64748b" }} width={px(48)} />
-                  <Tooltip /><Legend wrapperStyle={{ fontSize: px(11) }} />
-                  {Object.keys(deep.forecasts).map((k, i) => <Line key={k} dataKey={k.toUpperCase()} stroke={["#7c3aed", "#0e7490"][i % 2]} strokeWidth={2} dot={false} isAnimationActive={false} />)}
-                  <Line dataKey="ARIMA" stroke="#d97706" strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-3"><Note>{deep.note} Last observation {deep.last_date}: {deep.last_value.toLocaleString()}.</Note></div>
-          </div>
-        </SpotlightCard>
-      )}
+      <Note>{c.caveat} Inputs: {(c.inputs ?? []).join(", ")}. Trained {c.trained_at}.</Note>
     </div>
   );
 }

@@ -14,10 +14,9 @@ vessels at Paradip, Visakhapatnam, Gangavaram, Dhamra, Gopalpur, Sagar/Sandheads
 agreements (94% of imported coal in FY17 to FY23, CAG audit) and single-voyage spot fixtures. Three things make each
 fixture hard:
 
-1. **The freight market swings hard.** In our own data the Panamax index fell 86% between December 2013 and February 2016.
+1. **The freight market swings hard.** Dry-bulk freight is volatile: since 2010 the USDA ocean rate has changed by between -46% and +104% over twelve months, from $22.6 a tonne (Feb 2016) to $87.4 (Oct 2021).
 2. **Ports are physically different.** Draft limits range from 9.5 m to 18 m, Haldia is an impounded dock behind a
-   330 m by 39 m lock, and large ships are lightened at Sagar before they can enter. In the port trust's daily reports,
-   coal vessels at Haldia carry a median 33,000 t even when the ship could carry far more.
+   330 m by 39 m lock, and large ships are lightened at Sagar before they can enter. Coal vessels reach Haldia with about 35,000 t (an assumed planning ceiling) even when the ship could carry far more, because larger ships are lightened at Sagar.
 3. **Delay is expensive and unevenly distributed.** Average turnaround was 69 h at Visakhapatnam and 45 h at Paradip in
    FY25; the CAG found 374 demurrage cases in four years.
 
@@ -37,20 +36,20 @@ A working platform, not a slide: sign in, ask a question, get a number, and see 
 
 | Area | What it does | Where |
 |---|---|---|
-| **Forecast** | ARIMA, XGBoost and a blended model on real daily freight indices, with 95% bands, per-split backtests, SHAP drivers and honest significance tests. LSTM, GRU, TCN and Transformer trained offline and compared honestly. | Forecast, Model Lab, Model Monitor |
+| **Forecast** | ARIMA, XGBoost and a blended model on the public-domain USDA ocean rate (monthly), with 95% bands, per-split backtests, SHAP drivers and honest significance tests; a GRU neural network compared honestly. | Forecast, Model Lab, Model Monitor |
 | **Recommend** | Ranks the five origins (Australia, US, Mozambique, Russia, Indonesia) by cost, transit time and route risk together, marks Pareto-optimal options, and refuses a vessel that will not fit the berth. | Chartering Recommendation |
 | **Port fit** | Draft, LOA, beam and tidal-window checks for all seven ports, checked against real Haldia coal calls. | Port Compatibility, Port Map |
-| **Signals** | Cyclone-adjusted arrival risk (35 years of storm tracks), 14-day berth-slot pressure, cross-port congestion transfer, coal demand estimate. | Port Signals |
+| **Signals** | Cyclone-adjusted arrival risk (35 years of NOAA storm tracks), laycan timing coach, coal demand estimate. | Port Signals |
 | **Voyage economics** | CO₂ and IMO CII rating per voyage, INR/USD hedge overlay, rail-sea-rail landed cost, demurrage and idle time. | Voyage Economics |
 | **Decide** | COA-versus-spot simulator, ROI calculator, scenario sandbox (freight spike, port closure, Red Sea). | Financial Tools, Scenario Sandbox |
 | **Ask the Desk** | A chatbot and voice assistant that answers in plain English from the platform's own engines, and only with data the signed-in role may see. | Ask the Desk |
 | **Govern** | Role-based access control enforced in the API and the database queries, per-port scoping, an audit log of every request and refusal, hash-chained fixture ledger, alerts, drift monitor. | Access & Audit, Fixture Ledger, Alerts |
-| **See** | Four vanilla three.js scenes: the Haldia dock on the landing page, a trade globe with chokepoint traffic, a 3D Monte-Carlo forecast fan, and a market terrain. A layout that scales from phones to 4K projectors. | Landing, Trade Globe, Risk Lab, Market Terrain |
+| **See** | Four vanilla three.js scenes: the Haldia dock on the landing page, a trade globe of sea lanes and chokepoints, a 3D Monte-Carlo forecast fan, and a market terrain. A layout that scales from phones to 4K projectors. | Landing, Trade Globe, Risk Lab, Market Terrain |
 | **Decide fast** | What-If Studio (eight levers, crisis playbooks, tornado, break-even, saved comparisons) and the Urgent Fixture Desk (what can arrive by the deadline, how likely, at what cost, and the walk-away price). Also askable in plain English. | What-If Studio, Urgent Fixture Desk, Ask the Desk |
-| **Optimise and plan** | A sourcing optimiser (linear program with shadow prices: cheapest origin, port and plant mix), a live seven-day weather window per port, and a track record for the verdict's rules. | Sourcing Optimiser, Weather Window, The Verdict |
+| **Optimise and plan** | A sourcing optimiser (linear program with shadow prices: cheapest origin, port and plant mix), and a track record for the verdict's rules. | Sourcing Optimiser, Weather Window, The Verdict |
 | **The verdict** | One plain call: when to rent a ship and which one (rent now, within a week, wait, split, or cannot meet the date), with the reasons and what would change it. Rule-based decision support, not a trained model. | The Verdict, Ask the Desk |
-| **Ship availability and claims** | Ship Supply Radar (named bulk carriers arriving at Newcastle's coal berths, from a live public feed), part-laden berth fit, laytime and demurrage claim calculator, Market Pulse of current public data, and Data Health for the administrator. | Ship Supply Radar, Laytime, Market Pulse, Data Health |
-| **Quantify risk** | Cost-at-risk Monte Carlo for a cargo (P50/P95 in INR crore), Haldia lightering planner fitted to real vessel data, laycan timing coach, unusual-moves feed, a Live Desk of minute-by-minute simulated ticks. | Risk Lab, Port Signals, Markets, Live Desk |
+| **Ship availability and claims** | Open Tonnage (import the position lists your brokers send; the desk matches ships to a cargo by size, berth fit, laycan and ETA), part-laden berth fit, laytime and demurrage claim calculator, Market Pulse of current public data, and Data Health for the administrator. | Open Tonnage, Laytime, Market Pulse, Data Health |
+| **Quantify risk** | Cost-at-risk Monte Carlo for a cargo (P50/P95 in INR crore), Haldia lightering planner (assumption-based), laycan timing coach, unusual-moves feed, a Live Desk of minute-by-minute simulated ticks. | Risk Lab, Port Signals, Markets, Live Desk |
 
 ## 3. Who it is for, and what each role sees
 
@@ -113,35 +112,34 @@ One shared time-series table (`freight_rates`) holds every market series; ports,
 events have their own tables. The assistant does not generate free text: a small intent model chooses an engine, the
 engine queries the database under the caller's permissions, and the answer is assembled from the returned numbers.
 
-## 6. Data: real, simulated, and missing
+## 6. Data: public domain only, fetched free
 
-**Real:** Baltic Capesize, Panamax, Supramax and Handysize indices (daily, Aug 2012 to Jul 2019, CC BY 4.0); coal, iron
-ore, FX, equity and dollar-index series; IMF PortWatch daily dry-bulk port calls and chokepoint transits; Ministry of
-Ports turnaround figures; NOAA cyclone tracks; SAIL annual-report and audit figures; and 90+ coal vessels parsed from
-SMP Kolkata's public daily Haldia reports (median cargo 33,000 t, draft 7.3 to 8.5 m).
+The rule is **no licensed data**: every series is a US-government or Federal Reserve work or NOAA/Natural Earth data, downloaded free with no account, key or credit ([LICENCES.md](LICENCES.md) lists every source).
 
-**Simulated, and labelled as such in the interface:** vessel positions and anchorage queues on the map (real AIS is a
-paid feed), cost figures (illustrative distance-based estimates, not quotes), and the six sample ledger entries.
+**Real:** the USDA Agricultural Marketing Service monthly grain ocean freight rates (US Gulf and Pacific Northwest to Japan, 1996 to Aug 2026; a dry-bulk proxy, not a coal rate); US BLS producer price indices for deep-sea freight and coal; US EIA Brent crude; Federal Reserve exchange rates and dollar index; NOAA IBTrACS cyclone tracks (35 years); Ministry of Ports turnaround figures; SAIL annual-report and CAG-audit figures.
 
-**Not available:** a free daily freight index after July 2019 (the Baltic Exchange feed is paid). The USDA monthly grain ocean rate (free, to Aug 2026) tracks the Baltic indices well and gives a validated Supramax and Panamax nowcast, marked as an estimate; the US deep-sea freight PPI does not track them and is context only, real fixture or
-charter-rate data (none is public), and Indonesia or Russia price series. The Baltic Dry Index was removed because no
-freely licensed daily source exists. Every page states where its data ends.
+**Supplied by you:** ship availability. No free, licence-clean source of named ships exists, so the desk imports the open-tonnage lists your brokers already send (CSV or Excel) and matches them to a cargo.
+
+**Simulated, and labelled as such:** vessel positions and queues on the port map, minute ticks on the Live Desk, cost figures (illustrative, not quotes), the sample tonnage list (invented ships) and the six sample ledger entries.
+
+**Removed for licence reasons (Sept 2026):** the Baltic freight indices (a proprietary index), IMF PortWatch port and chokepoint traffic, SMP Kolkata Haldia reports, World Bank coal, IMF iron ore, Open-Meteo weather, the Newcastle ship feed and the S&P 500. The Baltic Dry Index was removed earlier for the same reason.
+
+**Not available free:** a live freight index, real fixture or charter rates, AIS ship positions, and Indonesia or Russia price series.
 
 ## 7. Model results (honest)
 
-Measured on the Panamax index, 7-day horizon, walk-forward with 35 paired forecasts (`MODELS.md` has the detail):
+All models are trained on the public-domain USDA ocean rate with US BLS, EIA and Federal Reserve inputs, tested expanding-window walk-forward (about 200 monthly forecasts, 2010 to 2026). Detail in [MODELS.md](MODELS.md).
 
-| Model | MAE (index points) | MAPE |
+| Model (1-month forecast) | MAE (US$/t) | p vs no-change |
 |---|---|---|
-| ARIMA(2,1,2) | 31.9 | 3.90% |
-| XGBoost | 31.6 | 3.75% |
-| ARIMA + XGBoost hybrid | 29.0 | 3.52% |
+| No change (naive) | 2.58 | |
+| ARIMA(1,1,1) | 2.45 | 0.089 |
+| Ridge on lags, coal, oil, rupee | **2.33** | 0.016 |
+| XGBoost | 2.50 | 0.116 |
+| ARIMA + XGBoost | 2.42 | 0.042 |
+| GRU neural network (3 seeds) | 2.60 | 0.383 |
 
-The hybrid is significantly better than ARIMA (Wilcoxon p = 0.0019) and not significantly better than XGBoost
-(p = 0.16). Results are series-specific: on a daily Baltic Dry Index we briefly tested, the hybrid did not beat ARIMA.
-**Deep learning** on the same 35 forecasts: the deep ensemble has the lowest error (MAE 25.8 vs ARIMA 31.9) but the gap is not statistically significant (p = 0.17); the hybrid is the only model significantly better than ARIMA. A test of whether weather helps predict port traffic found no significant gain (p = 0.88). Both are reported in the Model Lab page and [MODELS.md](MODELS.md). Other measured results: the assistant's intent model scores
-87% ± 4% on held-out, hand-written questions (an in-distribution figure, not an external benchmark); every read
-endpoint has a warm p95 under 200 ms; 24 unit tests pass.
+The rate is close to a random walk: at 3 months no model beats no-change, the neural network does not help, and with four models compared a p just under 0.05 needs caution. The assistant's intent model scores about 87% ± 4% on held-out, hand-written questions using Hugging Face sentence embeddings (73.5% without them; an in-distribution figure, not an external benchmark).
 
 ## 8. Security and privacy
 

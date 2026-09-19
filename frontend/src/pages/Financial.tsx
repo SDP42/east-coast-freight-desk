@@ -4,10 +4,10 @@ import { Calculator, TrendingUp, TrendingDown, Anchor, PiggyBank } from "lucide-
 import SpotlightCard from "../components/SpotlightCard";
 import { simulateCoaVsSpot, estimateRoi, type CoaVsSpotResult, type RoiResult } from "../lib/api";
 
-const INDICES = ["BCI", "BPI", "BSI", "BHSI"];
+const INDICES = ["OCEAN_GULF_JAPAN", "OCEAN_PNW_JAPAN"];
 
 function CoaVsSpotTool() {
-  const [indexName, setIndexName] = useState("BPI");
+  const [indexName, setIndexName] = useState("OCEAN_GULF_JAPAN");
   const [rate, setRate] = useState("15");
   const [tonnesPerFixture, setTonnesPerFixture] = useState("75000");
   const [numFixtures, setNumFixtures] = useState("6");
@@ -111,7 +111,7 @@ function CoaVsSpotTool() {
 }
 
 function RoiTool() {
-  const [indexName, setIndexName] = useState("BPI");
+  const [indexName, setIndexName] = useState("OCEAN_GULF_JAPAN");
   const [annualTonnes, setAnnualTonnes] = useState("15000000");
   const [assumedRate, setAssumedRate] = useState("12");
   const [capturedPct, setCapturedPct] = useState("20");

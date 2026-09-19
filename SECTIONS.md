@@ -265,3 +265,11 @@ Closes every ⬜ and 🔧 feature except WhatsApp/SMS delivery (needs a provider
 - Tests: `backend/tests/test_whatif.py` (8 tests; 24 in total, all passing).
 - Limits: the Urgent Desk stays inside the same illustrative cost model, so its walk-away price is guidance, not a market quote.
 
+
+### 14h. Licence purge and public-domain re-base — ✅ done (19 Sept 2026)
+- **Decision:** only public-domain data, fetched free. Removed the Baltic indices, IMF PortWatch, SMP Kolkata reports, World Bank coal, IMF iron ore, Open-Meteo, the Newcastle feed and the S&P 500 series (LICENCES.md). Migration `b7c1d2e3f4a5` drops the three tables that held them; the database rows were deleted.
+- **New data:** USDA monthly ocean rates (`ingest_usda_ocean.py`), US BLS coal PPI and EIA Brent (`ingest_latest.py`). Monthly series keep their own frequency (no daily interpolation); the forecast/ensemble code is now step-aware.
+- **Re-based:** forecast and ensemble, model lab, monitor (Brent), risk lab, cost at risk, terrain, live desk, ledger benchmark, verdict, briefing, assistant, market boards.
+- **Removed:** berth-slot forecast, congestion transfer, chokepoint traffic, Haldia real-vessel stats, the Baltic deep-learning study and nowcast, the weather planner.
+- **Ship availability:** `services/tonnage.py`, `api/tonnage.py`, `Tonnage.tsx`: uploaded broker lists matched to a cargo by size, berth fit, laycan and ETA.
+- **Tests:** 47 passing, including the tonnage upload and matching tests.

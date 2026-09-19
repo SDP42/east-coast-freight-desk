@@ -52,7 +52,7 @@ def test_intent_routing_and_entities():
     assert classify("cheapest origin for 75,000 t to vizag")[0][0] == "recommend_origin"
     e = extract_entities("cheapest origin for 75,000 t to vizag")
     assert e.port == "Visakhapatnam" and e.cargo_tonnes == 75000
-    assert extract_entities("forecast panamax for 14 days").index_name == "BPI"
+    assert extract_entities("forecast the ocean rate for 3 months").index_name == "OCEAN_GULF_JAPAN"
 
 
 def test_intent_model_reports_honest_accuracy():
@@ -120,19 +120,6 @@ def test_unknown_role_falls_back_to_viewer():
 
     ghost = SimpleNamespace(role="superuser", assigned_ports=None)
     assert has(ghost, "market:read") and not has(ghost, "admin:users")
-
-
-def test_deep_model_numpy_forward_matches_shapes():
-    import numpy as np
-
-    from app.ml import dl_infer
-
-    rng = np.random.default_rng(0)
-    H, n_in, T = 8, 5, dl_infer.LOOKBACK
-    w = {"rnn.weight_ih_l0": rng.normal(size=(4 * H, n_in)), "rnn.weight_hh_l0": rng.normal(size=(4 * H, H)), "rnn.bias_ih_l0": np.zeros(4 * H), "rnn.bias_hh_l0": np.zeros(4 * H)}
-    assert dl_infer._lstm(rng.normal(size=(T, n_in)), w).shape == (H,)
-    g = {**w, "rnn.weight_ih_l0": rng.normal(size=(3 * H, n_in)), "rnn.weight_hh_l0": rng.normal(size=(3 * H, H)), "rnn.bias_ih_l0": np.zeros(3 * H), "rnn.bias_hh_l0": np.zeros(3 * H)}
-    assert dl_infer._gru(rng.normal(size=(T, n_in)), g).shape == (H,)
 
 
 def test_intent_recognises_permission_sensitive_questions():

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require, require_port
 from app.core.permissions import PORT_ALERT_KINDS, has, permissions_of as has_perms, port_scope, role_of
 from app.core.cache import cached, data_version
+from app.services.freight_data import PRIMARY_INDEX
 from app.db.session import get_db
 from app.models import AlertEvent, AlertRule, LedgerEntry, Port, User
 from app.services import alerts as alert_service
@@ -40,30 +41,6 @@ def cyclone(port: str, laycan_start: date, laycan_end: date, transit_days: float
         raise _bad(exc)
 
 
-@router.get("/signals/berth-slots", dependencies=[Depends(require("ports:read"))])
-def berth_slots(port: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
-    require_port(user, port, db)
-    try:
-        return cached(f"slots:{port}:{data_version(db, 'BPI')}:{date.today()}", 3600, lambda: signals.berth_slots(db, port))
-    except ValueError as exc:
-        raise _bad(exc)
-
-
-@router.get("/signals/transfer", dependencies=[Depends(require("ports:read"))])
-def transfer(db: Session = Depends(get_db), user: User | None = Depends(get_current_user)) -> dict:
-    data = cached(f"transfer:{date.today()}", 3600, lambda: signals.congestion_transfer(db))
-    scope = port_scope(user) if user is not None else None
-    if scope is None:
-        return data
-    # Port-scoped roles see only their own ports: other ports' figures are removed, not just hidden in the UI.
-    inside = lambda p: p in scope  # noqa: E731
-    return {**data, "pairs": [p for p in data["pairs"] if inside(p["from_port"]) and inside(p["to_port"])],
-            "significant_pairs": [p for p in data["significant_pairs"] if inside(p["from_port"]) and inside(p["to_port"])],
-            "status": [s_ for s_ in data["status"] if inside(s_["port"])],
-            "signal": data["signal"] if data["signal"] and inside(data["signal"]["hot_port"]) and (data["signal"].get("consider") is None or inside(data["signal"]["consider"])) else None,
-            "scope_note": f"Showing only your assigned ports: {', '.join(scope) or 'none assigned'}."}
-
-
 @router.get("/signals/demand", dependencies=[Depends(require("demand:read"))])
 def demand(growth_pct: float = Query(0, ge=-30, le=30), parcel_tonnes: float = Query(33000, ge=5000, le=200000)) -> dict:
     return signals.demand_estimate(growth_pct, parcel_tonnes)
@@ -78,13 +55,13 @@ def forecast_multi(index_name: str, db: Session = Depends(get_db)) -> dict:
 
 def _multi(index_name: str, db: Session) -> dict:
     out = []
-    for h in (7, 14, 30, 60, 90):
+    for h in (1, 3, 6, 12):
         f = quick_forecast(db, index_name.upper(), h)
         if f is None:
             raise HTTPException(status_code=404, detail=f"Not enough history for {index_name}")
         out.append({"horizon": h, "value": round(f.forecast_end, 2), "change_pct": round(f.change_pct, 2), "lower": round(f.lower, 2), "upper": round(f.upper, 2)})
     return {"index_name": index_name.upper(), "last_date": f.last_date, "last_value": round(f.last_value, 2), "horizons": out,
-            "note": "ARIMA(2,1,2) fitted on the latest ~3 years. Bands widen quickly: at 60-90 days they are wide enough that direction is barely informative."}
+            "unit": "steps of the series (months for the USDA ocean rate)", "note": "ARIMA(2,1,2) on the latest data. Bands widen quickly; beyond three months direction is barely informative, and the USDA rate behaves close to a random walk."}
 
 
 class ParetoRequest(BaseModel):
@@ -214,7 +191,7 @@ def ledger_benchmark(db: Session = Depends(get_db), user: User = Depends(get_cur
     rows = [r for r in ledger.benchmark(db) if r["id"] in allowed_ids]
     timed = [r["timing"]["missed_saving_pct"] for r in rows if r.get("timing")]
     return {"rows": rows, "summary": {"fixtures": len(rows), "avg_missed_saving_pct": round(sum(timed) / len(timed), 1) if timed else None},
-            "method": "Timing: the real Panamax index (BPI) on the fixture date against its trailing 90 days and the cheapest day within 30 days either side. 'Missed saving' assumes the rate moves in proportion to the index, which is a simplification. Rate check: your rate against the platform's illustrative rate for the route."}
+            "method": "Timing: the USDA monthly grain ocean rate in the fixture month against its trailing 12 months and the cheapest month within one month either side. 'Missed saving' assumes the rate moves in proportion to the index, which is a simplification. Rate check: your rate against the platform's illustrative rate for the route."}
 
 
 # ------------------------------------------------------------------ monitoring
@@ -341,4 +318,4 @@ def data_search(q: str = Query(min_length=2, max_length=60), db: Session = Depen
 @router.get("/briefing", dependencies=[Depends(require("assistant:use"))])
 def get_briefing(db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
     scope_key = "|".join(sorted(has_perms(user)))
-    return cached(f"briefing:{data_version(db, 'BPI')}:{date.today()}:{scope_key}:{','.join(port_scope(user) or ['*'])}", 1800, lambda: briefing.build(db, user))
+    return cached(f"briefing:{data_version(db, PRIMARY_INDEX)}:{date.today()}:{scope_key}:{','.join(port_scope(user) or ['*'])}", 1800, lambda: briefing.build(db, user))

@@ -33,10 +33,10 @@ VESSEL_CLASS_COST_MULTIPLIER = {
 # recommendation can cite the actual forecasted market direction for that
 # class, not just a static cost estimate.
 VESSEL_CLASS_TO_INDEX = {
-    "Capesize": "BCI",
-    "Panamax": "BPI",
-    "Supramax": "BSI",
-    "Handysize": "BHSI",
+    "Capesize": "OCEAN_GULF_JAPAN",  # one public-domain freight proxy for every class
+    "Panamax": "OCEAN_GULF_JAPAN",
+    "Supramax": "OCEAN_GULF_JAPAN",
+    "Handysize": "OCEAN_GULF_JAPAN",
 }
 
 
@@ -60,7 +60,7 @@ def get_market_signal(db: Session, index_name: str) -> MarketSignal:
     """1-day-ahead ARIMA forecast direction for the sub-index pricing this
     vessel class — reuses Section 5's model rather than a fresh cost lookup."""
     series = load_series(db, index_name)
-    if series.empty or len(series) < 200:
+    if series.empty or len(series) < 60:
         return MarketSignal(index_name=index_name, forecast_value=None, change_pct=None)
 
     try:
@@ -101,7 +101,7 @@ def compare_origins(
     vessel_classes = db.query(VesselClass).order_by(VesselClass.dwt_min).all()
     vessel_class = pick_vessel_class(vessel_classes, cargo_tonnes)
     if market_signal is None:
-        market_signal = get_market_signal(db, VESSEL_CLASS_TO_INDEX.get(vessel_class.name, "BPI"))
+        market_signal = get_market_signal(db, VESSEL_CLASS_TO_INDEX.get(vessel_class.name, "OCEAN_GULF_JAPAN"))
     extra_distance_nm = extra_distance_nm or {}
 
     results: list[OriginResult] = []
@@ -161,7 +161,7 @@ def pareto_rank(db: Session, destination_port: Port, cargo_tonnes: float, origin
     origin's three objectives, whether it is Pareto-optimal, who dominates it, and a weighted top three."""
     from app.services.risk import compute_route_risk
 
-    results = compare_origins(db, destination_port, cargo_tonnes, origins, market_signal=MarketSignal("BPI", None, None))
+    results = compare_origins(db, destination_port, cargo_tonnes, origins, market_signal=MarketSignal("OCEAN_GULF_JAPAN", None, None))
     rows = []
     for r in results:
         if r.estimated_freight_usd_per_tonne is None or not r.route or not r.route.typical_transit_days:

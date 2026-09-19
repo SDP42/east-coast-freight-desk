@@ -16,7 +16,7 @@ interface Report {
 
 export default function Monitor() {
   const { can } = useAuth();
-  const [idx, setIdx] = useState("BPI");
+  const [idx, setIdx] = useState("BRENT");
   const [rep, setRep] = useState<Report | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -26,9 +26,9 @@ export default function Monitor() {
   const drift = rep?.status === "drift";
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader title="Model monitor" subtitle="Is the forecast model still behaving as it did when it was trained? Frozen parameters are scored on newer data; drift is flagged and the model can be retrained." />
+      <PageHeader title="Model monitor" subtitle="Shown on the daily Brent crude series (US EIA, a bunker-fuel proxy). Is the forecast model still behaving as it did when it was trained? Frozen parameters are scored on newer data; drift is flagged and the model can be retrained." />
       <div className="flex items-center gap-3">
-        <select value={idx} onChange={(e) => setIdx(e.target.value)} className="rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-strong">{["BCI", "BPI", "BSI", "BHSI"].map((i) => <option key={i}>{i}</option>)}</select>
+        <select value={idx} onChange={(e) => setIdx(e.target.value)} className="rounded-lg border border-border-soft bg-white px-3 py-2 text-sm text-strong">{["BRENT", "INR", "DXY"].map((i) => <option key={i}>{i}</option>)}</select>
         {can("monitor:retrain") && <button onClick={retrain} disabled={busy} className={btnCls + " flex items-center gap-2"}><RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} /> {busy ? "Retraining…" : "Retrain now"}</button>}
       </div>
       {err && <p className="text-xs text-down">{err}</p>}

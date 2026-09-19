@@ -1,6 +1,6 @@
 """Real latest-known-value ticker data — replaces the frontend's earlier
 simulated random-walk ticker with genuine historical data pulled straight
-from the database. Honesty note: Baltic Exchange rates are a paid feed, so
+from the database. Honesty note: there is no free live freight feed, so
 this is the latest *ingested* value with its real date and real day-over-day
 change, not a literal real-time tick — the frontend surfaces the date
 explicitly rather than implying a live market feed we don't have access to.
@@ -13,36 +13,29 @@ from sqlalchemy.orm import Session
 from app.models import FreightRate
 
 TICKER_SERIES = [
-    ("BCI", "Capesize", "points"),
-    ("BPI", "Panamax", "points"),
-    ("BSI", "Supramax", "points"),
-    ("BHSI", "Handysize", "points"),
-    ("DEEPSEA_PPI", "Deep-sea freight PPI (current)", "pts"),
-    ("COAL_AUS", "Australian Coal", "usd/t"),
-    ("SP500", "S&P 500", "usd"),
+    ("OCEAN_GULF_JAPAN", "Grain ocean rate, Gulf-Japan", "usd/t"),
+    ("OCEAN_PNW_JAPAN", "Grain ocean rate, PNW-Japan", "usd/t"),
+    ("DEEPSEA_PPI", "Deep-sea freight PPI", "pts"),
+    ("COAL_PPI", "Coal price index (PPI)", "pts"),
+    ("BRENT", "Brent crude", "usd/bbl"),
+    ("INR", "INR per USD", "inr"),
     ("DXY", "US Dollar Index", "pts"),
 ]
 
 
-# Region boards. Only series we actually hold real data for are listed; regions
-# without a free real series are returned empty with an explicit note rather
-# than filled with invented numbers.
+# Region boards. Only series we hold real, public-domain data for are listed; regions without one are returned empty with an
+# explicit note rather than filled with invented numbers.
 REGION_BOARDS = [
-    {"region": "Global Freight", "note": "Baltic Exchange sub-indices (Mendeley dataset, ends Jul 2019)",
-     "series": [("BCI", "Capesize", "points"), ("BPI", "Panamax", "points"),
-                ("BSI", "Supramax", "points"), ("BHSI", "Handysize", "points")]},
-    {"region": "Current freight and inputs", "note": "USDA grain ocean rate (a dry-bulk proxy), US BLS deep-sea freight PPI, World Bank coal and IMF iron ore, all to 2026 (monthly)",
-     "series": [("OCEAN_GULF_JAPAN", "Grain ocean rate, Gulf to Japan", "usd/t"), ("DEEPSEA_PPI", "Deep-sea freight PPI", "pts"), ("COAL_AUS", "Australian coal", "usd/t"), ("IRON_ORE", "Iron ore", "usd/t")]},
-    {"region": "Australia", "note": "Newcastle coal (IMF via FRED, to 2026) and the Australian dollar (FRED)",
-     "series": [("COAL_AUS", "Australian coal", "usd/t"), ("AUD", "AUD / USD", "usd")]},
-    {"region": "Southern Africa / Mozambique", "note": "South African coal is the nearest real price proxy for Mozambique",
-     "series": [("COAL_ZA", "South African coal", "usd/t"), ("ZAR", "ZAR per USD", "zar")]},
-    {"region": "United States", "note": "S&P 500 was the strongest freight-index predictor in Kim et al. (2025)",
-     "series": [("SP500", "S&P 500", "pts"), ("DXY", "US Dollar Index", "pts")]},
-    {"region": "India (destination)", "note": "Freight is USD-quoted; Indian budgets are INR",
-     "series": [("INR", "INR per USD", "inr")]},
-    {"region": "Indonesia", "note": "No free real price series ingested for this origin", "series": []},
-    {"region": "Russia", "note": "No free real price series ingested for this origin", "series": []},
+    {"region": "Freight", "note": "USDA grain ocean rates (a dry-bulk proxy) and the US BLS deep-sea freight index; monthly, to 2026",
+     "series": [("OCEAN_GULF_JAPAN", "Grain ocean rate, Gulf to Japan", "usd/t"), ("OCEAN_PNW_JAPAN", "Grain ocean rate, PNW to Japan", "usd/t"), ("DEEPSEA_PPI", "Deep-sea freight PPI", "pts")]},
+    {"region": "Fuel and coal", "note": "US EIA Brent crude (daily, a bunker-fuel proxy) and the US BLS coal price index (monthly)",
+     "series": [("BRENT", "Brent crude", "usd/bbl"), ("COAL_PPI", "Coal price index (PPI)", "pts")]},
+    {"region": "Australia", "note": "Federal Reserve exchange rate", "series": [("AUD", "AUD / USD", "usd")]},
+    {"region": "Southern Africa / Mozambique", "note": "Federal Reserve exchange rate for the rand, the nearest proxy for Mozambique", "series": [("ZAR", "ZAR per USD", "zar")]},
+    {"region": "United States", "note": "Federal Reserve broad dollar index", "series": [("DXY", "US Dollar Index", "pts")]},
+    {"region": "India (destination)", "note": "Freight is USD-quoted; Indian budgets are INR", "series": [("INR", "INR per USD", "inr")]},
+    {"region": "Indonesia", "note": "No free public-domain price series for this origin", "series": []},
+    {"region": "Russia", "note": "No free public-domain price series for this origin", "series": []},
 ]
 
 

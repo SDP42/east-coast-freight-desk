@@ -1,8 +1,7 @@
 """How good is the freight-momentum rule behind the verdict? A track record on history, with the honest answer.
 
 Rule tested: if the freight rate rose more than a threshold over the last three months, 'rent now'; if it fell by more, 'wait'.
-Outcome: the change over the following two months. Two series: the USDA grain ocean rate (1996 to 2026, monthly) and the Baltic
-Panamax index (2012 to 2019, monthly average). A rule has an edge only if the rate rose more after 'rent now' than after 'wait'.
+Outcome: the change over the following two months. Two public-domain series: the USDA grain ocean rate (monthly) and Brent crude (monthly average). A rule has an edge only if the rate rose more after 'rent now' than after 'wait'.
 """
 
 import numpy as np
@@ -28,8 +27,8 @@ def _test(s: pd.Series, name: str, thr: float = 0.06, back: int = 3, fwd: int = 
 
 def evidence(db: Session) -> dict:
     usda = _series(db, "OCEAN_GULF_JAPAN").resample("MS").mean().interpolate(limit=6).dropna()
-    bpi = _series(db, "BPI").resample("MS").mean().dropna()
-    tests = [_test(usda, "USDA grain ocean rate"), _test(bpi, "Baltic Panamax index")]
-    verdict = ("Mixed evidence: momentum shows a small, borderline edge in the 30-year USDA series and none in the 2012 to 2019 Baltic data, so the verdict gives the freight-momentum signal a modest weight and leans mainly on time pressure, supply, season and the rupee."
-               if tests[0]["has_edge"] and not tests[1]["has_edge"] else "The momentum rule shows no consistent edge; it is a small part of the verdict.")
+    brent = _series(db, "BRENT").resample("MS").mean().dropna()
+    tests = [_test(usda, "USDA grain ocean rate"), _test(brent, "Brent crude")]
+    verdict = ("Mixed evidence: momentum shows a small, borderline edge in the 30-year USDA series and none in Brent crude, so the verdict gives the momentum signals a modest weight and leans mainly on time pressure, season, ship availability and the rupee."
+               if tests[0]["has_edge"] and not tests[1]["has_edge"] else "The momentum rules show no consistent edge across both series; they are a small part of the verdict.")
     return {"tests": tests, "summary": verdict, "method": "Mann-Whitney test of the two-month change after a 6% three-month rise against after a 6% fall. Signals overlap in time, so treat p-values as indicative."}

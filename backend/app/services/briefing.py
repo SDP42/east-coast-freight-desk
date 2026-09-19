@@ -12,8 +12,8 @@ def build(db: Session, user=None) -> dict:
     scope = port_scope(user) if user is not None else None
     first_port = scope[0] if scope else "Haldia"
     plan = [
-        ("Market", "market:read", a._market_now, Entities(index_name="BPI")),
-        ("Outlook", "market:read", a._forecast, Entities(index_name="BPI", horizon_days=14)),
+        ("Market", "market:read", a._market_now, Entities(index_name="OCEAN_GULF_JAPAN")),
+        ("Outlook", "market:read", a._forecast, Entities(index_name="OCEAN_GULF_JAPAN", horizon_days=90)),
         ("Ports", "ports:read", a._congestion, Entities(port=first_port) if scope else Entities()),
         ("Route risk", "risk:read", a._risk, Entities(origin="Australia", port=first_port)),
     ]

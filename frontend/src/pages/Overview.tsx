@@ -67,7 +67,7 @@ export default function Overview() {
 
       {can("market:read") && <SpotlightCard>
         <div className="p-6">
-          <LiveChart indexName="BPI" label="Baltic Panamax Index (BPI)" height={260} />
+          <LiveChart indexName="OCEAN_GULF_JAPAN" label="USDA grain ocean rate, Gulf to Japan (US$/t)" height={260} />
         </div>
       </SpotlightCard>}
 

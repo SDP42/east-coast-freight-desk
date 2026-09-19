@@ -20,9 +20,9 @@ cd /Users/swayampanchal/Desktop/SAIL/backend
 source .venv/bin/activate
 alembic upgrade head          # creates the database tables
 cd ../scripts
-python run_all.py             # loads all the real/seed data
+python run_all.py             # loads the public-domain data (free downloads, no accounts or keys)
 python seed_demo_users.py     # demo accounts (one per role) with sample fixtures — takes a few seconds
-                              # (optional datasets in data/raw are skipped if the files are missing)
+                              # (fetches USDA, BLS, EIA, Federal Reserve series over the internet)
 ```
 
 You only need to do this once (or again if you ever delete `backend/freight_forecast.db`).

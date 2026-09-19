@@ -7,8 +7,7 @@ from app.db.session import Base
 
 
 class FreightRate(Base):
-    """Daily freight rate observations — Baltic sub-indices
-    (BCI/BPI/BSI/BHSI) plus route-specific $/tonne assessments where
+    """Market series observations: the USDA ocean rate, US BLS and EIA series, Federal Reserve rates (all public domain) plus route-specific $/tonne assessments where
     available. This is the core time-series table the forecasting models
     (Section 5/6) train on.
 
@@ -23,7 +22,7 @@ class FreightRate(Base):
     rate_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
 
     index_name: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
-    """A market series identifier: BCI, BPI, BSI, BHSI, ROUTE_SPOT, or a
+    """A market series identifier: OCEAN_GULF_JAPAN, BRENT, INR, ROUTE_SPOT, or a
     commodity price series (e.g. COAL_AUS, COAL_ZA) — one shared time-series
     table for every market signal the forecasting models consume, rather than
     a separate table per series type."""

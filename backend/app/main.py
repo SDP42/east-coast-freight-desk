@@ -12,13 +12,13 @@ from app.api.forecast import router as forecast_router
 from app.api.health import router as health_router
 from app.api.market import router as market_router
 from app.api.portmap import router as portmap_router
-from app.api.haldia import router as haldia_router
 from app.api.assistant import router as assistant_router
 from app.api.tools import router as tools_router
 from app.api.lab import router as lab_router
 from app.api.whatif import router as whatif_router
 from app.api.admin import router as admin_router
 from app.api.supply import router as supply_router
+from app.api.tonnage import router as tonnage_router
 from app.api.recommendation import router as recommendation_router
 from app.api.risk import router as risk_router
 from app.api.scenario import router as scenario_router
@@ -68,13 +68,13 @@ app.include_router(forecast_router, prefix="/api/v1")
 app.include_router(compatibility_router, prefix="/api/v1")
 app.include_router(market_router, prefix="/api/v1")
 app.include_router(portmap_router, prefix="/api/v1")
-app.include_router(haldia_router, prefix="/api/v1")
 app.include_router(assistant_router, prefix="/api/v1")
 app.include_router(tools_router, prefix="/api/v1")
 app.include_router(lab_router, prefix="/api/v1")
 app.include_router(whatif_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 app.include_router(supply_router, prefix="/api/v1")
+app.include_router(tonnage_router, prefix="/api/v1")
 app.include_router(recommendation_router, prefix="/api/v1")
 app.include_router(risk_router, prefix="/api/v1")
 app.include_router(financial_router, prefix="/api/v1")

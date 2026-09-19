@@ -1,8 +1,8 @@
 """Train and honestly test the models that use the current (post-2019) public data.
 
 Task A: forecast the USDA U.S. Gulf-to-Japan grain ocean rate (monthly, to Aug 2026), 1 and 3 months ahead.
-Task B: nowcast the Baltic Supramax, Panamax and Capesize indices from that rate (and coal, iron ore, rupee) for 2019-2026,
-        where the Baltic series no longer exists. Fitted on the 84 months where both exist (Aug 2012 to Jul 2019).
+Inputs are public-domain only: the USDA ocean rates, the US BLS coal and deep-sea freight indices, US EIA Brent oil and the
+Federal Reserve rupee rate. (The Baltic nowcast was removed with the Baltic data, whose licence is proprietary.)
 Everything is expanding-window walk-forward: a model only ever sees data before the month it predicts.
 Writes backend/app/ml/artifacts/current_results.json. Run with the backend's Python (no torch needed; the GRU is train_current_dl.py).
 """
@@ -35,16 +35,16 @@ def monthly(db, name: str) -> pd.Series:
 
 
 def load(db) -> pd.DataFrame:
-    cols = {"GULF": "OCEAN_GULF_JAPAN", "PNW": "OCEAN_PNW_JAPAN", "COAL": "COAL_AUS", "ORE": "IRON_ORE", "INR": "INR", "BPI": "BPI", "BSI": "BSI", "BCI": "BCI"}
+    cols = {"GULF": "OCEAN_GULF_JAPAN", "PNW": "OCEAN_PNW_JAPAN", "COAL": "COAL_PPI", "OIL": "BRENT", "INR": "INR"}
     df = pd.concat({k: monthly(db, v) for k, v in cols.items()}, axis=1)
     return df
 
 
 def lag_frame(df: pd.DataFrame, h: int) -> tuple[pd.DataFrame, pd.Series]:
-    l = np.log(df[["GULF", "PNW", "COAL", "ORE", "INR"]])
+    l = np.log(df[["GULF", "PNW", "COAL", "OIL", "INR"]])
     d = l.diff()
     X = pd.concat({f"gulf_d{k}": d["GULF"].shift(k) for k in (0, 1, 2)}, axis=1)
-    X["pnw_d0"], X["coal_d0"], X["ore_d0"], X["inr_d0"] = d["PNW"], d["COAL"], d["ORE"], d["INR"]
+    X["pnw_d0"], X["coal_d0"], X["oil_d0"], X["inr_d0"] = d["PNW"], d["COAL"], d["OIL"], d["INR"]
     X["gap_gulf_pnw"] = l["GULF"] - l["PNW"]
     y = l["GULF"].shift(-h) - l["GULF"]  # change over the next h months
     return X, y
@@ -83,37 +83,6 @@ def walk_forward_gulf(df: pd.DataFrame, h: int, start: str = "2010-01-01") -> di
     return {"horizon_months": h, "origins": len(a), "test_from": dates[0], "test_to": dates[-1], "models": res}
 
 
-def nowcast(df: pd.DataFrame) -> dict:
-    feats = ["GULF", "PNW", "COAL", "ORE", "INR"]
-    L = np.log(df[feats + ["BPI", "BSI", "BCI"]])
-    both = L.dropna()
-    out: dict = {"overlap_months": len(both), "overlap_from": both.index[0].date().isoformat(), "overlap_to": both.index[-1].date().isoformat(), "targets": {}}
-    full = np.log(df[feats]).dropna()
-    future = full[full.index > both.index[-1]]
-    for tgt, name in (("BSI", "Supramax"), ("BPI", "Panamax"), ("BCI", "Capesize")):
-        for label, cols in (("gulf only", ["GULF"]), ("gulf + coal + ore", ["GULF", "COAL", "ORE"]), ("all five", feats)):
-            oos_pred, oos_true, base = [], [], []
-            for i in range(36, len(both)):  # expanding window, never sees the month it predicts
-                tr, te = both.iloc[:i], both.iloc[[i]]
-                m = Ridge(alpha=1.0).fit(tr[cols], tr[tgt])
-                oos_pred.append(float(m.predict(te[cols])[0])); oos_true.append(float(te[tgt].iloc[0])); base.append(float(tr[tgt].mean()))
-            y, p, b = np.array(oos_true), np.array(oos_pred), np.array(base)
-            r2 = 1 - ((y - p) ** 2).sum() / ((y - b) ** 2).sum()  # skill against always predicting the training mean
-            out["targets"].setdefault(name, {})[label] = {"oos_r2_vs_mean": round(float(r2), 3), "oos_mape_pct": round(float(np.abs(np.expm1(p - y)).mean() * 100), 1), "months_tested": len(y)}
-        # Choose the feature set with the best out-of-sample skill; refit on all overlap months; nowcast the future months.
-        best = max(out["targets"][name], key=lambda k: out["targets"][name][k]["oos_r2_vs_mean"])
-        cols = {"gulf only": ["GULF"], "gulf + coal + ore": ["GULF", "COAL", "ORE"], "all five": feats}[best]
-        m = Ridge(alpha=1.0).fit(both[cols], both[tgt])
-        resid = both[tgt] - m.predict(both[cols])
-        q = float(np.quantile(np.abs(resid), 0.9)) * 1.5  # widened: the relationship is extrapolated to a different regime
-        pt = m.predict(future[cols])
-        out["targets"][name]["chosen"] = best
-        out["targets"][name]["reliable"] = bool(out["targets"][name][best]["oos_r2_vs_mean"] >= 0.5)
-        out["targets"][name]["band_log"] = round(q, 3)
-        out["targets"][name]["series"] = [{"date": d.date().isoformat(), "estimate": round(float(np.exp(v))), "low": round(float(np.exp(v - q))), "high": round(float(np.exp(v + q)))} for d, v in zip(future.index, pt)]
-    return out
-
-
 def gulf_forecast(df: pd.DataFrame, best_by_h: dict[int, str]) -> dict:
     """Six-month path of the USDA rate from ARIMA on log rates, with a band from historical 1-, 3-, 6-month change errors."""
     s = np.log(df["GULF"].dropna())
@@ -134,9 +103,7 @@ def main() -> None:
     res["forecast_gulf_rate"] = [walk_forward_gulf(df, 1), walk_forward_gulf(df, 3)]
     for r in res["forecast_gulf_rate"]:
         print(f"h={r['horizon_months']}m origins={r['origins']} ({r['test_from']}..{r['test_to']})", {k: (v['mae_usd_per_t'], v['p_vs_naive']) for k, v in r["models"].items()})
-    res["nowcast_baltic"] = nowcast(df)
-    for k, v in res["nowcast_baltic"]["targets"].items():
-        print(k, {kk: vv["oos_r2_vs_mean"] for kk, vv in v.items() if isinstance(vv, dict) and "oos_r2_vs_mean" in vv}, "chosen", v["chosen"], "reliable", v["reliable"])
+    res["inputs"] = ["OCEAN_GULF_JAPAN", "OCEAN_PNW_JAPAN", "COAL_PPI (US BLS)", "BRENT (US EIA)", "INR (Federal Reserve)"]
     res["gulf_forecast"] = gulf_forecast(df, {})
     OUT.write_text(json.dumps(res, indent=1))
     print("saved", OUT)

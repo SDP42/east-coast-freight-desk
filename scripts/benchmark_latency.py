@@ -14,10 +14,10 @@ BASE = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8000/api/v1"
 RUNS = int(sys.argv[2]) if len(sys.argv) > 2 else 40
 TARGET_MS = 200
 ENDPOINTS = [
-    "/health", "/market/ticker", "/market/history/BPI?limit=500", "/market/regions", "/compatibility/matrix", "/haldia/summary", "/map/overview",
-    "/forecast/BPI?horizon=14", "/forecast-multi/BPI", "/signals/transfer", "/signals/berth-slots?port=Paradip", "/signals/demand",
-    "/signals/cyclone?port=Haldia&laycan_start=2026-10-20&laycan_end=2026-11-05&transit_days=20", "/data/query?index_name=BPI&limit=200", "/risk/events",
-    "/lab/chokepoints", "/lab/terrain", "/lab/models", "/forecast-deep/BPI", "/lab/fan/BPI?horizon=60", "/lab/lightering?cargo_tonnes=150000", "/briefing",
+    "/health", "/market/ticker", "/market/history/OCEAN_GULF_JAPAN?limit=300", "/market/regions", "/compatibility/matrix", "/map/overview",
+    "/forecast/OCEAN_GULF_JAPAN?horizon=3", "/forecast-multi/OCEAN_GULF_JAPAN", "/signals/demand",
+    "/signals/cyclone?port=Haldia&laycan_start=2026-10-20&laycan_end=2026-11-05&transit_days=20", "/data/query?index_name=OCEAN_GULF_JAPAN&limit=200", "/risk/events",
+    "/lab/chokepoints", "/lab/terrain", "/lab/current", "/lab/fan/OCEAN_GULF_JAPAN?horizon=12", "/lab/lightering?cargo_tonnes=150000", "/market/pulse", "/tonnage", "/briefing",
 ]
 
 

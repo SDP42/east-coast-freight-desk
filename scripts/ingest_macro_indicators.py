@@ -1,8 +1,7 @@
 """Ingest macro/market series from FRED (Federal Reserve, free, no API key) into
 `freight_rates` (the shared market-series table).
 
-- SP500, DXY: motivated by Kim, Kim & Choi (2025, PLOS ONE), who found via SHAP
-  that the S&P 500 is the strongest single predictor of BDI, with the dollar
+- DXY (the Fed's broad dollar index): the dollar
   index second.
 - INR, AUD, ZAR: regional FX series for the region boards in the UI — INR/USD
   is the destination-side rate (freight is USD-quoted, Indian budgets are INR),
@@ -29,7 +28,6 @@ SOURCE_CITATION = "FRED (Federal Reserve Bank of St. Louis)"
 
 # series name -> (file, unit)
 FILES = {
-    "SP500": (RAW_DIR / "FRED_SP500.csv", "usd"),
     "DXY": (RAW_DIR / "FRED_DTWEXBGS.csv", "index_points"),
     "INR": (RAW_DIR / "FRED_DEXINUS.csv", "inr_per_usd"),
     "AUD": (RAW_DIR / "FRED_DEXUSAL.csv", "usd_per_aud"),

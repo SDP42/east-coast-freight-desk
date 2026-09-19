@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -20,7 +20,6 @@ import CarouselRaw from "../components/rb/Carousel";
 import { Ripple } from "../components/rb/Ripple";
 import { HALDIA_PHASES } from "../lib/haldiaPhases";
 import { useAuth } from "../lib/auth";
-import { getHaldiaSummary, type HaldiaSummary } from "../lib/api";
 
 const ParticleText = ParticleTextRaw as unknown as React.ComponentType<Record<string, unknown>>;
 const BorderGlow = BorderGlowRaw as unknown as React.ComponentType<Record<string, unknown> & { children?: React.ReactNode }>;
@@ -34,7 +33,7 @@ const CAPABILITIES = [
   { icon: Flame, title: "What-If Studio", text: "Move freight, rupee, fuel, delays and Red Sea reroutes and watch landed cost and trip time change live.", to: "/app/whatif" },
   { icon: MessageSquareText, title: "Ask by voice or chat", text: "Type or speak a question; a local model routes it to the engines, and only answers what your role may see.", to: "/app/ask" },
   { icon: LineChart, title: "Forecasts with proof", text: "ARIMA, XGBoost and deep models compared honestly on the same forecasts, with backtests and significance tests.", to: "/app/lab" },
-  { icon: MapPinned, title: "Berth-fit engine", text: "Draft, length, beam and tidal windows for seven ports, checked against 94 real Haldia coal vessels.", to: "/app/ports" },
+  { icon: MapPinned, title: "Berth-fit engine", text: "Draft, length, beam and tidal windows for seven ports, with part-laden calls handled per port.", to: "/app/ports" },
   { icon: Compass, title: "Five origins, one cargo", text: "Australia, the US, Mozambique, Russia and Indonesia ranked on cost, time and risk, Pareto-optimal ones marked.", to: "/app/recommendation" },
   { icon: ShieldAlert, title: "Route risk", text: "Disruptions, congestion and volatility combined into one explained score per route.", to: "/app/risk" },
   { icon: Calculator, title: "COA vs spot", text: "Simulate locking a contract against staying spot, with the savings case for finance.", to: "/app/financial" },
@@ -45,13 +44,13 @@ const ROLES = [
   { id: 2, title: "Finance & Treasury", description: "All commercial data, hedging, demand and every fixture. No user management.", icon: <Landmark className="carousel-icon" /> },
   { id: 3, title: "Procurement Manager", description: "Sourcing, freight, cost and every fixture. Decides when and how to buy.", icon: <Briefcase className="carousel-icon" /> },
   { id: 4, title: "Chartering Analyst", description: "Markets, forecasts and recommendations. Sees only their own fixtures.", icon: <LineChart className="carousel-icon" /> },
-  { id: 5, title: "Port & Logistics Officer", description: "Only the ports assigned to them: berth fit, congestion, cyclone and slot signals.", icon: <Anchor className="carousel-icon" /> },
+  { id: 5, title: "Port & Logistics Officer", description: "Only the ports assigned to them: berth fit, congestion, cyclone risk and laytime claims.", icon: <Anchor className="carousel-icon" /> },
   { id: 6, title: "Viewer", description: "Public market data. New accounts start here until an administrator assigns a role.", icon: <UserRound className="carousel-icon" /> },
 ];
 
-const SOURCES = ["Baltic freight indices 2012–2019", "IMF PortWatch", "SMP Kolkata daily positions", "Ministry of Ports", "SAIL annual reports", "CAG audit 2025", "World Bank Pink Sheet", "FRED", "NOAA IBTrACS", "Natural Earth"];
+const SOURCES = ["USDA ocean freight rates", "US BLS producer price indices", "US EIA Brent crude", "Federal Reserve exchange rates", "NOAA IBTrACS", "Ministry of Ports", "SAIL annual reports", "CAG audit 2025", "Natural Earth", "Public domain only"];
 const SCENES = [
-  { icon: Globe2, title: "Trade globe", text: "Sea lanes and chokepoint traffic in 3D.", to: "/app/globe", tint: "from-sky-100 to-cyan-50" },
+  { icon: Globe2, title: "Trade globe", text: "Sea lanes and chokepoints in 3D.", to: "/app/globe", tint: "from-sky-100 to-cyan-50" },
   { icon: Dices, title: "Forecast fan", text: "400 possible futures, drawn in depth.", to: "/app/risklab", tint: "from-violet-100 to-fuchsia-50" },
   { icon: Mountain, title: "Market terrain", text: "Eight series as one landscape.", to: "/app/terrain", tint: "from-amber-100 to-orange-50" },
   { icon: Brain, title: "Model lab", text: "Deep learning against classical models.", to: "/app/lab", tint: "from-emerald-100 to-teal-50" },
@@ -60,18 +59,15 @@ const SCENES = [
 export default function Landing() {
   const { user } = useAuth();
   const [phase, setPhase] = useState(0);
-  const [haldia, setHaldia] = useState<HaldiaSummary | null>(null);
-  useEffect(() => { getHaldiaSummary().then(setHaldia).catch(() => setHaldia(null)); }, []);
-
-  const obs = haldia?.observed;
   const current = HALDIA_PHASES[phase] ?? HALDIA_PHASES[0];
   const primary = "flex items-center gap-2 rounded-full bg-strong px-7 py-3.5 text-sm font-semibold text-on-accent shadow-xl shadow-slate-900/15 transition hover:bg-cyan";
   const stats = [
-    { v: obs?.vessels ?? 0, s: "", l: "coal vessels seen at Haldia", d: obs ? `${obs.period_start} to ${obs.period_end}` : "" },
-    { v: obs?.median_cargo_t ?? 0, s: " t", l: "median cargo per vessel", d: obs ? `${obs.min_cargo_t?.toLocaleString()}–${obs.max_cargo_t?.toLocaleString()} t range` : "" },
-    { v: obs?.median_draft_m ?? 0, s: " m", l: "median expected draft", d: obs ? `${obs.min_draft_m}–${obs.max_draft_m} m range` : "", dec: 1 },
-    { v: obs?.by_importer?.SAIL ?? 0, s: "", l: "of them bound for SAIL", d: "from port-trust daily reports" },
+    { v: 87, s: "%", l: "of SAIL's clean coking coal is imported", d: "16.92 of 19.37 MT, FY24 annual report" },
+    { v: 94, s: "%", l: "of imported coal on long-term agreements", d: "CAG audit, FY17 to FY23" },
+    { v: 374, s: "", l: "demurrage cases in four years", d: "CAG audit of SAIL" },
+    { v: 69, s: " h", l: "average turnaround at Visakhapatnam", d: "vs 45 h at Paradip, FY25 Ministry of Ports" },
   ];
+
 
   return (
     <div className="min-h-screen overflow-x-clip text-body">
@@ -156,14 +152,14 @@ export default function Landing() {
           {stats.map((c) => (
             <BorderGlow key={c.l} {...GLOW}>
               <div className="p-5">
-                <p className="text-3xl font-bold text-strong"><AnimatedCounter value={c.v} suffix={c.s} decimals={c.dec ?? 0} /></p>
+                <p className="text-3xl font-bold text-strong"><AnimatedCounter value={c.v} suffix={c.s} decimals={0} /></p>
                 <p className="mt-1 text-sm font-medium text-body">{c.l}</p>
                 <p className="text-[11px] text-muted">{c.d}</p>
               </div>
             </BorderGlow>
           ))}
         </div>
-        <p className="mt-2 text-center text-[11px] text-muted">Real data parsed from SMP Kolkata's public Haldia morning-position reports. Cargoes sit near 33,000 t because larger ships are lightened before the river.</p>
+        <p className="mt-2 text-center text-[11px] text-muted">Figures from SAIL's annual report, the CAG audit and the Ministry of Ports (sources in the README). Haldia takes about 35,000 t per vessel because larger ships are lightened at Sagar first.</p>
       </section>
 
       {/* Decide fast */}
@@ -262,7 +258,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="lg:col-span-3">
-            <SpotlightCard className="h-full"><div className="p-5"><LiveChart indexName="BPI" label="Baltic Panamax Index (BPI)" height={300} compact /></div></SpotlightCard>
+            <SpotlightCard className="h-full"><div className="p-5"><LiveChart indexName="OCEAN_GULF_JAPAN" label="USDA grain ocean rate, Gulf to Japan (US$/t)" height={300} compact /></div></SpotlightCard>
           </div>
         </div>
       </section>
@@ -293,7 +289,7 @@ export default function Landing() {
       <footer className="border-t border-border-soft bg-white/70">
         <div className="mx-auto max-w-6xl px-6 py-8 text-xs leading-relaxed text-muted">
           <p>
-            Prices shown are real ingested data, replayed rather than streamed live. The Baltic freight indices end in July 2019 (the live feed is a paid subscription); coal, currency and equity series run to 2024–2026.
+            Prices shown are real ingested data, replayed rather than streamed live. Every series is public-domain US-government or Federal Reserve data, current to 2026, fetched free with no accounts or keys.
             Cost figures are illustrative estimates, not quotes. The Haldia scene is a schematic built from public port-trust figures. Minute ticks on the Live Desk are simulated.
           </p>
           <p className="mt-3">Built for the Smart India Hackathon 2026.</p>

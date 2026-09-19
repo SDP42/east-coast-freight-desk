@@ -14,7 +14,7 @@ import numpy as np
 from sqlalchemy.orm import Session
 
 from app.models import AuditLog, User
-from app.services.freight_data import load_series
+from app.services.freight_data import PRIMARY_INDEX, load_series
 from app.services.whatif import Levers, landed_cost
 
 # Illustrative sourcing mix for coking coal into India (assumption). Public sources say Australia supplies more than half of
@@ -30,8 +30,8 @@ DEFAULT_PROGRAMME = [
 
 def _shocks(db: Session, n: int, seed: int = 21) -> tuple[np.ndarray, np.ndarray]:
     rng = np.random.default_rng(seed)
-    idx, inr = load_series(db, "BPI"), load_series(db, "INR")
-    f = np.log(idx.where(idx > 0)).diff(90).dropna().iloc[-365 * 3:].to_numpy()  # last three years of the series, as in cost-at-risk
+    idx, inr = load_series(db, PRIMARY_INDEX), load_series(db, "INR")
+    f = np.log(idx.where(idx > 0)).diff(3).dropna().iloc[-12 * 15:].to_numpy()  # three-month moves of the monthly USDA ocean rate, last 15 years
     x = np.log(inr.where(inr > 0)).diff(90).dropna().iloc[-365 * 3:].to_numpy()
     return np.exp(rng.choice(f, n) - f.mean()), np.exp(rng.choice(x, n) - x.mean())
 
@@ -68,7 +68,7 @@ def programme_plan(db: Session, parcels: list[dict] | None = None, n: int = 5000
         "parcels": rows, "base_inr_crore": base_cr, "by_origin_inr_crore": by_origin,
         "budget_range_inr_crore": {"p5": pc(5), "p50": pc(50), "p95": pc(95)}, "budget_to_hold_inr_crore": pc(95), "overrun_risk_inr_crore": round(pc(95) - base_cr, 2),
         "shift_scenario": shift, "runs": n,
-        "method": "Base = illustrative landed cost per parcel x number of parcels. Range = 5,000 draws where one bootstrap of real 90-day freight moves and one of real 90-day rupee moves are applied to the whole year (freight moves together, so parcels do not diversify away the risk). The freight history ends July 2019, so the spread is historical, not a view on today.",
+        "method": "Base = illustrative landed cost per parcel x number of parcels. Range = 5,000 draws where one bootstrap of real three-month moves of the USDA ocean rate and one of real 90-day rupee moves are applied to the whole year (freight moves together, so parcels do not diversify away the risk). The spread is historical, not a view on today.",
     }
 
 

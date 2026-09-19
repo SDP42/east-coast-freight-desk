@@ -12,7 +12,7 @@ interface Search { series: Series[]; events: { title: string; category: string; 
 
 export default function Explorer() {
   const [series, setSeries] = useState<Series[]>([]);
-  const [idx, setIdx] = useState("BPI");
+  const [idx, setIdx] = useState("OCEAN_GULF_JAPAN");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [min, setMin] = useState("");

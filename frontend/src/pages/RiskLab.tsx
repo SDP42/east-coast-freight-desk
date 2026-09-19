@@ -18,8 +18,8 @@ interface Car {
 }
 
 function FanTab() {
-  const [idx, setIdx] = useState("BPI");
-  const [horizon, setHorizon] = useState(60);
+  const [idx, setIdx] = useState("OCEAN_GULF_JAPAN");
+  const [horizon, setHorizon] = useState(12);
   const [d, setD] = useState<Fan | null>(null);
   const [err, setErr] = useState("");
   useEffect(() => { setD(null); setErr(""); api.get<Fan>(`/lab/fan/${idx}`, { params: { horizon } }).then((r) => setD(r.data)).catch((e) => setErr(errText(e))); }, [idx, horizon]);
@@ -27,8 +27,8 @@ function FanTab() {
     <SpotlightCard>
       <div className="p-6">
         <div className="flex flex-wrap items-end gap-4">
-          <Field label="Index"><select className={inputCls} value={idx} onChange={(e) => setIdx(e.target.value)}>{["BCI", "BPI", "BSI", "BHSI"].map((i) => <option key={i}>{i}</option>)}</select></Field>
-          <Field label={`Horizon: ${horizon} days`}><input type="range" min={20} max={120} step={10} value={horizon} onChange={(e) => setHorizon(Number(e.target.value))} className="mt-2 w-48 accent-cyan" /></Field>
+          <Field label="Index"><select className={inputCls} value={idx} onChange={(e) => setIdx(e.target.value)}>{["OCEAN_GULF_JAPAN", "OCEAN_PNW_JAPAN"].map((i) => <option key={i}>{i}</option>)}</select></Field>
+          <Field label={`Horizon: ${horizon} months`}><input type="range" min={3} max={36} step={3} value={horizon} onChange={(e) => setHorizon(Number(e.target.value))} className="mt-2 w-48 accent-cyan" /></Field>
           <p className="pb-2 text-xs text-muted">Drag to orbit. Each thread is one possible future.</p>
         </div>
         {err && <p className="mt-3 text-xs text-down">{err}</p>}
@@ -38,10 +38,10 @@ function FanTab() {
         {d && (
           <div className="mt-4 space-y-3">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Stat label="Last value" value={d.last_value.toLocaleString()} /><Stat label={`In ${d.horizon} days, 5%`} value={d.terminal.p5.toLocaleString()} tone="up" />
+              <Stat label="Last value" value={d.last_value.toLocaleString()} /><Stat label={`In ${d.horizon} months, 5%`} value={d.terminal.p5.toLocaleString()} tone="up" />
               <Stat label="Median" value={d.terminal.p50.toLocaleString()} /><Stat label="95%" value={d.terminal.p95.toLocaleString()} tone="down" />
             </div>
-            <Note kind="warn">{d.method} Data through {d.last_date}: the freight indices end in July 2019, so this shows the shape of risk, not a view on today's market.</Note>
+            <Note kind="warn">{d.method} Data through {d.last_date}: this shows the shape of risk from history, not a view on today's market.</Note>
           </div>
         )}
       </div>

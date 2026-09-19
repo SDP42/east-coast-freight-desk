@@ -26,7 +26,7 @@ export default function AuthShell({ children, wide = false }: { children: ReactN
           <h2 className="text-3xl font-bold leading-tight text-strong">The market moves every day. Your decisions should move first.</h2>
           <p className="mt-3 max-w-md text-sm text-body">Forecasts, berth fit and cost comparison for India's East Coast coal imports.</p>
         </div>
-        <SpotlightCard className="max-w-md"><div className="p-4"><LiveChart indexName="BPI" label="Baltic Panamax Index (BPI)" height={150} compact /></div></SpotlightCard>
+        <SpotlightCard className="max-w-md"><div className="p-4"><LiveChart indexName="OCEAN_GULF_JAPAN" label="USDA grain ocean rate, Gulf to Japan (US$/t)" height={150} compact /></div></SpotlightCard>
         <ul className="max-w-md space-y-3 text-sm text-body">
           <li className="flex gap-3"><Ship className="mt-0.5 h-4 w-4 shrink-0 text-cyan" /> Checked against real coal vessels discharging at Haldia.</li>
           <li className="flex gap-3"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan" /> Passwords are hashed with bcrypt; repeated wrong attempts lock sign-in for ten minutes.</li>

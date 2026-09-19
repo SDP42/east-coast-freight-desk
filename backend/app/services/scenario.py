@@ -90,7 +90,7 @@ def run_scenario(
 ) -> ScenarioResult:
     vessel_classes = db.query(VesselClass).order_by(VesselClass.dwt_min).all()
     vessel_class = pick_vessel_class(vessel_classes, cargo_tonnes)
-    market_signal = get_market_signal(db, VESSEL_CLASS_TO_INDEX.get(vessel_class.name, "BPI"))
+    market_signal = get_market_signal(db, VESSEL_CLASS_TO_INDEX.get(vessel_class.name, "OCEAN_GULF_JAPAN"))
 
     freight_multiplier = 1.0
     delay_days = 0.0

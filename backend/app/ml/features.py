@@ -1,9 +1,6 @@
-"""Feature engineering for the XGBoost model — follows the methodology
-documented in Baghel (2025, NCI MSc thesis): lag features, rolling-window
-statistics, and calendar features. Macro features (S&P 500, US Dollar Index)
-are added per Kim, Kim & Choi (2025, PLOS ONE), who found via SHAP that these
-are the strongest external predictors of BDI, ahead of any shipping-specific
-variable."""
+"""Feature engineering for the XGBoost model: lag features, rolling-window statistics and calendar features, with public
+macro series (dollar index, oil, coal PPI) as optional extras. Lags and windows are counted in steps of the series, so a
+monthly series uses monthly lags (1, 2, 3, 6, 12) and a daily one uses daily lags (1, 2, 3, 7, 14)."""
 
 import pandas as pd
 
@@ -17,16 +14,19 @@ def build_feature_frame(target: pd.Series, exogenous: dict[str, pd.Series] | Non
     "dxy": ..., "coal_aus": ...}), reindexed and forward-filled onto the
     target's index since these series don't publish on identical calendars."""
     df = pd.DataFrame({"y": target})
+    monthly = len(target) > 3 and float(pd.Series(target.index).diff().dt.days.median()) > 20
+    lags, windows = ((1, 2, 3, 6, 12), (3, 12)) if monthly else (LAG_DAYS, ROLLING_WINDOWS)
 
-    for lag in LAG_DAYS:
+    for lag in lags:
         df[f"lag_{lag}"] = target.shift(lag)
 
-    for window in ROLLING_WINDOWS:
+    for window in windows:
         df[f"rolling_mean_{window}"] = target.shift(1).rolling(window).mean()
         df[f"rolling_std_{window}"] = target.shift(1).rolling(window).std()
 
     df["month"] = df.index.month
-    df["day_of_week"] = df.index.dayofweek
+    if not monthly:
+        df["day_of_week"] = df.index.dayofweek
     df["year"] = df.index.year
 
     if exogenous:

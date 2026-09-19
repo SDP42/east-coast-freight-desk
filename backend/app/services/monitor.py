@@ -1,4 +1,4 @@
-"""Model monitoring and retraining (#25). A forecast model is trained up to a cut-off and then frozen;
+"""Model monitoring and retraining (#25), demonstrated on the daily Brent crude series (US EIA, public domain; a bunker-fuel proxy). A forecast model is trained up to a cut-off and then frozen;
 the monitor scores its one-step-ahead errors on data that arrived after the cut-off and compares them with
 the errors in the period just before. Drift is flagged when recent errors are significantly and
 materially worse, or when the daily-return distribution has shifted (population stability index)."""
@@ -27,7 +27,7 @@ def _psi(ref: np.ndarray, new: np.ndarray, bins: int = 10) -> float:
     return float(np.sum((n - r) * np.log(n / r)))
 
 
-def drift_report(db: Session, index_name: str = "BPI") -> dict:
+def drift_report(db: Session, index_name: str = "BRENT") -> dict:
     s = load_series(db, index_name)
     if len(s) < FIT_DAYS + RECENT_DAYS + REFERENCE_DAYS:
         raise ValueError(f"Not enough {index_name} history for monitoring")
@@ -58,7 +58,7 @@ def drift_report(db: Session, index_name: str = "BPI") -> dict:
     }
 
 
-def retrain(db: Session, index_name: str = "BPI", trigger: str = "manual") -> ModelRun:
+def retrain(db: Session, index_name: str = "BRENT", trigger: str = "manual") -> ModelRun:
     before = drift_report(db, index_name)
     s = load_series(db, index_name)
 
@@ -76,7 +76,7 @@ def retrain(db: Session, index_name: str = "BPI", trigger: str = "manual") -> Mo
     return run
 
 
-def history(db: Session, index_name: str = "BPI", limit: int = 20) -> list[dict]:
+def history(db: Session, index_name: str = "BRENT", limit: int = 20) -> list[dict]:
     rows = db.query(ModelRun).filter(ModelRun.index_name == index_name).order_by(ModelRun.id.desc()).limit(limit).all()
     return [{"id": r.id, "trained_at": str(r.trained_at), "trigger": r.trigger, "order": r.order, "train_rows": r.train_rows, "train_end": str(r.train_end),
              "holdout_mape": round(float(r.holdout_mape), 3) if r.holdout_mape is not None else None, "drift_before": r.drift_before} for r in rows]

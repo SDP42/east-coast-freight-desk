@@ -10,11 +10,11 @@ interface Ev { id: number; rule_id: number; fired_at: string; message: string; d
 interface Data { kinds: Record<string, string>; rules: Rule[]; events: Ev[]; unread: number; channels: { sms_whatsapp: string } }
 
 const TEMPLATES: Record<string, { a?: string; b?: string; th: string; hint: string }> = {
-  index_move_pct: { a: "BPI", th: "3", hint: "Series, percent move" },
-  forecast_change_pct: { a: "BPI", b: "14", th: "-5", hint: "Series, horizon days, percent (negative = fall)" },
+  index_move_pct: { a: "OCEAN_GULF_JAPAN", th: "5", hint: "Series, percent move (monthly)" },
+  forecast_change_pct: { a: "OCEAN_GULF_JAPAN", b: "3", th: "-5", hint: "Series, horizon in months, percent (negative = fall)" },
   port_congestion: { a: "Visakhapatnam", th: "7", hint: "Port, score 0-10" },
   route_risk: { a: "Australia", b: "Haldia", th: "6", hint: "Origin, port, score 0-10" },
-  model_drift: { a: "BPI", th: "0", hint: "Series" },
+  model_drift: { a: "BRENT", th: "0", hint: "Series (a daily one)" },
   cyclone_probability: { a: "Paradip", th: "0.2", hint: "Port, probability 0-1" },
 };
 
@@ -24,7 +24,7 @@ export default function Alerts() {
   const [d, setD] = useState<Data | null>(null);
   const [kind, setKind] = useState(scoped ? "port_congestion" : "index_move_pct");
   const [name, setName] = useState("");
-  const [a, setA] = useState("BPI");
+  const [a, setA] = useState("OCEAN_GULF_JAPAN");
   const [b, setB] = useState("");
   const [th, setTh] = useState("3");
   const [hook, setHook] = useState("");

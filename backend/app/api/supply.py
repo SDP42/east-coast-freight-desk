@@ -7,15 +7,10 @@ from sqlalchemy.orm import Session
 from app.api.deps import require
 from app.db.session import get_db
 from app.models import Port, VesselClass
-from app.services import laytime, supply
+from app.services import laytime
 from app.services.financial import DEMURRAGE_RATE_USD_PER_DAY
 
 router = APIRouter(tags=["supply"])
-
-
-@router.get("/supply/newcastle", dependencies=[Depends(require("recommend:read"))])
-def newcastle() -> dict:
-    return supply.newcastle_supply()
 
 
 class StoppageIn(BaseModel):
@@ -101,20 +96,6 @@ def sourcing_resilience(p: MixIn, db: Session = Depends(get_db)) -> dict:
 def verdict_evidence(db: Session = Depends(get_db)) -> dict:
     from app.services import verdict_eval
     return verdict_eval.evidence(db)
-
-
-@router.get("/weather/window")
-def weather_window(port: str, db: Session = Depends(get_db), user=Depends(require("ports:read"))) -> dict:
-    from fastapi import HTTPException
-    from app.api.deps import require_port
-    from app.services import weather
-    require_port(user, port, db)
-    try:
-        return weather.window(db, port)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:  # noqa: BLE001 - network or upstream error
-        raise HTTPException(status_code=502, detail=f"Weather service unavailable: {type(e).__name__}")
 
 
 class OptimiseIn(BaseModel):

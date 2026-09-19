@@ -40,7 +40,7 @@ export default function Markets() {
     getRegions()
       .then((b) => {
         setBoards(b);
-        setSelected(b.flatMap((x) => x.series).find((s) => s.index_name === "BPI") ?? null);
+        setSelected(b.flatMap((x) => x.series).find((s) => s.index_name === "OCEAN_GULF_JAPAN") ?? null);
       })
       .catch(() => setError(true));
   }, []);
@@ -51,8 +51,8 @@ export default function Markets() {
         <h1 className="text-2xl font-bold text-strong">Markets</h1>
         <p className="mt-1 flex items-start gap-1.5 text-xs text-muted">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Charts replay real historical data at accelerated speed so spikes and collapses play out on screen. Freight
-          freight indices end in July 2019 (the Baltic Exchange feed is a paid subscription); coal, FX and equity series run to 2024–2026.
+          Charts replay real historical data at accelerated speed so spikes and collapses play out on screen. Every series is public-domain
+          US-government or Federal Reserve data, current to 2026: the USDA grain ocean rate (a dry-bulk proxy), US freight and coal price indices, Brent crude and exchange rates.
         </p>
       </motion.div>
 

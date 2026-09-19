@@ -35,8 +35,8 @@ export default function Report() {
           </section>
         ))}
         <footer className="mt-8 border-t border-border-soft pt-4 text-[11px] leading-relaxed text-muted">
-          Data notes: the Baltic freight indices end in July 2019 (the current feed is a paid subscription), so market figures illustrate the method rather than today's market. Cost figures are illustrative
-          estimates, not quotes. Port congestion combines official Ministry of Ports turnaround with IMF PortWatch call counts. Generated {new Date().toLocaleTimeString()} from the live engines. {b?.note}
+          Data notes: the freight signal is the USDA grain ocean rate, a public-domain dry-bulk proxy, not a coal rate. Cost figures are illustrative
+          estimates, not quotes. Port congestion uses official Ministry of Ports turnaround. Generated {new Date().toLocaleTimeString()} from the live engines. {b?.note}
         </footer>
       </article>
       <div className="no-print mt-4"><Note>The board pack only contains sections your role may see; another role's pack will differ.</Note></div>

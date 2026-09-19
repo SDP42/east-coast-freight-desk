@@ -1,38 +1,43 @@
 # Data and component licences
 
-The rule for this project: **only free sources with clear terms**. This is every external source and library, what its terms allow, and what we do.
+**Rule for this project: public-domain data only, fetched free.** Nothing here needs an account, an API key, a credit or a payment.
+A licence, even an open one with attribution, was treated as a reason to remove a source, not to keep it (decision of 19 Sept 2026).
 
-## Data
+## Data in use (all public domain)
 
-| Source | Terms | What we do | Status |
-|---|---|---|---|
-| Baltic Capesize, Panamax, Supramax, Handysize indices (Mendeley Data, DOI 10.17632/t76ckh2ygg.1) | CC BY 4.0 | Used for forecasting; attribution in TECHSTACK.md | Clear |
-| World Bank Commodity Markets "Pink Sheet" (coal) | CC BY 4.0 | Monthly coal prices to Aug 2026 | Clear |
-| USDA AMS Grain Transportation Report, Figure 20: monthly ocean freight rates, US Gulf and Pacific Northwest to Japan (1996 to Aug 2026) | US government publication, stated by USDA to be non-confidential and non-copyrighted; the rates are compiled by O'Neil Commodity Consulting and credited on the sheet | Current dry-bulk freight proxy; forecasting and Baltic nowcast; attribute USDA AMS and O'Neil Commodity Consulting | Clear for a prototype; because a private firm compiles the figures, confirm with USDA (GTRContactUs@usda.gov) before any commercial use |
-| US Bureau of Labor Statistics deep-sea freight PPI, via FRED | US government, public domain | Context series only | Clear |
-| FRED exchange rates and S&P 500 | Public series from the St. Louis Fed; the S&P 500 series carries S&P terms on FRED | Exchange rates used; S&P 500 shown as context | Check S&P terms before any public redistribution |
-| IMF iron-ore price, via FRED | IMF data terms: reuse and derivative works allowed with attribution; commercial reuse needs IMF permission | Context series | Clear for a non-commercial prototype; attribute "Source: International Monetary Fund" |
-| IMF PortWatch (port calls, chokepoints) | IMF data terms (not Creative Commons): use, copy and derive with attribution and without altering meaning; commercial reuse needs IMF permission | Port and chokepoint traffic. AIS-derived estimates | Clear for a non-commercial prototype; attribute "Source: International Monetary Fund, PortWatch" |
-| NOAA IBTrACS cyclone tracks | US government, public domain | Storm exposure by port and month | Clear |
-| Open-Meteo weather and marine forecast | CC BY 4.0, free for non-commercial use, attribution required | Weather experiment and the live weather-window planner (fetched live, not stored) | Clear for non-commercial use; attribute "Weather data by Open-Meteo.com" |
-| SMP Kolkata (Haldia) daily vessel position reports | Public government reports; no reuse licence stated | We extract facts (vessel, cargo, draft) and do not republish the documents; raw files are not in the repository | Low risk; do not redistribute the PDFs |
-| Port Authority of NSW, Newcastle Harbour vessel movements | **Reuse terms not found** (its copyright and terms pages returned "not found") | Optional live view, **off by default** (`LIVE_SHIP_FEED=false`), rows cached 30 minutes and not stored | **Unconfirmed: keep off in any public deployment until the Port Authority confirms** |
-| Natural Earth land dots | Public domain | Map dots | Clear |
-| SAIL annual reports, CAG audit, SAIL news, Ministry of Ports statistics | Public documents; quoted figures cited, not copied wholesale | Figures and citations only | Clear |
+| Source | Status | What we use it for |
+|---|---|---|
+| USDA Agricultural Marketing Service, Grain Transportation Report, Figure 20: monthly ocean freight rates, US Gulf and Pacific NW to Japan (1996 to Aug 2026) | US government publication; USDA states it is non-confidential and non-copyrighted. The rates are compiled by O'Neil Commodity Consulting and credited on the sheet | The freight signal: forecasting, verdict momentum, risk fan, cost at risk. Because a private firm compiles the figures, confirm with USDA (GTRContactUs@usda.gov) before any commercial use |
+| US Bureau of Labor Statistics producer price indices: deep-sea freight (`WPU30130101`) and coal (`WPU051`), via FRED | US government, public domain | Context and model inputs |
+| US Energy Information Administration Brent crude spot price (`DCOILBRENTEU`), via FRED | US government, public domain | Fuel signal, the drift monitor |
+| Federal Reserve H.10 exchange rates (rupee, Australian dollar, rand) and the broad dollar index, via FRED | US government, public domain | Currency conversion, hedge overlay, model inputs |
+| NOAA IBTrACS tropical-cyclone tracks | US government, public domain | Storm exposure by port and month |
+| Natural Earth land outlines | Public domain | Globe and map dots |
+| Ministry of Ports, SAIL annual report, CAG audit, SAIL news | Public Indian-government documents | Quoted figures (turnaround, import share, demurrage cases), cited not copied |
 
-Baltic Dry Index: removed, because no freely licensed daily source exists. The live Baltic Exchange feed is a paid licence.
+Ship availability is **not** a downloaded dataset: it is the open-tonnage lists SAIL's own brokers send, uploaded by users. Ports, routes, distances and vessel classes are our own compilation of published specifications.
+
+## Data removed in the licence purge (19 Sept 2026)
+
+| Removed | Why |
+|---|---|
+| Baltic Capesize, Panamax, Supramax and Handysize indices (Mendeley copy labelled CC BY 4.0) | The Baltic Exchange indices are a proprietary index; a research copy's CC BY label cannot grant rights the uploader did not hold. Everything trained on them (forecasting, the LSTM/GRU/TCN/Transformer study, the Baltic nowcast) was removed or re-based |
+| IMF PortWatch (port calls, chokepoint transits) | IMF data terms, not public domain; commercial reuse needs permission |
+| IMF iron-ore price | IMF data terms |
+| World Bank coal prices (Pink Sheet) | CC BY 4.0 (attribution condition) |
+| SMP Kolkata daily Haldia vessel reports | No reuse licence stated |
+| Open-Meteo weather and marine forecast | CC BY 4.0, free for non-commercial use only |
+| Port Authority of NSW Newcastle vessel movements | Reuse terms could not be found |
+| S&P 500 series | S&P terms on FRED |
+| Baltic Dry Index | Removed earlier: no freely licensed daily source exists |
 
 ## Software components
 
-| Component | Licence | Note |
-|---|---|---|
-| three.js, its `Water` and `OrbitControls` examples | MIT | |
-| cobe (globe) | MIT | |
-| React, Vite, Tailwind CSS, Recharts, Leaflet, lucide-react, framer-motion, motion | MIT / ISC / BSD | |
-| React Bits components (ParticleText, BorderGlow, Carousel, GlideSelect, FuseButton, LatticeLoader, Ripple) | MIT with the Commons Clause | Free for personal and commercial use in an application; not for reselling the components on their own |
-| FastAPI, SQLAlchemy, Alembic, pandas, NumPy, SciPy, statsmodels, scikit-learn, XGBoost, SHAP | MIT / BSD / Apache 2.0 | |
-| PyTorch (offline training only) | BSD | |
-| fastembed (ONNX runtime for embeddings) | Apache 2.0 | Optional |
-| BAAI/bge-small-en-v1.5 sentence-embedding model (Hugging Face) | MIT | Downloaded once, then runs locally; no API or key |
+| Component | Licence |
+|---|---|
+| three.js (including its `Water` and `OrbitControls` examples), cobe, React, Vite, Tailwind CSS, Recharts, Leaflet, lucide-react, framer-motion, motion | MIT / ISC / BSD |
+| React Bits components (ParticleText, BorderGlow, Carousel, GlideSelect, FuseButton, LatticeLoader, Ripple) | MIT with the Commons Clause: free to use inside an application, not for reselling the components |
+| FastAPI, SQLAlchemy, Alembic, pandas, NumPy, SciPy, statsmodels, scikit-learn, XGBoost, SHAP, PyTorch (offline training) | MIT / BSD / Apache 2.0 |
+| fastembed and BAAI/bge-small-en-v1.5 sentence-embedding model (Hugging Face; optional) | Apache 2.0 and MIT; downloaded once, then runs locally with no key or API |
 
 No code was copied from other teams' public repositories for this problem statement.

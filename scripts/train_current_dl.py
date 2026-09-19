@@ -47,7 +47,7 @@ def windows(F: np.ndarray, y: np.ndarray, idx):
 def main() -> None:
     torch.set_num_threads(1)
     db = SessionLocal()
-    cols = {"GULF": "OCEAN_GULF_JAPAN", "PNW": "OCEAN_PNW_JAPAN", "COAL": "COAL_AUS", "ORE": "IRON_ORE", "INR": "INR"}
+    cols = {"GULF": "OCEAN_GULF_JAPAN", "PNW": "OCEAN_PNW_JAPAN", "COAL": "COAL_PPI", "OIL": "BRENT", "INR": "INR"}
     df = pd.concat({k: monthly(db, v) for k, v in cols.items()}, axis=1).dropna()
     db.close()
     d = np.log(df).diff().dropna()

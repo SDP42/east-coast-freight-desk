@@ -112,8 +112,8 @@ TRAINING: dict[str, list[str]] = {
 }
 
 INDEX_WORDS = [
-    (r"\bcape(size)?\b|\bbci\b", "BCI"), (r"\bpanamax\b|\bbpi\b", "BPI"), (r"\bsupramax\b|\bbsi\b", "BSI"), (r"\bhandy(size)?\b|\bbhsi\b", "BHSI"),
-    (r"\bbaltic\b|\bbdi\b|\bdry index\b", "BPI"),
+    (r"\bpnw\b|pacific northwest", "OCEAN_PNW_JAPAN"),
+    (r"\bcape(size)?\b|\bpanamax\b|\bsupramax\b|\bhandy(size)?\b|\bbci\b|\bbpi\b|\bbsi\b|\bbhsi\b|\bbaltic\b|\bbdi\b|\bdry index\b|ocean rate|grain rate|freight rate|freight index|\bgulf\b", "OCEAN_GULF_JAPAN"),  # every freight word maps to the one public-domain freight proxy
 ]
 ORIGINS = [
     (r"australia|aussie|queensland|hay point|gladstone|abbot point|dalrymple", "Australia"),

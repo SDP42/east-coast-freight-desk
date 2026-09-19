@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, TrendingUp, Compass, MapPinned, ShieldAlert, Calculator, FlaskConical, Activity, Map, MessageSquareText, KeyRound, Leaf, Radar,
-  Database, BookLock, Bell, Gauge, Globe2, Mountain, Dices, Brain, FileText, Zap, Timer, Flame, Anchor, Scale, Gavel, Route as RouteIcon, CloudSun, HeartPulse, type LucideIcon,
+  Database, BookLock, Bell, Gauge, Globe2, Mountain, Dices, Brain, FileText, Zap, Timer, Flame, Anchor, Scale, Gavel, Route as RouteIcon, HeartPulse, type LucideIcon,
 } from "lucide-react";
 
 export interface NavLinkDef { to: string; key: string; label: string; icon: LucideIcon; hint?: string }
@@ -14,7 +14,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { to: "/app/optimiser", key: "optimiser", label: "Sourcing Optimiser", icon: RouteIcon, hint: "Cheapest origin, port and plant mix" },
     { to: "/app/urgent", key: "urgent", label: "Urgent Fixture Desk", icon: Timer, hint: "Last-minute cargo: what arrives in time" },
     { to: "/app/whatif", key: "whatif", label: "What-If Studio", icon: Flame, hint: "Change freight, rupee, delays; see the cost" },
-    { to: "/app/supply", key: "supply", label: "Ship Supply Radar", icon: Anchor, hint: "Which ships are actually available" },
+    { to: "/app/tonnage", key: "tonnage", label: "Open Tonnage", icon: Anchor, hint: "Broker lists: which ships are available" },
     { to: "/app/recommendation", key: "recommendation", label: "Chartering Recommendation", icon: Compass },
     { to: "/app/financial", key: "financial", label: "Financial Tools", icon: Calculator },
     { to: "/app/laytime", key: "laytime", label: "Laytime & Demurrage", icon: Scale, hint: "Check a claim step by step" },
@@ -30,9 +30,8 @@ export const NAV_GROUPS: NavGroup[] = [
     { to: "/app/lab", key: "lab", label: "Model Lab", icon: Brain, hint: "Deep learning vs classical models" },
     { to: "/app/terrain", key: "terrain", label: "Market Terrain", icon: Mountain, hint: "3D landscape of the series" },
     { to: "/app/ports", key: "ports", label: "Port Compatibility", icon: MapPinned },
-    { to: "/app/weather", key: "weather", label: "Weather Window", icon: CloudSun, hint: "Seven-day berthing forecast" },
     { to: "/app/signals", key: "signals", label: "Port Signals", icon: Radar },
-    { to: "/app/globe", key: "globe", label: "Trade Globe", icon: Globe2, hint: "3D lanes and chokepoints" },
+    { to: "/app/globe", key: "globe", label: "Trade Globe", icon: Globe2, hint: "3D sea lanes and chokepoints" },
     { to: "/app/risk", key: "risk", label: "Risk & Disruptions", icon: ShieldAlert },
     { to: "/app/map", key: "map", label: "Port Map", icon: Map },
     { to: "/app/explorer", key: "explorer", label: "Data Explorer", icon: Database },

@@ -1,7 +1,7 @@
 # Demo guide: what each feature does, and the exact inputs to show it
 
 Every number below was produced by the running system with the inputs shown, so you can read them out. Costs are
-illustrative estimates (distance-based, not quotes), and the freight indices end in July 2019; say so once, early.
+illustrative estimates (distance-based, not quotes). The freight signal is the USDA grain ocean rate, a public-domain dry-bulk proxy; say so once, early. Every data source is free and public domain (LICENCES.md).
 
 **Before you start:** backend on port 8000, frontend on 5173, demo accounts seeded (`python scripts/seed_demo_users.py`).
 Sign in with one click on the sign-in page. Use **Chrome or Edge** if you want voice. Press **Ctrl/Cmd + K** anywhere to jump to a page.
@@ -15,9 +15,9 @@ Sign in with one click on the sign-in page. Use **Chrome or Edge** if you want v
 **Show:**
 - Move the mouse over the big headline: the particles scatter and re-form.
 - Watch the scene: tug boat leading the ship, gates opening, grabs working, a train leaving.
-- Point at the four stat cards: **94** coal vessels, **33,000 t** median cargo, **8.2 m** median draft, **59** bound for SAIL (parsed from the port trust's public daily reports).
+- Point at the four stat cards: **87%** of SAIL's clean coking coal is imported (16.92 of 19.37 MT, FY24), **94%** of imported coal on long-term agreements, **374** demurrage cases in four years (CAG), **69 h** average turnaround at Visakhapatnam vs 45 h at Paradip (Ministry of Ports).
 
-**Say:** "The port, not the market, sets the parcel size at Haldia. That is why generic freight tools don't fit."
+**Say:** "The port, not the market, sets the parcel size at Haldia: about 35,000 t reaches the dock. That is why generic freight tools don't fit."
 
 ---
 
@@ -27,10 +27,10 @@ Sign in with one click on the sign-in page. Use **Chrome or Edge** if you want v
 
 | Try this input | Port | Tonnes | Deadline | You will see |
 |---|---|---|---|---|
-| A. Comfortable | Paradip | 60,000 | 20 days | **12 of 60** options safe. Best: **Panamax from Mozambique at 12 kn**, 15.3 days, 100% on time, **₹5.155 crore**, walk away above **$8.4/t** |
+| A. Comfortable | Paradip | 60,000 | 20 days | **8 of 60** options safe. Best: **Panamax from Mozambique at 12 kn**, 15.3 days, 100% on time, **₹5.155 crore**, walk away above **$8.4/t** |
 | B. Tight | Paradip | 60,000 | 14 days | **0 of 60** safe. Fastest: Panamax from Mozambique at 14 kn, 13.8 days, **49% on time**: the banner turns red |
 | C. Impossible | Haldia | 60,000 | 12 days | **0 of 60**. Fastest 16.9 days, 0% on time. "Consider a partial cargo, stock from another source, or a later date" |
-| D. Big cargo | Visakhapatnam | 75,000 | 30 days | 24 of 60 safe. Best: **Capesize from Mozambique**, 16.3 days, ₹4.861 crore |
+| D. Big cargo | Visakhapatnam | 75,000 | 30 days | 12 of 60 safe. Best: **Capesize from Mozambique**, 16.3 days, ₹4.861 crore |
 
 **Do this live:** start with A, then drag the **Deadline** slider from 20 down to 14 and watch the banner flip from green to red. Then press **Fix this vessel** (Procurement or Finance): a fuse burns around the button for 5 seconds; press **Undo** to cancel, or let it finish and the fixture is written to the Fixture Ledger.
 
@@ -74,7 +74,7 @@ Base case (Australia → Haldia, 75,000 t, Panamax, everything at zero): **₹9.
 | What if the Red Sea closes? | ₹9.758 → **₹18.252 crore (+87.0%)**, **+12.1 days** |
 | What if the rupee falls 6% for Australia to Paradip? | ₹8.42 → **₹8.926 crore (+6.0%)** |
 | We need 60000 t at Paradip within 20 days | Panamax from Mozambique at 12 kn, 15.3 days, 100% on time, ₹5.155 crore, walk away above $8.4/t |
-| How risky is Australia to Haldia? | **6.8/10, high**; biggest driver disruption exposure (Red Sea / Suez rerouting) |
+| How risky is Australia to Haldia? | **5.5/10, high**; biggest driver disruption exposure (7.5/10: Red Sea / Suez rerouting) |
 | Show my fixtures | **6 fixtures**, every entry in the ledger |
 
 **Voice:** press the microphone, say "What if freight rises thirty percent", and switch the speaker on to hear the answer. Say **"open the port map"** to navigate by voice. (Chrome and Edge send audio to their own speech service: mention that.)
@@ -103,13 +103,12 @@ Also try typing `/app/financial` into the address bar as the Port Officer: a "Th
 
 ## 6. Forecasting and the honest model comparison
 
-**Freight Forecast:** choose **BPI** (Panamax index), 14 days, press *Run ensemble* (about 20 to 30 seconds the first time, then cached). Shows a 95% band, per-split backtest, SHAP drivers and two significance tests.
-- ARIMA + XGBoost hybrid vs ARIMA: **p = 0.0019** (significant). Hybrid MAE **29.0** vs ARIMA **31.9**.
+**Freight Forecast:** choose the Gulf-to-Japan ocean rate, 3 months, press *Run ensemble* (about 10 seconds the first time, then cached). Shows a 95% band, per-split backtest, SHAP drivers and two significance tests. Blend vs ARIMA: p = 0.053, so say "borderline, not proven".
 
-**Model Lab** (deep learning): LSTM, GRU, TCN and Transformer on the same 35 forecasts.
-- **Deep ensemble MAE 25.8** (lowest), GRU 26.0, Transformer 26.7, LSTM 26.8, hybrid 29.0, XGBoost 31.6, ARIMA 31.9, **TCN 37.6** (worst).
-- The deep ensemble is **not significantly** better than ARIMA (**p = 0.17**). Say it before anyone asks.
-- Weather test on the same page: adding wind, rain and waves did **not** improve port-call forecasts (**p = 0.88**).
+**Model Lab:** the retrained models on the same walk-forward test (about 200 monthly forecasts).
+- 1-month MAE: no change **$2.58/t**, ARIMA 2.45, XGBoost 2.50, blend 2.42, Ridge **2.33** (p = 0.016; about 0.06 after correcting for four models). GRU neural network **2.60** (p = 0.38): it does not help.
+- At 3 months nothing beats "no change". Say it before anyone asks: "The rate is close to a random walk, and our tests say so."
+- The "Proof the models are real" panel refits models live (20 fits in about 2 seconds) and lists saved artifacts with fingerprints.
 
 ---
 
@@ -117,71 +116,66 @@ Also try typing `/app/financial` into the address bar as the Port Officer: a "Th
 
 | Page | What it shows | Try |
 |---|---|---|
-| **Trade Globe** | Sea lanes from five origins and chokepoint traffic vs the pre-October-2023 level | Click **Bab el-Mandeb**: **56%** of its old traffic; Suez **61%**; the Red Sea note explains ships are still diverting |
-| **Risk Lab → 3D forecast fan** | 400 simulated futures for the index in depth, with a 5–95% ribbon | Drag to orbit; set horizon to 60 days: 5% **1,295**, median **1,990**, 95% **3,097** (from a starting 1,891) |
-| **Risk Lab → Cost at risk** (Finance) | 5,000 simulated landed costs for one cargo | Australia → Haldia, 75,000 t, Panamax: median **₹8.62 crore**, 95th percentile **₹12.44 crore**, cost at risk **₹3.82 crore**; 36% chance of demurrage. Freight is ~99.8% of the variance |
-| **Market Terrain** | Eight series over seven years as a 3D landscape | Hover to read values; the four freight indices rise and fall together |
+| **Trade Globe** | Sea lanes from five origins to the East Coast and the chokepoints they pass | Click a chokepoint: location and why it matters. There is no traffic data (licence); the What-If Studio prices a Red Sea closure at **+87%** |
+| **Risk Lab → 3D forecast fan** | 400 simulated futures of the ocean rate in depth, with a 5–95% ribbon | Drag to orbit; 12 months: 5% **$46.9/t**, median **$74.2**, 95% **$111.2** (from $72.9) |
+| **Risk Lab → Cost at risk** (Finance) | 5,000 simulated landed costs for one cargo | Australia → Haldia, 75,000 t, Panamax: median **₹8.43 crore**, 95th percentile **₹9.34 crore**, cost at risk **₹0.91 crore**; 36% chance of demurrage; freight is about 97% of the variance |
+| **Market Terrain** | Eight public series since 2010 as a 3D landscape | Hover to read values |
 
 ---
 
-## 8. Port signals and the Haldia planner
+## 8. Port signals
 
-**Port Signals** tabs (any role with ports; the Haldia officer sees only Haldia):
-- **Cyclone ETA risk:** Haldia, laycan 20 Oct to 5 Nov, 20 sailing days → about a **20% chance** of a storm in the arrival window (a "Moderate" risk).
-- **Timing coach:** Haldia from Australia: a 60-day calendar of storm risk per loading date, with the five calmest starts.
-- **Haldia lightering:** drag cargo to **150,000 t**: the practical Haldia ceiling is about **35,000 t** (95th percentile of real vessels), so about **115,000 t** is lightened at Sagar. The fit of cargo against draft is weak (R² 0.10) and the page says so.
-- **Congestion transfer:** one port pair survives multiple-testing correction: **Haldia leads Visakhapatnam by about 6 days**.
+- **Cyclone ETA risk** (NOAA tracks): Haldia, laycan 20 Oct to 5 Nov, 20 sailing days → about a **20% chance** of a storm in the arrival window.
+- **Timing coach:** a 60-day calendar of storm risk per loading date with the five calmest starts.
+- **Haldia lightering:** drag cargo to **150,000 t**: about **115,000 t** is lightened at Sagar against an assumed 35,000 t ceiling (editable; the page says it is an assumption).
+- **Laytime and demurrage** (Port Officers too): 75,000 t at 20,000 t/day, 120 h, 10 h of rain, $20,000/day → **on demurrage, $11,667**, every step shown.
 
 ---
 
 ## 9. Voyage economics, ledger, alerts, monitor
 
-- **Voyage Economics → Carbon:** Panamax, 6,000 nm, 12 kn: **3,742 t CO₂**, rating **C** for 2026; at 10 kn it improves to **A**, at 13 kn it falls to **E**.
-- **Voyage Economics → INR/USD hedge:** ₹95.55 per dollar; a 25% hedge on a $5 million bill costs about ₹13 lakh and removes about ₹65 lakh from the 95% worst case; above 25% it warns that SAIL's annual report caps hedging at 25%.
-- **Fixture Ledger:** hash-chained. As **Finance**: "Chain verified: 6 entries intact". (To show tamper detection you would need database access: mention that editing any old entry breaks the chain at that entry, covered by a unit test.)
-- **Alerts:** create a *port congestion* rule for Visakhapatnam at threshold **7**, press **Check now**: it fires ("congestion 10.0/10").
-- **Model Monitor (BPI):** status "Stable" (error ratio 1.09, return PSI 0.22).
+- **Voyage Economics → Carbon:** Panamax, 6,000 nm, 12 kn: **3,742 t CO₂**, rating **C** for 2026; 10 kn improves it to **A**, 13 kn drops it to **E**.
+- **Voyage Economics → INR/USD hedge:** ₹95.55 per dollar (Federal Reserve); above a 25% hedge it warns that SAIL's annual report caps hedging at 25%.
+- **Fixture Ledger:** hash-chained. As **Finance**: "Chain verified: 6 entries intact". The benchmark compares each fixture with the USDA ocean rate in its month.
+- **Alerts:** create a *route risk* rule (Australia to Haldia, threshold 6) and press **Check now**.
+- **Model Monitor** (on daily Brent crude, a fuel proxy): frozen ARIMA against newer data; on the build date it flags **drift** (error ratio 1.46, PSI 0.44), which is what the monitor is for.
 - **Board Pack:** prints a one-page briefing limited to what the role may see.
 
 ---
 
 ## 10. Quick answers to likely questions
 
-- **Is the data live?** Real history replayed. The Baltic freight indices end in **July 2019** (the live feed is paid); the Live Desk's minute ticks are **simulated** and labelled so.
+- **Is the data live?** Real public data replayed; monthly series lag by weeks. There is no free live freight index. The Live Desk's minute ticks are **simulated** and labelled so.
 - **Are costs real quotes?** No, illustrative distance-based estimates.
-- **Where is the Baltic Dry Index?** Removed: no freely licensed daily source exists.
-- **Does the chatbot use ChatGPT?** No. A local model chooses an engine; nothing leaves the deployment.
+- **Where are the Baltic indices?** Removed: a proprietary index. We use only public-domain data, so the freight signal is the USDA grain ocean rate.
+- **Where does ship availability come from?** From the position lists your brokers send, uploaded by users. There is no free licence-clean source of named ships.
+- **Does the chatbot use ChatGPT?** No. A local model with Hugging Face sentence embeddings chooses an engine; nothing leaves the deployment.
 - **Can someone give themselves admin?** No. New accounts are Viewers; only an administrator assigns roles.
-- **Why is the deep-learning result "not significant"?** About 2,500 daily points is little for neural networks; the report says so instead of claiming a win.
+- **Why is the deep-learning result "not significant"?** About 300 monthly points is too few for a neural network, and the series is close to a random walk.
 
 ---
 
-## 11. The verdict (added): one answer for people who will not read the charts
+## 11. The verdict: one answer for people who will not read the charts
 
-Sign in as **Finance & Treasury** or **Procurement Manager**, open **The Verdict**. It reads live signals (ship supply at Newcastle, port traffic, rupee, coal price), so the call can change from day to day; these are the results on the build date, and the structure is what to point out.
+Sign in as **Finance & Treasury** or **Procurement Manager**, open **The Verdict**. It reads current public data and any broker lists, so the call can change day to day; these are the results on the build date with no broker list uploaded.
 
 | Set | You will see |
 |---|---|
-| Paradip, 60,000 t, needed within 20 days | **RENT NOW**: Panamax from Mozambique at 12 knots, about 15 days, ₹5.16 crore; confidence Low (only time pressure votes strongly) |
-| Paradip, 60,000 t, needed within 45 days | **WAIT AND RECHECK** (recheck in five days) with the ship it would take today |
+| Paradip, 60,000 t, needed within 20 days | **RENT NOW** (High): Panamax from Mozambique at 12 knots, about 15 days, ₹5.16 crore |
+| Paradip, 60,000 t, needed within 45 days | **RENT WITHIN A WEEK**: the same ship, ₹4.47 crore |
 | Haldia, 60,000 t, needed within 12 days | **CANNOT MEET THE DATE SAFELY**: fastest Panamax is about 17 days |
 | Paradip, 150,000 t, needed within 40 days | **SPLIT INTO TWO PARCELS**: no single ship can carry it into Paradip |
 
-Say: "Every bar is a reason. The desk shows what would flip the call. It is rule-based decision support, not a black box, and it tells you when it is not sure." Ask the desk in words: "Should we rent a ship now or wait for Paradip?"
+Say: "Every bar is a reason. It is rule-based decision support, not a black box." Under it: the track record of the momentum signal (borderline in USDA rates, none in Brent). Ask in words: "Should we rent a ship now or wait for Paradip?"
 
-## 12. "Are the models real?": the proof page
+## 12. Open tonnage: ship availability
 
-Call `GET /lab/proof/BPI` (or add the page): it refits ARIMA and XGBoost live on ten walk-forward origins (about two seconds for twenty fits) and lists the deep-model weight files with SHA-256 fingerprints. Say: "Forecast pages are quick because results are cached for six hours and the deep networks were trained offline; this proves the work is real. The honest result is that the models beat a naive forecast only modestly, and the deep ensemble is not significantly better than ARIMA."
+Open **Open Tonnage**, press **Load a sample list** (ten invented ships, clearly labelled), then set Paradip, 60,000 t, 30 days: **5 of 10** listed ships could carry it in time; the others fail for stated reasons (too small, too big, arrives after the deadline). Then **Upload broker list** with a real CSV or Excel file. The Verdict and the Urgent Desk read the same lists. Say: "No free source of named ships is licence-clean, so we use what your brokers already send you." Lists older than a week are flagged.
 
 ## 13. Sourcing optimiser (Procurement or Finance)
 
-Open **Sourcing Optimiser**. It solves the month's allocation of 1,400 kt of coking coal to five plants (Bhilai, Bokaro, Rourkela, Durgapur, IISCO) through five ports and four origins. On the build date and the assumed inputs: about **₹361 crore a month**, **₹11 crore (3%) cheaper** than keeping the current origin mix, about ₹132 crore a year. Point at the "What each limit costs you" table: the Mozambique cap is worth about ₹20 lakh per extra kt a month, Australia's cap about ₹16 lakh. Say: "Every input is an assumption on screen; replace them with SAIL's and the plan updates. It optimises logistics, not coal quality."
+Open **Sourcing Optimiser**: 1,400 kt a month to five plants through five ports and four origins. About **₹361 crore a month**, **3% (₹11 crore) cheaper** than the fixed current mix, about ₹132 crore a year. The "What each limit costs you" table shows shadow prices (Mozambique's cap is worth about ₹20 lakh per extra kt a month). Every input is an assumption on screen.
 
-## 14. Weather window (any role with ports)
+## 14. Annual programme (Finance)
 
-Open **Weather Window**, choose Paradip: seven coloured days from a live forecast. As **Port Officer, Haldia** the list is limited to Haldia. Say: "Thresholds are planning values, not the port's rules, and river berths have no open-water wave data."
-
-## 15. Verdict evidence
-
-Under every verdict: "momentum has a borderline record in 30 years of USDA rates and none in Baltic Panamax 2012 to 2019, so it carries a small weight." Point at it when someone asks why the desk does not just follow the trend.
-
+`POST /finance/programme`: 24 parcels a year cost **₹239 crore**; hold **₹297 crore** for a 95% budget (range ₹189 to ₹297 crore); moving half the Australian Paradip parcels to Mozambique saves about ₹15 crore (cost only).

@@ -19,10 +19,10 @@ def _run_once() -> int:
     try:
         # Scheduled retraining: refit when drift is flagged and no run happened in the last 24 hours.
         try:
-            if monitor.drift_report(db, "BPI")["status"] == "drift":
-                last = db.query(ModelRun).filter(ModelRun.index_name == "BPI").order_by(ModelRun.id.desc()).first()
+            if monitor.drift_report(db, "BRENT")["status"] == "drift":
+                last = db.query(ModelRun).filter(ModelRun.index_name == "BRENT").order_by(ModelRun.id.desc()).first()
                 if last is None or last.trained_at < datetime.utcnow() - timedelta(hours=24):
-                    monitor.retrain(db, "BPI", "scheduled")
+                    monitor.retrain(db, "BRENT", "scheduled")
         except Exception:
             log.exception("scheduled retraining failed")
         return len(alerts.evaluate(db))
@@ -47,9 +47,8 @@ def _prewarm_once() -> None:
 
     db = SessionLocal()
     try:
-        forecast_api.get_forecast("BPI", 14, db)
-        tools.forecast_multi("BPI", db)
-        tools.transfer(db)
+        forecast_api.get_forecast("OCEAN_GULF_JAPAN", 3, db)
+        tools.forecast_multi("OCEAN_GULF_JAPAN", db)
         from app.ml import intent
 
         intent.classify("warm up")  # builds the intent models, including the embedding model if available

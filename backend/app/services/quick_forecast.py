@@ -8,7 +8,7 @@ import pandas as pd
 from sqlalchemy.orm import Session
 from statsmodels.tsa.arima.model import ARIMA
 
-from app.services.freight_data import load_series
+from app.services.freight_data import is_monthly, load_series
 
 _cache: dict[tuple[str, str, int], "QuickForecast"] = {}
 
@@ -27,12 +27,13 @@ class QuickForecast:
 
 def quick_forecast(db: Session, index_name: str, horizon: int) -> QuickForecast | None:
     series = load_series(db, index_name)
-    if series.empty or len(series) < 200:
+    monthly = is_monthly(series)
+    if series.empty or len(series) < (60 if monthly else 200):
         return None
     key = (index_name, str(series.index[-1].date()), horizon)
     if key in _cache:
         return _cache[key]
-    s = series.iloc[-800:]
+    s = series.iloc[-(240 if monthly else 800):]
     fit = ARIMA(s, order=(2, 1, 2)).fit()
     res = fit.get_forecast(horizon)
     mean = float(res.predicted_mean.iloc[-1])

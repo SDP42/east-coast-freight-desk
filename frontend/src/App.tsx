@@ -14,10 +14,9 @@ import ModelLab from "./pages/ModelLab";
 import LiveDesk from "./pages/LiveDesk";
 import UrgentDesk from "./pages/UrgentDesk";
 import Optimiser from "./pages/Optimiser";
-import WeatherWindow from "./pages/WeatherWindow";
 import Verdict from "./pages/Verdict";
 import MarketPulse from "./pages/MarketPulse";
-import ShipSupply from "./pages/ShipSupply";
+import Tonnage from "./pages/Tonnage";
 import Laytime from "./pages/Laytime";
 import DataHealth from "./pages/DataHealth";
 import WhatIf from "./pages/WhatIf";
@@ -72,10 +71,9 @@ export default function App() {
         <Route path="urgent" element={<UrgentDesk />} />
         <Route path="whatif" element={<WhatIf />} />
         <Route path="optimiser" element={<Optimiser />} />
-        <Route path="weather" element={<WeatherWindow />} />
         <Route path="verdict" element={<Verdict />} />
         <Route path="pulse" element={<MarketPulse />} />
-        <Route path="supply" element={<ShipSupply />} />
+        <Route path="tonnage" element={<Tonnage />} />
         <Route path="laytime" element={<Laytime />} />
         <Route path="datahealth" element={<DataHealth />} />
       </Route>

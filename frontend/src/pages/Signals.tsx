@@ -1,120 +1,13 @@
 import { useEffect, useState } from "react";
-import Loading from "../components/Loading";
 import { px } from "../lib/scale";
-import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
-import { ArrowRight } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import SpotlightCard from "../components/SpotlightCard";
 import { Field, Note, PageHeader, Stat, Tabs, btnCls, errText, inputCls } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
-type Tab = "slots" | "transfer" | "cyclone" | "demand" | "lightering" | "timing";
-const SLOT_COLOR: Record<string, string> = { open: "#059669", moderate: "#d97706", tight: "#dc2626" };
-const ALL_SLOT_PORTS = ["Paradip", "Visakhapatnam", "Haldia", "Dhamra", "Gopalpur"];
+type Tab = "cyclone" | "demand" | "lightering" | "timing";
 const ALL_CYCLONE_PORTS = ["Paradip", "Visakhapatnam", "Gangavaram", "Dhamra", "Gopalpur", "Haldia", "Sagar / Sandheads"];
-
-interface Slots {
-  port: string; data_through: string; reference_calls_per_day_p90: number; open_days: string[]; method: string;
-  days: { date: string; expected_calls_per_day: number; pressure: number; slot: string }[];
-  backtest: { windows: number; chosen_model: string; mae_calls_per_day: number; naive_mae: number; skill_vs_naive_pct: number | null; mae_by_model: Record<string, number> };
-}
-function SlotsTool() {
-  const { user } = useAuth();
-  const PORTS = ALL_SLOT_PORTS.filter((p) => !user?.port_scope || user.port_scope.includes(p));
-  const [port, setPort] = useState(PORTS[0] ?? "Paradip");
-  const [res, setRes] = useState<Slots | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  async function run(p: string) {
-    setBusy(true); setErr("");
-    try { setRes((await api.get<Slots>("/signals/berth-slots", { params: { port: p } })).data); } catch (e) { setErr(errText(e)); } finally { setBusy(false); }
-  }
-  useEffect(() => { run(port); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  return (
-    <SpotlightCard>
-      <div className="p-6">
-        <h2 className="text-sm font-semibold text-strong">Berth slot pressure, next 14 days</h2>
-        <p className="mt-1 text-xs text-muted">Forecast dry-bulk traffic against the port's own busy level. Green days are when arriving ships are least likely to queue.</p>
-        <div className="mt-4 flex flex-wrap items-end gap-3">
-          <Field label="Port"><select className={inputCls} value={port} onChange={(e) => { setPort(e.target.value); run(e.target.value); }}>{PORTS.map((p) => <option key={p}>{p}</option>)}</select></Field>
-          {busy && <span className="pb-2"><Loading label="Backtesting models" pattern="pulse" grid={4} timer={false} /></span>}
-        </div>
-        {err && <p className="mt-3 text-xs text-down">{err}</p>}
-        {res && (
-          <div className="mt-5 space-y-4">
-            <div className="h-56">
-              <ResponsiveContainer>
-                <BarChart data={res.days}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
-                  <XAxis dataKey="date" tickFormatter={(d) => d.slice(5)} tick={{ fontSize: px(10), fill: "#64748b" }} />
-                  <YAxis tick={{ fontSize: px(11), fill: "#64748b" }} width={px(36)} domain={[0, 1.3]} />
-                  <ReferenceLine y={1} stroke="#94a3b8" strokeDasharray="4 4" label={{ value: "busy level", fontSize: px(10), fill: "#64748b", position: "insideTopRight" }} />
-                  <Tooltip formatter={(v) => [`${(Number(v) * 100).toFixed(0)}% of busy level`, "Pressure"]} />
-                  <Bar dataKey="pressure" radius={[5, 5, 0, 0]} isAnimationActive={false}>{res.days.map((d) => <Cell key={d.date} fill={SLOT_COLOR[d.slot]} />)}</Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Stat label="Open days" value={res.open_days.length} tone={res.open_days.length ? "up" : "warn"} />
-              <Stat label="Data through" value={res.data_through} />
-              <Stat label="Chosen model" value={<span className="text-sm">{res.backtest.chosen_model}</span>} />
-              <Stat label="Skill vs naive" value={res.backtest.skill_vs_naive_pct === null ? "n/a" : `${res.backtest.skill_vs_naive_pct}%`} tone={(res.backtest.skill_vs_naive_pct ?? 0) > 0 ? "up" : "warn"} />
-            </div>
-            <Note>{res.method} Backtest ({res.backtest.windows} windows) mean absolute error in calls/day: {Object.entries(res.backtest.mae_by_model).map(([k, v]) => `${k} ${v}`).join(", ")}. Gains over the naive forecast are small, so use this as a pressure indicator, not a schedule.</Note>
-          </div>
-        )}
-      </div>
-    </SpotlightCard>
-  );
-}
-
-interface Transfer {
-  significant_pairs: { from_port: string; to_port: string; lag_days: number; p_adjusted: number }[]; method: string; data_through: string;
-  status: { port: string; recent_calls_per_day: number; baseline: number; z: number }[];
-  signal: { hot_port: string; text: string; consider: string | null } | null;
-}
-function TransferTool() {
-  const [res, setRes] = useState<Transfer | null>(null);
-  useEffect(() => { api.get<Transfer>("/signals/transfer").then((r) => setRes(r.data)); }, []);
-  if (!res) return <Loading label="Computing cross-port relationships" block />;
-  return (
-    <SpotlightCard>
-      <div className="space-y-5 p-6">
-        <div>
-          <h2 className="text-sm font-semibold text-strong">Cross-port congestion transfer</h2>
-          <p className="mt-1 text-xs text-muted">When traffic surges at one port, which others tend to follow, and how many days later? Ships diverted from a crowded port land elsewhere.</p>
-        </div>
-        {res.signal ? <Note kind="warn"><b>Rerouting signal.</b> {res.signal.text}</Note> : <Note>No port is unusually busy right now (all within 1 standard deviation of normal).</Note>}
-        <div className="h-52">
-          <ResponsiveContainer>
-            <BarChart data={res.status}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
-              <XAxis dataKey="port" tick={{ fontSize: px(11), fill: "#334e68" }} />
-              <YAxis tick={{ fontSize: px(11), fill: "#64748b" }} width={px(36)} />
-              <ReferenceLine y={0} stroke="#94a3b8" />
-              <Tooltip formatter={(v) => [`${Number(v).toFixed(2)} σ`, "vs normal"]} />
-              <Bar isAnimationActive={false} dataKey="z" radius={[5, 5, 0, 0]}>{res.status.map((s) => <Cell key={s.port} fill={s.z > 1 ? "#dc2626" : s.z > 0.5 ? "#d97706" : "#059669"} />)}</Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">Statistically significant leads</h3>
-          {res.significant_pairs.length === 0 ? <p className="mt-2 text-sm text-muted">None survive the multiple-testing correction.</p> : (
-            <ul className="mt-2 space-y-2">
-              {res.significant_pairs.map((p) => (
-                <li key={p.from_port + p.to_port} className="flex items-center gap-2 text-sm text-body">
-                  <b className="text-strong">{p.from_port}</b> <ArrowRight className="h-3.5 w-3.5 text-cyan" /> <b className="text-strong">{p.to_port}</b>
-                  <span className="text-muted">after about {p.lag_days} days (adjusted p = {p.p_adjusted.toFixed(3)})</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <Note>{res.method} Data through {res.data_through}.</Note>
-      </div>
-    </SpotlightCard>
-  );
-}
 
 interface Cyclone {
   port: string; arrival_window_start: string; arrival_window_end: string; probability_storm_in_window: number; expected_storm_days: number; expected_delay_days: number;
@@ -223,7 +116,7 @@ function DemandTool() {
 
 
 interface Lightering {
-  regression: { slope_t_per_m: number; intercept: number; r2: number; n: number; residual_sd_t: number }; points: { draft: number; tonnes: number }[];
+  regression: null; points: { draft: number; tonnes: number }[];
   draft_ceiling_m: number; max_cargo_at_ceiling_t: number; regression_cargo_at_ceiling_t: number; fit_quality: string; cargo_tonnes: number; tonnes_to_lighten: number;
   barge_trips: number; lightering_days: number; parcels_of_median_size: number; median_parcel_t: number; assumptions: { barge_capacity_t: number; barge_cycle_days: number }; method: string;
 }
@@ -237,32 +130,19 @@ function LighteringTool() {
       <div className="space-y-5 p-6">
         <div>
           <h2 className="text-sm font-semibold text-strong">Haldia lightering planner</h2>
-          <p className="mt-1 text-xs text-muted">Big ships cannot sail the Hooghly fully laden. Drag the cargo to see how much is lightened at Sagar, and compare with what Haldia's coal vessels really carry.</p>
+          <p className="mt-1 text-xs text-muted">Big ships cannot sail the Hooghly fully laden. Drag the cargo to see how much is lightened at Sagar. The 35,000 t ceiling is an assumption; replace it with SAIL's figure.</p>
         </div>
         <Field label={`Cargo on the mother vessel: ${cargo.toLocaleString()} t`}><input type="range" min={40000} max={250000} step={5000} value={cargo} onChange={(e) => setCargo(Number(e.target.value))} className="mt-2 w-full accent-cyan" /></Field>
         {err && <p className="text-xs text-down">{err}</p>}
         {d && (
           <>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-              <Stat label="Practical Haldia ceiling" value={`${d.max_cargo_at_ceiling_t.toLocaleString()} t`} />
+              <Stat label="Assumed Haldia ceiling" value={`${d.max_cargo_at_ceiling_t.toLocaleString()} t`} />
               <Stat label="To lighten at Sagar" value={`${d.tonnes_to_lighten.toLocaleString()} t`} tone={d.tonnes_to_lighten > 0 ? "warn" : "up"} />
               <Stat label="Barge trips" value={d.barge_trips} /><Stat label="Lightering days" value={d.lightering_days} />
-              <Stat label="Parcels of median size" value={`${d.parcels_of_median_size} × ${d.median_parcel_t.toLocaleString()} t`} />
+              <Stat label="Parcels at the ceiling" value={`${d.parcels_of_median_size} × ${d.median_parcel_t.toLocaleString()} t`} />
             </div>
-            <div className="h-64">
-              <ResponsiveContainer>
-                <ScatterChart margin={{ left: 10, right: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#dbe4ee" />
-                  <XAxis type="number" dataKey="draft" name="Expected draft" unit=" m" domain={["dataMin - 0.1", "dataMax + 0.1"]} tick={{ fontSize: px(11), fill: "#64748b" }} />
-                  <YAxis type="number" dataKey="tonnes" name="Cargo" unit=" t" tick={{ fontSize: px(11), fill: "#64748b" }} width={px(56)} domain={[10000, 40000]} />
-                  <ZAxis range={[40, 40]} />
-                  <ReferenceLine y={d.max_cargo_at_ceiling_t} stroke="#dc2626" strokeDasharray="5 4" label={{ value: "practical ceiling", fontSize: px(10), fill: "#dc2626", position: "insideTopRight" }} />
-                  <Tooltip cursor={{ strokeDasharray: "3 3" }} />
-                  <Scatter data={d.points} fill="#0e7490" fillOpacity={0.6} isAnimationActive={false} />
-                </ScatterChart>
-              </ResponsiveContainer>
-            </div>
-            <Note kind={d.fit_quality === "weak" ? "warn" : "info"}>Fit of cargo on draft: R² = {d.regression.r2} ({d.fit_quality}) over {d.regression.n} vessels, {d.regression.slope_t_per_m.toLocaleString()} t per metre. {d.method}</Note>
+            <Note kind="warn">{d.method}</Note>
           </>
         )}
       </div>
@@ -312,13 +192,11 @@ function TimingCoach() {
 
 export default function Signals() {
   const { can, user } = useAuth();
-  const [tab, setTab] = useState<Tab>("slots");
+  const [tab, setTab] = useState<Tab>("cyclone");
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="Port signals" subtitle="Forward-looking signals for the East Coast ports, built from real port-call data, cyclone history and SAIL's own output." />
-      <Tabs<Tab> tabs={[{ key: "slots", label: "Berth slots" }, { key: "transfer", label: "Congestion transfer" }, { key: "cyclone", label: "Cyclone ETA risk" }, { key: "timing", label: "Timing coach" }, ...(!user?.port_scope || user.port_scope.includes("Haldia") ? [{ key: "lightering" as Tab, label: "Haldia lightering" }] : []), ...(can("demand:read") ? [{ key: "demand" as Tab, label: "Coal demand" }] : [])]} value={tab} onChange={setTab} />
-      {tab === "slots" && <SlotsTool />}
-      {tab === "transfer" && <TransferTool />}
+      <PageHeader title="Port signals" subtitle="Forward-looking signals for the East Coast ports, built from NOAA cyclone history and SAIL's own published output." />
+      <Tabs<Tab> tabs={[{ key: "cyclone", label: "Cyclone ETA risk" }, { key: "timing", label: "Timing coach" }, ...(!user?.port_scope || user.port_scope.includes("Haldia") ? [{ key: "lightering" as Tab, label: "Haldia lightering" }] : []), ...(can("demand:read") ? [{ key: "demand" as Tab, label: "Coal demand" }] : [])]} value={tab} onChange={setTab} />
       {tab === "cyclone" && <CycloneTool />}
       {tab === "demand" && <DemandTool />}
       {tab === "lightering" && <LighteringTool />}

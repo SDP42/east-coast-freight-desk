@@ -8,11 +8,10 @@ Each step says what to click and the one sentence to say.
    vessels we parsed from the port trust's daily reports, median cargo 33,000 tonnes."
 2. **Overview (30 s).** "The desk briefing is written from the live engines every time it opens, and states where the data ends."
 3. **Ask the Desk (60 s).** Click "How risky is Australia to Haldia?", then type "Should we use a COA or stay spot?".
-   "A local intent model, 75% accurate on held-out questions, routes each question to the same engines the dashboard uses.
+   "A local intent model, 87% accurate on held-out questions, routes each question to the same engines the dashboard uses.
    Nothing is sent to an outside service."
-4. **Freight Forecast (60 s).** Open the Panamax index (BPI), 14 days, click Run ensemble. "ARIMA is off by about 4% to 7% over a week on
-   seven years of real daily data, and the blended model is significantly better than ARIMA here (p = 0.002), but not on every series." Point at the
-   per-split table and the widening bands under Multi-horizon.
+4. **Freight Forecast (60 s).** Open the USDA ocean rate, 3 months, click Run ensemble. "The rate is close to a random walk: the blend is borderline against ARIMA (p = 0.053)
+   and no model reliably beats no-change. We show that instead of hiding it." Point at the per-split table and the widening bands under Multi-horizon.
 5. **Chartering Recommendation (45 s).** Rank origins, then the trade-off card. "Cost, time and risk together; Pareto-optimal
    origins are marked. It also refuses a vessel that will not fit the berth."
 6. **Port Signals (45 s).** Cyclone tab for Haldia in October to November; Congestion transfer. "Storm exposure comes
@@ -24,7 +23,7 @@ Each step says what to click and the one sentence to say.
    retrains on drift."
 
 Questions to expect and honest answers:
-- *Is the price feed live?* No. Real history replayed; the Baltic freight indices end July 2019 because the live feed is paid, and the pages say so.
+- *Is the price feed live?* No. Real public-domain history, current to 2026, replayed; there is no free live freight index, and the pages say so.
 - *Are the costs real quotes?* No. They are labelled illustrative distance-based estimates.
 - *Where are the real fixtures?* None are public; the ledger takes your own entries.
 - *Why is the demand estimate rough?* It rests on two annual data points.

@@ -4,7 +4,7 @@ import pytest
 
 from app.db.session import SessionLocal
 from app.models import Port
-from app.services import insights, supply, verdict
+from app.services import insights, verdict
 
 
 @pytest.fixture(scope="module")
@@ -14,11 +14,6 @@ def db():
         pytest.skip("database not seeded")
     yield s
     s.close()
-
-
-@pytest.fixture(autouse=True)
-def offline_supply(monkeypatch):
-    monkeypatch.setattr(supply, "movements", lambda force=False: {"rows": [], "fetched_at": 0.0, "error": "offline", "stale": True})
 
 
 VALID = {"RENT NOW", "RENT WITHIN A WEEK", "WAIT AND RECHECK", "CANNOT MEET THE DATE SAFELY", "SPLIT INTO TWO PARCELS"}
@@ -65,14 +60,11 @@ def test_admin_analytics_shape(db):
     assert {"events", "denied", "by_role", "top_refusals"} <= set(a)
 
 
-def test_current_models_report_negative_results_honestly(db):
+def test_current_models_report_results_honestly(db):
     from app.services import current
     c = current.current_models(db)
-    assert c["data_through"] >= "2026-01-01" and c["verdicts"]
-    # Capesize skill is below the 0.5 bar, so no figures may be shown for it.
-    assert c["baltic_nowcast"]["Capesize"]["reliable"] is False and c["baltic_nowcast"]["Capesize"]["series"] == []
-    assert c["baltic_nowcast"]["Supramax"]["reliable"] is True and c["baltic_nowcast"]["Supramax"]["series"]
-    assert "ESTIMATES" in c["caveat"]
+    assert c["data_through"] >= "2026-01-01" and c["verdicts"] and "random walk" in c["caveat"]
+    assert all(h["models"]["naive"]["mae_usd_per_t"] > 0 for h in c["forecast_tests"])
 
 
 def test_verdict_uses_the_current_freight_signal(db):

@@ -94,20 +94,25 @@ def forecast_recursive(fit_result: XgbFitResult, target: pd.Series, exogenous: d
             row = row.ffill(axis=0).fillna(0)
         pred = float(fit_result.model.predict(row)[0])
         predictions.append(pred)
-        next_date = extended.index[-1] + pd.Timedelta(days=1)
+        from app.services.freight_data import step_offset
+
+        next_date = extended.index[-1] + step_offset(target)
         extended.loc[next_date] = pred
 
     return np.array(predictions)
 
 
 def compute_shap_values(fit_result: XgbFitResult, top_n: int = 8) -> list[dict]:
-    """Returns the top-N features by mean absolute SHAP value — the same
-    explainability technique Kim, Kim & Choi (2025) used to find S&P 500 was
-    the strongest BDI predictor. Feature #4 in FEATURES.md."""
-    explainer = shap.TreeExplainer(fit_result.model)
+    """Top-N features by mean absolute SHAP value (explainability). Uses the shap library; if it cannot read the installed
+    XGBoost version, falls back to XGBoost's own exact tree-SHAP contributions, which are the same quantity."""
     X = fit_result.train_frame[fit_result.feature_names]
-    shap_values = explainer.shap_values(X)
+    try:
+        shap_values = shap.TreeExplainer(fit_result.model).shap_values(X)
+    except Exception:  # noqa: BLE001 - shap and xgboost version mismatch
+        import xgboost as xgb
 
+        contribs = fit_result.model.get_booster().predict(xgb.DMatrix(X), pred_contribs=True)
+        shap_values = contribs[:, :-1]  # the last column is the bias term
     mean_abs = np.abs(shap_values).mean(axis=0)
     ranked = sorted(zip(fit_result.feature_names, mean_abs), key=lambda t: -t[1])[:top_n]
     return [{"feature": name, "mean_abs_shap": round(float(val), 4)} for name, val in ranked]

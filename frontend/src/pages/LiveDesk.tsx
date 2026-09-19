@@ -35,7 +35,7 @@ export default function LiveDesk() {
   const [state, setState] = useState<Record<string, State>>({});
   const [running, setRunning] = useState(true);
   const [rate, setRate] = useState(4);
-  const [sel, setSel] = useState("BPI");
+  const [sel, setSel] = useState("BRENT");
   const seedsRef = useRef<Seed[]>([]);
   const tape = useRef<{ key: string; price: number; t: string; up: boolean }[]>([]);
 
@@ -130,7 +130,7 @@ export default function LiveDesk() {
           </div>
         </SpotlightCard>
       </div>
-      <div className="mt-4"><Note kind="warn">{note} The freight indices' last real closes are from July 2019; coal, INR, S&P 500 and the dollar index use their most recent real closes. To connect real minute data for oil, currency or equities, a provider and key would be added behind the same page.</Note></div>
+      <div className="mt-4"><Note kind="warn">{note} Brent, the rupee, the Australian dollar, the rand and the dollar index use their most recent real closes from the Federal Reserve and US EIA. Real minute data would need a provider and key, which this prototype deliberately does not use.</Note></div>
     </div>
   );
 }

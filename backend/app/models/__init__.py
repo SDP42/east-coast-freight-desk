@@ -6,7 +6,7 @@ from app.models.disruption import DisruptionEvent
 from app.models.extras import AlertEvent, AlertRule, CycloneExposure, LedgerEntry, ModelRun
 from app.models.fixture import Fixture
 from app.models.freight import FreightRate
-from app.models.market_activity import ChokepointTransit, HaldiaCoalCall, PortActivity
+from app.models.tonnage import OpenTonnage
 from app.models.port import Berth, Port
 from app.models.route import Route
 from app.models.trade import TradeVolume
@@ -20,12 +20,10 @@ __all__ = [
     "CycloneExposure",
     "LedgerEntry",
     "ModelRun",
-    "ChokepointTransit",
-    "PortActivity",
+    "OpenTonnage",
     "DisruptionEvent",
     "Fixture",
     "FreightRate",
-    "HaldiaCoalCall",
     "Berth",
     "Port",
     "Route",

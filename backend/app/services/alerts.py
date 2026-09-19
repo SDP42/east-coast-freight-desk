@@ -44,17 +44,17 @@ def validate_webhook_url(url: str) -> str:
 def _check(db: Session, r: AlertRule) -> str | None:
     t = float(r.threshold)
     if r.kind == "index_move_pct":
-        s = load_series(db, r.param_a or "BPI")
+        s = load_series(db, r.param_a or "OCEAN_GULF_JAPAN")
         if len(s) < 2:
             return None
         ch = (float(s.iloc[-1]) / float(s.iloc[-2]) - 1) * 100
-        return f"{r.param_a or 'BPI'} moved {ch:+.1f}% on {s.index[-1].date()}" if abs(ch) >= t else None
+        return f"{r.param_a or 'OCEAN_GULF_JAPAN'} moved {ch:+.1f}% on {s.index[-1].date()}" if abs(ch) >= t else None
     if r.kind == "forecast_change_pct":
-        f = quick_forecast(db, r.param_a or "BPI", int(r.param_b or 14))
+        f = quick_forecast(db, r.param_a or "OCEAN_GULF_JAPAN", int(r.param_b or 3))
         if f is None:
             return None
         hit = f.change_pct >= t if t >= 0 else f.change_pct <= t
-        return (f"{f.index_name} forecast {f.change_pct:+.1f}% over {f.horizon} days ({f.last_value:,.0f} to {f.forecast_end:,.0f})"
+        return (f"{f.index_name} forecast {f.change_pct:+.1f}% over {f.horizon} step(s) ({f.last_value:,.0f} to {f.forecast_end:,.0f})"
                 + (" - a possible buying window" if f.change_pct < 0 else "")) if hit else None
     if r.kind == "port_congestion":
         port = db.query(Port).filter(Port.name == r.param_a).first()
@@ -69,7 +69,7 @@ def _check(db: Session, r: AlertRule) -> str | None:
         rr = compute_route_risk(db, r.param_a or "Australia", port)
         return f"{r.param_a} to {port.name} risk {rr.composite_score:.1f}/10 ({rr.risk_label})" if rr.composite_score >= t else None
     if r.kind == "model_drift":
-        rep = monitor.drift_report(db, r.param_a or "BPI")
+        rep = monitor.drift_report(db, r.param_a or "BRENT")
         return f"{rep['index_name']} model drift: error ratio {rep['error_ratio']}, return PSI {rep['return_psi']}" if rep["status"] == "drift" else None
     if r.kind == "cyclone_probability":
         res = signals.cyclone_eta_risk(db, r.param_a or "Paradip", date.today(), date.today() + timedelta(days=30))

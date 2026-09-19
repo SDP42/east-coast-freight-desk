@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import Loading from "../components/Loading";
-import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { Globe2 } from "lucide-react";
 import SpotlightCard from "../components/SpotlightCard";
 import { Note, PageHeader } from "../components/ui";
@@ -20,7 +19,7 @@ export default function TradeGlobe() {
   const cur = data?.chokepoints.find((c) => c.name === sel);
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader title="Trade globe" subtitle="Where the coal sails and where the chokepoints are running hot or cold. Drag to rotate, scroll to zoom, click a marker for its traffic." />
+      <PageHeader title="Trade globe" subtitle="Where the coal sails and the chokepoints it passes. Drag to rotate, scroll to zoom, click a marker for its traffic." />
       <div className="grid gap-4 lg:grid-cols-3">
         <SpotlightCard className="lg:col-span-2">
           <div className="relative h-[34rem] bg-gradient-to-b from-sky-50 to-white">
@@ -28,7 +27,7 @@ export default function TradeGlobe() {
               <Suspense fallback={<div className="flex h-full items-center justify-center"><Loading label="Loading the globe" pattern="spiral" /></div>}>
                 <GlobeScene className="h-full" chokepoints={data.chokepoints} lanes={data.lanes} selected={sel} onSelect={setSel} />
               </Suspense>
-            ) : <div className="flex h-full items-center justify-center"><Loading label="Reading chokepoint traffic" pattern="ripple" /></div>}
+            ) : <div className="flex h-full items-center justify-center"><Loading label="Loading the lanes" pattern="ripple" /></div>}
             <div className="pointer-events-none absolute bottom-3 left-3 flex flex-wrap gap-x-3 gap-y-1 rounded-xl border border-border-soft bg-white/90 px-3 py-2 text-[10px] backdrop-blur">
               {Object.entries(COLORS).map(([k, c]) => <span key={k} className="flex items-center gap-1 text-body"><span className="h-1.5 w-3 rounded-full" style={{ background: c }} />{k}</span>)}
             </div>
@@ -40,18 +39,13 @@ export default function TradeGlobe() {
               <div className="p-5">
                 <p className="flex items-center gap-2 text-sm font-semibold text-strong"><Globe2 className="h-4 w-4 text-cyan" /> {cur.name}</p>
                 <p className="mt-1 text-xs text-muted">{cur.why}</p>
-                <div className="mt-3 flex items-end gap-4">
-                  <div><p className={`text-3xl font-bold ${tone(cur.ratio)}`}>{cur.ratio !== null ? `${Math.round(cur.ratio * 100)}%` : "n/a"}</p><p className="text-[11px] text-muted">of the pre-Oct-2023 level</p></div>
-                  <div className="text-xs text-body"><p>{cur.recent_per_day} dry-bulk ships/day now</p><p className="text-muted">{cur.baseline_per_day}/day before</p></div>
-                </div>
-                <div className="mt-3 h-16"><ResponsiveContainer><AreaChart data={cur.weekly.map((v, i) => ({ i, v }))}><Area dataKey="v" stroke="#0e7490" fill="#0e7490" fillOpacity={0.15} strokeWidth={1.5} isAnimationActive={false} /></AreaChart></ResponsiveContainer></div>
-                <p className="text-[10px] text-muted">Weekly mean, last 52 weeks, through {cur.through}</p>
+                <p className="mt-3 text-xs text-muted">Location and sea lane only. Live chokepoint traffic feeds carry licence conditions, so none is stored; the What-If Studio prices a Red Sea closure directly (+87% on Australia to Haldia).</p>
               </div>
             </SpotlightCard>
           )}
           <SpotlightCard>
             <div className="p-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Chokepoints, coldest first</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Chokepoints</p>
               <ul className="mt-2 space-y-1">
                 {data?.chokepoints.map((c) => (
                   <li key={c.name}><button onClick={() => setSel(c.name)} className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-sm transition hover:bg-panel-light ${c.name === sel ? "bg-panel-light" : ""}`}>

@@ -18,7 +18,7 @@ const SPEEDS = [1, 3, 8];
 /** Streams a real historical series onto the chart one observation at a time,
  * so price spikes and collapses play out visually. This is a replay of real
  * ingested data at accelerated speed, and the UI says so — it is not a live
- * market feed (Baltic Exchange rates are a paid subscription). A move counts as
+ * market feed (no free live freight feed exists). A move counts as
  * a spike/drop when its daily change is beyond 2 standard deviations of that
  * series' own daily changes. */
 export default function LiveChart({ indexName, label, height = 300, compact = false }: LiveChartProps) {

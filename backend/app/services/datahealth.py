@@ -5,19 +5,12 @@ from datetime import date
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models import AuditLog, ChokepointTransit, FreightRate, HaldiaCoalCall, LedgerEntry, PortActivity, User
+from app.models import AuditLog, CycloneExposure, FreightRate, LedgerEntry, OpenTonnage, User
 from app.services.explorer import META
 
-# Expected update rhythm in days, and a reason when a series has ended for good.
-# Monthly series publish about two months late, and FRED's daily series lag by about a week.
-RHYTHM = {"BCI": 1, "BPI": 1, "BSI": 1, "BHSI": 1, "COAL_AUS": 45, "COAL_ZA": 45, "IRON_ORE": 45, "DEEPSEA_PPI": 45, "OCEAN_GULF_JAPAN": 45, "OCEAN_PNW_JAPAN": 45,
-          "SP500": 7, "DXY": 7, "INR": 7, "AUD": 7, "ZAR": 7}
-ENDED = {
-    "BCI": "Mendeley research dataset ends July 2019; the live Baltic feed is a paid licence.",
-    "BPI": "Mendeley research dataset ends July 2019; the live Baltic feed is a paid licence.",
-    "BSI": "Mendeley research dataset ends July 2019; the live Baltic feed is a paid licence.",
-    "BHSI": "Mendeley research dataset ends July 2019; the live Baltic feed is a paid licence.",
-}
+# Expected update rhythm in days. Monthly US-government series publish a few weeks late; FRED's daily series lag by about a week.
+RHYTHM = {"OCEAN_GULF_JAPAN": 60, "OCEAN_PNW_JAPAN": 60, "DEEPSEA_PPI": 60, "COAL_PPI": 60, "BRENT": 7, "DXY": 7, "INR": 7, "AUD": 7, "ZAR": 7}
+ENDED: dict[str, str] = {}
 
 
 def data_health(db: Session) -> dict:
@@ -28,7 +21,7 @@ def data_health(db: Session) -> dict:
         .group_by(FreightRate.index_name).all()
     ):
         age = (today - latest).days
-        rhythm = RHYTHM.get(name, 31)
+        rhythm = RHYTHM.get(name, 60)
         status = "fresh" if age <= rhythm * 2 + 5 else ("ended" if name in ENDED else "stale")
         series.append({
             "series": name, "label": META.get(name, (name, ""))[0], "first": first.isoformat(), "latest": latest.isoformat(),
@@ -36,19 +29,14 @@ def data_health(db: Session) -> dict:
         })
     order = {"stale": 0, "ended": 1, "fresh": 2}
     series.sort(key=lambda s: (order[s["status"]], s["series"]))
-
-    def latest(model, col):
-        d = db.query(func.max(col)).scalar()
-        return d.isoformat() if d else None
-
+    tonnage_latest = db.query(func.max(OpenTonnage.uploaded_at)).scalar()
     feeds = [
-        {"feed": "IMF PortWatch port calls", "latest": latest(PortActivity, PortActivity.activity_date), "rows": db.query(PortActivity).count()},
-        {"feed": "IMF PortWatch chokepoints", "latest": latest(ChokepointTransit, ChokepointTransit.transit_date), "rows": db.query(ChokepointTransit).count()},
-        {"feed": "SMP Kolkata Haldia coal calls", "latest": latest(HaldiaCoalCall, HaldiaCoalCall.first_report_date), "rows": db.query(HaldiaCoalCall).count()},
+        {"feed": "NOAA IBTrACS cyclone exposure (by port and month)", "latest": None, "rows": db.query(CycloneExposure).count()},
+        {"feed": "Open tonnage lists uploaded by users", "latest": tonnage_latest.date().isoformat() if tonnage_latest else None, "rows": db.query(OpenTonnage).count()},
     ]
     return {
-        "as_of": today.isoformat(),
-        "series": series, "feeds": feeds,
+        "as_of": today.isoformat(), "series": series, "feeds": feeds,
         "counts": {"users": db.query(User).count(), "ledger_entries": db.query(LedgerEntry).count(), "audit_events": db.query(AuditLog).count()},
         "summary": {"fresh": sum(s["status"] == "fresh" for s in series), "ended": sum(s["status"] == "ended" for s in series), "stale": sum(s["status"] == "stale" for s in series)},
+        "policy": "Only public-domain data is used (US government and Federal Reserve series, NOAA, Natural Earth). No licensed or attribution-conditioned data is stored.",
     }

@@ -1,6 +1,7 @@
 """Open-tonnage endpoints: upload broker lists, list them, and match ships to a cargo."""
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -121,9 +122,7 @@ def save_rows(p: RowsIn, db: Session = Depends(get_db), user: User = Depends(req
     return {"added": added}
 
 
-@router.get("/template.csv")
-def template() -> "Response":
-    from fastapi.responses import PlainTextResponse
-
+@router.get("/template.csv", response_class=PlainTextResponse)
+def template() -> PlainTextResponse:
     body = "vessel_name,imo,dwt,loa_m,beam_m,draft_m,open_port,open_date,speed_knots,broker,notes\nMV Example,,82000,229,32.3,14.2,Hay Point,2026-10-01,12.5,Your broker,Example row\n"
     return PlainTextResponse(body, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=open_tonnage_template.csv"})

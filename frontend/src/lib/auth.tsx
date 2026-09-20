@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { onUnauthorized = null; };
   }, []);
 
-  const loadUser = useCallback(async () => {
+  const loadUser = useCallback(async (attempt = 0): Promise<void> => {
     if (!localStorage.getItem(TOKEN_KEY)) {
       setUser(null);
       setLoading(false);
@@ -86,11 +86,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data } = await api.get<User>("/auth/me");
       setUser(data);
-    } catch {
-      localStorage.removeItem(TOKEN_KEY);
-      setUser(null);
-    } finally {
       setLoading(false);
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401 || status === 403) {
+        // The token really is invalid: only then sign out.
+        localStorage.removeItem(TOKEN_KEY);
+        setUser(null);
+        setLoading(false);
+      } else if (attempt < 4) {
+        // Slow or sleeping server: keep the saved sign-in and try again shortly.
+        setTimeout(() => loadUser(attempt + 1), 3000);
+      } else {
+        setLoading(false);
+      }
     }
   }, []);
 

@@ -1,0 +1,17 @@
+# Keeps the free Render server awake, but only while you switch it on.
+# Off by default so it does not use up the free monthly hours (Render gives about 750 hours across your whole workspace).
+# To use it: GitHub -> Settings -> Secrets and variables -> Actions -> Variables tab:
+#   BACKEND_URL = https://your-service.onrender.com   (no trailing slash)
+#   KEEP_WARM   = true   (set to false or delete it when the judging window is over)
+name: keep-warm
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    if: ${{ vars.KEEP_WARM == 'true' && vars.BACKEND_URL != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the backend
+        run: curl -fsS --max-time 90 "${{ vars.BACKEND_URL }}/api/v1/healthz" || true

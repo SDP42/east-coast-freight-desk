@@ -53,7 +53,10 @@ export function errText(e: unknown): string {
   const d = (e as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof d === "string") return d;
   if (Array.isArray(d)) return String((d[0] as { msg?: string })?.msg ?? "Invalid input");
-  return "Request failed. Is the backend running?";
+  const err = e as { code?: string; response?: unknown };
+  if (err?.code === "ECONNABORTED") return "Still calculating on the free server. Please try again in a moment.";
+  if (!err?.response) return "The server is waking up (the free host sleeps when idle). Please retry in about 30 seconds.";
+  return "Request failed. Please try again.";
 }
 
 export const tone = (label: string) => (/low|open|stable|A|B/.test(label) ? "up" : /high|tight|drift|D|E|severe/i.test(label) ? "down" : "warn") as "up" | "down" | "warn";

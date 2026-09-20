@@ -1,12 +1,37 @@
-import axios from "axios";
+import axios, { type InternalAxiosRequestConfig } from "axios";
+import { ensureAwake, markMaybeAsleep, noteOk } from "./wake";
 
 // In dev, Vite proxies /api to the local FastAPI backend (see vite.config.ts).
 // In production this should point at the deployed Render backend URL via an
 // env var (VITE_API_BASE_URL) — set that in Vercel's project settings.
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? "/api/v1",
-  timeout: 20_000,
+  timeout: 45_000,
 });
+
+// Wait for the (possibly sleeping) server before sending anything, then retry once or twice on transient failures.
+api.interceptors.request.use(async (config) => {
+  await ensureAwake();
+  return config;
+});
+type Retryable = InternalAxiosRequestConfig & { __retries?: number };
+api.interceptors.response.use(
+  (r) => { noteOk(); return r; },
+  async (err) => {
+    const cfg = err?.config as Retryable | undefined;
+    const status: number | undefined = err?.response?.status;
+    const timedOut = err?.code === "ECONNABORTED";
+    // 502/503/504 or no response at all mean the request was not processed; a timeout may have been, so only GETs are repeated.
+    const transient = !err?.response ? !timedOut || cfg?.method === "get" : [502, 503, 504].includes(status ?? 0);
+    if (cfg && transient && (cfg.__retries ?? 0) < 2) {
+      cfg.__retries = (cfg.__retries ?? 0) + 1;
+      markMaybeAsleep();
+      await ensureAwake();
+      return api(cfg);
+    }
+    return Promise.reject(err);
+  },
+);
 
 export interface HealthStatus {
   status: "ok" | "degraded";

@@ -132,8 +132,8 @@ Call it **the secret key**.
 | Branch | `main` |
 | Root Directory | `backend` |
 | Runtime / Language | `Python 3` |
-| Build Command | `pip install -r requirements.txt` |
-| Start Command | `alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Build Command | `pip install -r requirements.txt && alembic upgrade head` |
+| Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
 | Instance Type | **Free** |
 
 5. Scroll to **Environment Variables** and click **Add Environment Variable** for each row (Key on the left, Value on the right):
@@ -247,6 +247,7 @@ The market series come from free public sources. To update them, in a Terminal w
 | Render log says `could not connect to server` or `password authentication failed` | `DATABASE_URL` is wrong. Re-copy the Neon string (direct connection, `sslmode=require`), no extra spaces or quotes. |
 | Render log says `relation ... does not exist` | Step 3 was skipped or ran against the wrong database. Repeat Step 3 with the same Neon string. |
 | Render shows `Out of memory` and restarts | The ensemble forecast is heavy. Upgrade the service to **Starter**, or avoid pressing "Run ensemble" repeatedly. |
+| The site shows "Waking the server…" for about 30 seconds | Normal on Render's free plan: the server sleeps after 15 idle minutes. The site waits and loads by itself. To avoid it during a demo, open the site a minute before, or switch on the optional keep-warm job (`.github/workflows/keep-warm.yml`, see its comments). Keeping it awake all month uses up Render's shared free hours, so switch it on only around judging. |
 | Render **Events** shows "HTTP health check failed (timed out after 5 seconds)" | The free server was busy with a heavy request. Set **Health Check Path** to `/api/v1/healthz` (Settings, then Health Checks). |
 | Pages show "Could not load ... is the backend running?" | Open your Render address plus `/api/v1/health`. If that fails the backend is down or asleep; check the Render **Logs**. |
 | Port Map is blank grey | Vercel did not deploy `frontend/public/geo/`. Check the folder exists in GitHub and redeploy. |

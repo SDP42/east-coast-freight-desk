@@ -7,6 +7,7 @@ does a single-cargo, multi-origin comparison this way — each treats
 forecasting and routing as separate problems.
 """
 
+import time
 from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
@@ -22,6 +23,36 @@ from app.services.freight_data import load_series
 # multipliers reflect real economies of scale in dry bulk shipping (larger
 # vessels are cheaper per tonne) — approximate, clearly labeled as such.
 BASE_RATE_USD_PER_TONNE_PER_1000NM = 2.5
+PRIMARY_INDEX = "OCEAN_GULF_JAPAN"
+MARKET_FACTOR_BOUNDS = (0.6, 1.6)
+MARKET_FACTOR_YEARS = 5
+_MF_CACHE: dict = {}
+
+
+def market_factor(db: Session, as_of=None) -> float:
+    """How the real freight market compares with its own five-year median, so the rule-of-thumb base rate moves with live data.
+
+    The $2.5 base rate is taken to be right when the USDA ocean rate sits at its five-year median; a rate 26% above the median
+    makes every estimate 26% dearer. Bounded to 0.6 to 1.6 so one odd month cannot swing a decision. Returns 1.0 without data."""
+    key = str(as_of)
+    hit = _MF_CACHE.get(key)
+    if hit and time.time() - hit[0] < 60:  # data changes at most a few times a day, so a minute is safe and keeps the 60-option desks fast
+        return hit[1]
+    s = load_series(db, PRIMARY_INDEX)
+    if as_of is not None:
+        s = s[s.index <= as_of]
+    out = 1.0
+    if len(s) >= 24:
+        med = float(s.iloc[-(12 * MARKET_FACTOR_YEARS + 1):-1].median())
+        if med > 0:
+            lo, hi = MARKET_FACTOR_BOUNDS
+            out = round(min(hi, max(lo, float(s.iloc[-1]) / med)), 3)
+    if len(_MF_CACHE) > 500:
+        _MF_CACHE.clear()
+    _MF_CACHE[key] = (time.time(), out)
+    return out
+
+
 VESSEL_CLASS_COST_MULTIPLIER = {
     "Capesize": 0.85,
     "Panamax": 1.00,
@@ -103,6 +134,7 @@ def compare_origins(
     if market_signal is None:
         market_signal = get_market_signal(db, VESSEL_CLASS_TO_INDEX.get(vessel_class.name, "OCEAN_GULF_JAPAN"))
     extra_distance_nm = extra_distance_nm or {}
+    mf = market_factor(db)
 
     results: list[OriginResult] = []
     for country in origin_countries:
@@ -132,12 +164,12 @@ def compare_origins(
             multiplier = VESSEL_CLASS_COST_MULTIPLIER.get(vessel_class.name, 1.0)
             distance = float(route.distance_nm) + extra_distance_nm.get(country, 0.0)
             cost_per_tonne = round(
-                BASE_RATE_USD_PER_TONNE_PER_1000NM * (distance / 1000) * multiplier, 2
+                BASE_RATE_USD_PER_TONNE_PER_1000NM * mf * (distance / 1000) * multiplier, 2
             )
             total_cost = round(cost_per_tonne * cargo_tonnes, 2)
             notes.append(
                 f"Illustrative cost estimate (not a live quote): ${BASE_RATE_USD_PER_TONNE_PER_1000NM}/t per "
-                f"1,000nm × {distance:.0f}nm × {vessel_class.name} multiplier {multiplier}."
+                f"1,000nm × {distance:.0f}nm × {vessel_class.name} multiplier {multiplier} × live market factor {mf} (USDA ocean rate against its five-year median)."
             )
         else:
             notes.append(f"No route data found for {country} → {destination_port.name}.")

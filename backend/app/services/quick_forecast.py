@@ -8,6 +8,7 @@ import pandas as pd
 from sqlalchemy.orm import Session
 from statsmodels.tsa.arima.model import ARIMA
 
+from app.ml.intervals import calibrated_halfwidth
 from app.services.freight_data import is_monthly, load_series
 
 _cache: dict[tuple[str, str, int], "QuickForecast"] = {}
@@ -23,6 +24,7 @@ class QuickForecast:
     change_pct: float
     lower: float
     upper: float
+    band_method: str = "ARIMA parametric band"
 
 
 def quick_forecast(db: Session, index_name: str, horizon: int) -> QuickForecast | None:
@@ -39,6 +41,10 @@ def quick_forecast(db: Session, index_name: str, horizon: int) -> QuickForecast 
     mean = float(res.predicted_mean.iloc[-1])
     ci = res.conf_int(alpha=0.05).iloc[-1]
     last = float(s.iloc[-1])
-    out = QuickForecast(index_name, str(pd.Timestamp(s.index[-1]).date()), last, horizon, mean, (mean - last) / last * 100, float(ci.iloc[0]), float(ci.iloc[1]))
+    lo, hi, method = float(ci.iloc[0]), float(ci.iloc[1]), "ARIMA parametric band"
+    hw = calibrated_halfwidth(series.to_numpy(), horizon) if monthly else None
+    if hw is not None:
+        lo, hi, method = mean - hw, mean + hw, "calibrated from the last five years of actual moves"
+    out = QuickForecast(index_name, str(pd.Timestamp(s.index[-1]).date()), last, horizon, mean, (mean - last) / last * 100, lo, hi, method)
     _cache[key] = out
     return out

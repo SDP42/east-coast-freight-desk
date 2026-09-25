@@ -111,7 +111,7 @@ def _forecast(db: Session, e: Entities, a: list[str], user=None) -> Answer:
     span = (f.upper - f.lower) / 2 / f.last_value * 100
     direction = "drift up" if f.change_pct > 1 else "drift down" if f.change_pct < -1 else "stay roughly flat"
     text = (f"ARIMA(2,1,2) has {INDEX_LABEL.get(idx, idx)} going from ${f.last_value:,.2f} ({f.last_date}) to about ${f.forecast_end:,.2f} in {h} month(s), "
-            f"a move of {_pct(f.change_pct)}: it should {direction}. The 95% band runs ${f.lower:,.2f} to ${f.upper:,.2f} (about ±{span:.0f}%). "
+            f"a move of {_pct(f.change_pct)}: it should {direction}. The 95% band ({f.band_method}) runs ${f.lower:,.2f} to ${f.upper:,.2f} (about ±{span:.0f}%). "
             "Tests show no model reliably beats assuming no change, so treat direction with caution.")
     return Answer("forecast", 0, [], {}, text,
                   [("Now", f"${f.last_value:,.2f}"), (f"In {h} mo", f"${f.forecast_end:,.2f}"), ("Change", _pct(f.change_pct)), ("95% band", f"${f.lower:,.0f}–${f.upper:,.0f}")],

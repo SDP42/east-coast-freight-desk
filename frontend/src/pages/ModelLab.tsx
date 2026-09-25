@@ -13,14 +13,17 @@ interface Cur {
   gulf_rate_forecast: { last_month: string; last_value: number; method: string; path: { month: string; forecast: number; low: number; high: number }[] };
   forecast_tests: Test[]; deep_learning: { gru_mae_usd_per_t: number; naive_mae_usd_per_t: number; p_vs_naive: number; origins: number; model: string; note: string } | null; verdicts: string[]; caveat: string;
 }
+interface Cal { origins: number; history_to: string; window_months: number; horizons: Record<string, { arima_95_coverage: number; arima_95_width: number; calibrated_95_coverage: number; calibrated_95_width: number; calibrated_80_coverage: number; calibrated_80_width: number }> }
 interface Proof { live_refit: { mae: Record<string, number>; timings_seconds: { total: number; models_fitted: number }; window: { from: string; to: string }; note: string }; artifacts: { file: string; bytes: number; sha256: string }[]; serving: { result: string; how: string; live: boolean }[] }
 
 export default function ModelLab() {
   const [c, setC] = useState<Cur | null>(null);
   const [proof, setProof] = useState<Proof | null>(null);
+  const [cal, setCal] = useState<Cal | null>(null);
   const [err, setErr] = useState("");
   useEffect(() => {
     api.get<Cur>("/lab/current").then((r) => setC(r.data)).catch((e) => setErr(errText(e)));
+    api.get<Cal>("/lab/interval-calibration").then((r) => setCal(r.data)).catch(() => undefined);
     api.get<Proof>("/lab/proof/OCEAN_GULF_JAPAN").then((r) => setProof(r.data)).catch(() => undefined);
   }, []);
   if (err) return <p className="text-sm text-muted">{err}</p>;
@@ -68,6 +71,17 @@ export default function ModelLab() {
 
       {c.deep_learning && <SpotlightCard><div className="p-6"><h2 className="text-sm font-semibold text-strong">Deep learning</h2><p className="mt-1 text-sm text-body">{c.deep_learning.model}: MAE ${c.deep_learning.gru_mae_usd_per_t}/t against ${c.deep_learning.naive_mae_usd_per_t}/t for no change over {c.deep_learning.origins} monthly forecasts (p = {c.deep_learning.p_vs_naive}). {c.deep_learning.note}</p></div></SpotlightCard>}
 
+      {cal && (
+        <SpotlightCard><div className="p-6">
+          <h2 className="text-sm font-semibold text-strong">Are the forecast bands honest?</h2>
+          <p className="mt-1 text-sm text-body">A 95% band should contain the real outcome 95 times in 100. We tested that on {cal.origins} past months (refitting each time). The model's own band is far too wide; the band shown in this app is calibrated from the last five years of actual moves and is about half as wide.</p>
+          <table className="mt-3 w-full text-left text-xs"><thead className="text-muted"><tr><th className="py-1">Ahead</th><th>Model band covers</th><th>Model band width</th><th>Calibrated 95% covers</th><th>Calibrated width</th><th>Calibrated 80% covers</th></tr></thead>
+            <tbody>{Object.entries(cal.horizons).map(([h, r]) => (
+              <tr key={h} className="border-t border-border-soft"><td className="py-1.5 font-medium text-strong">{h} month{h === "1" ? "" : "s"}</td><td>{(r.arima_95_coverage * 100).toFixed(0)}%</td><td>${r.arima_95_width}</td><td className="font-semibold text-up">{(r.calibrated_95_coverage * 100).toFixed(0)}%</td><td className="font-semibold text-up">${r.calibrated_95_width}</td><td>{(r.calibrated_80_coverage * 100).toFixed(0)}%</td></tr>
+            ))}</tbody></table>
+          <p className="mt-2 text-xs text-muted">Widths are in US$ per tonne. Coverage near the target with a narrower band is the goal; 100% coverage means the band is wider than it needs to be.</p>
+        </div></SpotlightCard>
+      )}
       {proof && (
         <SpotlightCard><div className="p-6">
           <h2 className="text-sm font-semibold text-strong">Proof the models are real</h2>

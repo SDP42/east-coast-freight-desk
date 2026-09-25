@@ -14,7 +14,7 @@ from app.models import Port, Route, VesselClass
 from app.services.compatibility import check_compatibility
 from app.services.financial import DEMURRAGE_RATE_USD_PER_DAY
 from app.services.freight_data import load_series
-from app.services.recommendation import BASE_RATE_USD_PER_TONNE_PER_1000NM, VESSEL_CLASS_COST_MULTIPLIER
+from app.services.recommendation import BASE_RATE_USD_PER_TONNE_PER_1000NM, VESSEL_CLASS_COST_MULTIPLIER, market_factor
 from app.services.signals import cyclone_eta_risk
 from app.services import lab as lab_service
 
@@ -91,7 +91,8 @@ def landed_cost(db: Session, lv: Levers) -> Outcome:
     spot = _inr_spot(db)
 
     distance = float(route.distance_nm) + lv.reroute_nm
-    base_rate = BASE_RATE_USD_PER_TONNE_PER_1000NM * distance / 1000 * VESSEL_CLASS_COST_MULTIPLIER[lv.vessel_class]
+    mf = market_factor(db)
+    base_rate = BASE_RATE_USD_PER_TONNE_PER_1000NM * mf * distance / 1000 * VESSEL_CLASS_COST_MULTIPLIER[lv.vessel_class]
     rate = base_rate * (1 + lv.freight_shock_pct / 100)
     freight = rate * lv.cargo_tonnes
 
@@ -134,8 +135,8 @@ def what_if(db: Session, lv: Levers, base: Levers | None = None) -> dict:
     return {"base": asdict(b), "scenario": asdict(s), "delta_usd": s.total_usd - b.total_usd, "delta_pct": round((s.total_inr_crore / b.total_inr_crore - 1) * 100, 1) if b.total_inr_crore else None,
             "delta_inr_crore": round(s.total_inr_crore - b.total_inr_crore, 3), "delta_days": round(s.total_days - b.total_days, 1),
             "breakdown": [{"part": p.replace("_usd", "").replace("_", " "), "base": getattr(b, p), "scenario": getattr(s, p)} for p in parts],
-            "assumptions": {"bunker_share_of_freight": BUNKER_SHARE_OF_FREIGHT, "lightering_usd_per_t": LIGHTERING_USD_PER_TONNE, "prep_days": PREP_DAYS, "base_speed_knots": BASE_SPEED_KNOTS},
-            "note": "Illustrative distance-based estimates, not quotes. Freight moves are applied to the route's illustrative rate; use them to compare scenarios, not to price a fixture."}
+            "assumptions": {"market_factor": market_factor(db), "bunker_share_of_freight": BUNKER_SHARE_OF_FREIGHT, "lightering_usd_per_t": LIGHTERING_USD_PER_TONNE, "prep_days": PREP_DAYS, "base_speed_knots": BASE_SPEED_KNOTS},
+            "note": f"Illustrative distance-based estimates scaled by the live market (live market factor {market_factor(db)}: the USDA ocean rate against its five-year median), not quotes. Freight moves are applied to the route's illustrative rate; use them to compare scenarios, not to price a fixture."}
 
 
 SENSITIVITY_STEPS = [

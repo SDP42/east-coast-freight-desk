@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.models import Port, Route
 from app.services.freight_data import load_series
-from app.services.recommendation import BASE_RATE_USD_PER_TONNE_PER_1000NM, VESSEL_CLASS_COST_MULTIPLIER
+from app.services.recommendation import BASE_RATE_USD_PER_TONNE_PER_1000NM, VESSEL_CLASS_COST_MULTIPLIER, market_factor
 
 # ---------------------------------------------------------------- carbon (IMO CII, bulk carriers)
 REPRESENTATIVE_DWT = {"Capesize": 180_000, "Panamax": 80_000, "Supramax": 58_000, "Handysize": 35_000}
@@ -115,7 +115,7 @@ def modal_compare(db: Session, plant: str, origin_country: str, vessel_class: st
     if inr_per_usd is None:
         s = load_series(db, "INR")
         inr_per_usd = float(s.iloc[-1]) if not s.empty else 85.0
-    mult = VESSEL_CLASS_COST_MULTIPLIER.get(vessel_class, 1.0)
+    mult = VESSEL_CLASS_COST_MULTIPLIER.get(vessel_class, 1.0) * market_factor(db)
     rows = []
     for port_name, km_map in RAIL_KM.items():
         port = db.query(Port).filter(Port.name == port_name).first()

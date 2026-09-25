@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.models import LedgerEntry, Port, Route, VesselClass
 from app.services.freight_data import PRIMARY_INDEX, load_series
-from app.services.recommendation import BASE_RATE_USD_PER_TONNE_PER_1000NM, VESSEL_CLASS_COST_MULTIPLIER, pick_vessel_class
+from app.services.recommendation import BASE_RATE_USD_PER_TONNE_PER_1000NM, VESSEL_CLASS_COST_MULTIPLIER, market_factor, pick_vessel_class
 
 GENESIS = "0" * 64
 FIELDS = ("fixture_date", "vessel_name", "origin_country", "destination_port", "cargo_tonnes", "charter_type", "rate_usd_per_tonne", "notes", "is_sample")
@@ -90,7 +90,7 @@ def benchmark(db: Session) -> list[dict]:
         route = (db.query(Route).join(Port, Route.origin_port_id == Port.id).filter(Port.country == r.origin_country, Route.destination_port_id == port.id).first()) if port else None
         if route and route.distance_nm and classes:
             vc = pick_vessel_class(classes, float(r.cargo_tonnes))
-            ref = BASE_RATE_USD_PER_TONNE_PER_1000NM * float(route.distance_nm) / 1000 * VESSEL_CLASS_COST_MULTIPLIER.get(vc.name, 1.0)
+            ref = BASE_RATE_USD_PER_TONNE_PER_1000NM * market_factor(db, pd.Timestamp(r.fixture_date)) * float(route.distance_nm) / 1000 * VESSEL_CLASS_COST_MULTIPLIER.get(vc.name, 1.0)
             row["illustrative_rate"] = round(ref, 2)
             if row["rate"] is not None:
                 row["rate_vs_illustrative_pct"] = round((row["rate"] / ref - 1) * 100, 1)

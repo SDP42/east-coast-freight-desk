@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.models import FreightRate, Port, Route
 from app.services.financial import DEMURRAGE_RATE_USD_PER_DAY
 from app.services.freight_data import PRIMARY_INDEX, is_monthly, load_series
-from app.services.recommendation import BASE_RATE_USD_PER_TONNE_PER_1000NM, VESSEL_CLASS_COST_MULTIPLIER, get_market_signal  # noqa: F401
+from app.services.recommendation import BASE_RATE_USD_PER_TONNE_PER_1000NM, VESSEL_CLASS_COST_MULTIPLIER, get_market_signal, market_factor  # noqa: F401
 from app.services.signals import cyclone_eta_risk
 
 CHOKEPOINTS = {  # name: (lat, lon, why it matters)
@@ -95,7 +95,7 @@ def cost_at_risk(db: Session, origin: str, port_name: str, cargo_tonnes: float, 
         raise ValueError("No priced route for that origin and port")
     rng = np.random.default_rng(seed)
     mult = VESSEL_CLASS_COST_MULTIPLIER.get(vessel_class, 1.0)
-    base_freight = BASE_RATE_USD_PER_TONNE_PER_1000NM * float(route.distance_nm) / 1000 * mult
+    base_freight = BASE_RATE_USD_PER_TONNE_PER_1000NM * market_factor(db) * float(route.distance_nm) / 1000 * mult
     index_name = PRIMARY_INDEX
     idx = load_series(db, index_name)
     inr = load_series(db, "INR")

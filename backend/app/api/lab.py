@@ -12,6 +12,8 @@ from app.core.cache import cached, data_version
 from app.db.session import get_db
 from app.services.freight_data import load_series
 
+from pathlib import Path
+
 router = APIRouter(tags=["lab"])
 MARKET = [Depends(require("market:read"))]
 
@@ -103,11 +105,31 @@ def model_proof(index_name: str, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=422, detail=str(exc))
 
 
+@router.get("/lab/interval-calibration", dependencies=MARKET)
+def interval_calibration() -> dict:
+    """Measured coverage of forecast bands from a walk-forward test (scripts/eval_intervals.py)."""
+    import json
+
+    f = Path(__file__).resolve().parents[1] / "ml" / "artifacts" / "interval_calibration.json"
+    if not f.exists():
+        raise HTTPException(status_code=404, detail="Interval calibration has not been generated. Run scripts/eval_intervals.py.")
+    return json.loads(f.read_text())
+
+
 @router.get("/lab/current", dependencies=MARKET)
 def current_models(db: Session = Depends(get_db)) -> dict:
     """Models retrained on the current data: the USDA ocean-rate forecast and the Baltic nowcast, with honest tests."""
     from app.services import current
     try:
-        return cached(f"current:{data_version(db, 'OCEAN_GULF_JAPAN')}", 3600, lambda: current.current_models(db))
+        out = cached(f"current:{data_version(db, 'OCEAN_GULF_JAPAN')}", 3600, lambda: current.current_models(db))
+        from app.ml.intervals import calibrated_halfwidth
+        from app.services.freight_data import load_series
+
+        vals = load_series(db, "OCEAN_GULF_JAPAN").to_numpy()
+        path = out.get("gulf_rate_forecast", {}).get("path", [])
+        out = {**out, "gulf_rate_forecast": {**out["gulf_rate_forecast"], "path": [
+            {**p, **({"low": round(p["forecast"] - hw, 2), "high": round(p["forecast"] + hw, 2)} if (hw := calibrated_halfwidth(vals, k)) is not None else {})}
+            for k, p in enumerate(path, start=1)], "band": "calibrated 95% band from the last five years of actual moves"}}
+        return out
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))

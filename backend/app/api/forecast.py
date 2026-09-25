@@ -8,6 +8,7 @@ from app.core.cache import cached, data_version
 from app.api.deps import require
 from app.db.session import get_db
 from app.ml.arima_model import fit_best_arima, forecast, forecast_with_ci
+from app.ml.intervals import calibrated_halfwidth
 from app.ml.backtesting import walk_forward_backtest
 from app.ml.ensemble import wilcoxon_significance
 from app.ml.ensemble_backtest import paired_walk_forward_backtest
@@ -58,10 +59,16 @@ def _compute_forecast(index_name: str, horizon: int, db: Session) -> ForecastRes
     backtest = walk_forward_backtest(series, fit_predict, horizon=min(horizon, 12), n_splits=5)
 
     mean, lower, upper = forecast_with_ci(best, horizon)
-    forecast_points = [
-        ForecastPoint(date=d.date(), value=round(float(v), 2), lower_ci=round(float(lo), 2), upper_ci=round(float(hi), 2))
-        for d, v, lo, hi in zip(mean.index, mean.to_numpy(), lower.to_numpy(), upper.to_numpy())
-    ]
+    from app.services.freight_data import is_monthly
+
+    vals = series.to_numpy()
+    monthly = is_monthly(series)
+    forecast_points = []
+    for k, (d, v, lo, hi) in enumerate(zip(mean.index, mean.to_numpy(), lower.to_numpy(), upper.to_numpy()), start=1):
+        hw = calibrated_halfwidth(vals, k) if monthly else None
+        if hw is not None:  # replace the model's own band with the empirically calibrated one
+            lo, hi = float(v) - hw, float(v) + hw
+        forecast_points.append(ForecastPoint(date=d.date(), value=round(float(v), 2), lower_ci=round(float(lo), 2), upper_ci=round(float(hi), 2)))
 
     return ForecastResponse(
         index_name=index_name.upper(),

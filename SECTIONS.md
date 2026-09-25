@@ -273,3 +273,13 @@ Closes every ⬜ and 🔧 feature except WhatsApp/SMS delivery (needs a provider
 - **Removed:** berth-slot forecast, congestion transfer, chokepoint traffic, Haldia real-vessel stats, the Baltic deep-learning study and nowcast, the weather planner.
 - **Ship availability:** `services/tonnage.py`, `api/tonnage.py`, `Tonnage.tsx`: uploaded broker lists matched to a cargo by size, berth fit, laycan and ETA.
 - **Tests:** 47 passing, including the tonnage upload and matching tests.
+
+### 14i. Live data, calibrated bands and market-linked costs — ✅ done (25 Sept 2026)
+- **Live refresh:** `services/refresh.py`, `core/scheduler.py::refresh_loop`, `POST /admin/refresh-data`, `GET /admin/refresh-status`, a panel on the Data Health page. On start and every `REFRESH_HOURS` (default 6) it pulls the newest observations of the nine series from FRED and the USDA report, adds only newer rows and isolates a failing source. Switch off with `LIVE_REFRESH=false`. Tested live: 6 s, 25 new rows.
+- **Calibrated bands:** `ml/intervals.py`, `scripts/eval_intervals.py`, `GET /lab/interval-calibration`, a Model Lab card. ARIMA's own 95% band covered 98 to 100% of 144 past outcomes (too wide); the calibrated band covers 97%, 93% and 94% at 1, 3 and 6 months at about half the width.
+- **Market-linked cost:** `services/recommendation.py::market_factor` scales the $2.5 per tonne per 1,000 nm rule of thumb by the USDA ocean rate against its five-year median (bounded 0.6 to 1.6; 1.26 in Sept 2026) in the Recommendation, What-If, Urgent Desk, Verdict, Risk Lab, Voyage modal and ledger benchmark.
+- **Assistant routing:** rule overrides for port-choice, "should I buy now" and short forecast questions, plus an honest note when a place is not a modelled origin (`tests/test_assistant_routing.py`).
+- **Fix:** the COA-versus-spot simulator counted a 30-day interval as 30 monthly steps after the move to monthly data; corrected, with `tests/test_coa.py`.
+- **UI:** the port selector on the Verdict, Urgent Desk, Tonnage and What-If pages is now a native select so the options always open.
+- **Tests:** 66 passing, 1 skipped.
+

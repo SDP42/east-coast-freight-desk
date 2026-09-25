@@ -18,7 +18,7 @@ from app.services.risk import _congestion_score, compute_route_risk
 
 KINDS = {
     "index_move_pct": "A series moved by at least this many percent in its latest day",
-    "forecast_change_pct": "14-day forecast change reaches this percent (positive = rise, negative = fall, i.e. a buying window)",
+    "forecast_change_pct": "The forecast change over the chosen number of steps (months for the USDA ocean rate) reaches this percent (positive = rise, negative = fall, i.e. a buying window)",
     "port_congestion": "A port's congestion score reaches this level (0-10)",
     "route_risk": "A route's composite risk score reaches this level (0-10)",
     "model_drift": "The forecast model is flagged as drifting (threshold ignored)",

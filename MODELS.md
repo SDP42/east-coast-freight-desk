@@ -52,3 +52,20 @@ In-distribution on our own questions, not an external benchmark. Below 35% confi
 ## What was removed with the licensed data
 
 The Baltic LSTM, GRU, TCN and Transformer study, the Baltic nowcast and the weather experiment were removed because they rested on the Baltic indices, IMF PortWatch and Open-Meteo. Git history keeps them; they are not in the current tree.
+
+## Forecast bands (`scripts/eval_intervals.py`, `GET /lab/interval-calibration`)
+
+A 95% band should contain the real outcome 95 times in 100. Walk-forward over 144 past months of the USDA ocean rate, ARIMA(2,1,2) refitted at each origin:
+
+| Horizon | ARIMA's own 95% band: coverage / width (US$/t) | Calibrated 95% band: coverage / width | Calibrated 80% coverage |
+|---|---|---|---|
+| 1 month | 98% / 22.4 | 97% / 14.5 | 80% |
+| 3 months | 100% / 51.7 | 93% / 27.3 | 78% |
+| 6 months | 100% / 77.7 | 94% / 40.2 | 80% |
+
+The calibrated band is the finite-sample quantile of how far the rate actually moved over the same number of months during the previous 60 months (`ml/intervals.py`). It is inspired by conformal prediction but is a simpler rule. Limit: the 60-month window was chosen on the same history it was tested on, so the band is approximately, not exactly, calibrated. Mean absolute error of the point forecast in the same test: ARIMA 2.24, 5.39 and 8.09 against 2.49, 5.58 and 8.07 for "no change" at 1, 3 and 6 months.
+
+## Cost model market factor
+
+Freight estimates use 2.5 US$ per tonne per 1,000 nm scaled by the USDA ocean rate divided by its median over the previous 60 months, limited to 0.6 to 1.6 (1.26 in September 2026). The $2.5 is taken to be right when the market sits at its five-year median. Costs remain illustrative estimates, not quotes.
+

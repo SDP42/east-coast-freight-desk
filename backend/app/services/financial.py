@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.ml.arima_model import fit_best_arima, forecast
 from app.models import Port, Route, VesselClass
-from app.services.freight_data import load_series
+from app.services.freight_data import is_monthly, load_series
 
 # Real researched demurrage benchmarks (SIH2026 research compendium, Section
 # 3.6): Panamax/Kamsarmax ~$8,000-15,000/day, Capesize >$30,000/day during
@@ -70,19 +70,24 @@ def simulate_coa_vs_spot(
         raise ValueError(f"Not enough history for {index_name} to run this simulation")
 
     current_index_value = float(series.iloc[-1])
-    horizon = num_fixtures * interval_days
+    # The series step is a month for the USDA ocean rate and a day for daily series, so convert the days between fixtures
+    # into steps. (Counting days as monthly steps would place six 30-day fixtures 15 years out.)
+    monthly = is_monthly(series)
+    steps_per_interval = max(1, round(interval_days / 30.44)) if monthly else max(1, interval_days)
+    unit = "months" if monthly else "days"
+    horizon = num_fixtures * steps_per_interval
     best = fit_best_arima(series)
     forecast_values = forecast(best, horizon)
 
     # Historical daily volatility, used to size the uncertainty band around
     # each projected spot fixture — real data, not an assumption.
-    daily_returns = series.pct_change().dropna().iloc[-180:]
-    daily_vol = float(daily_returns.std())
+    step_returns = series.pct_change().dropna().iloc[-(60 if monthly else 180):]
+    daily_vol = float(step_returns.std())  # volatility per series step (a month for monthly series)
 
     fixtures: list[FixtureProjection] = []
     spot_costs: list[float] = []
     for i in range(num_fixtures):
-        day_offset = (i + 1) * interval_days - 1
+        day_offset = (i + 1) * steps_per_interval - 1
         idx_value = float(forecast_values.iloc[min(day_offset, horizon - 1)])
         projected_rate = current_rate_usd_per_tonne * (idx_value / current_index_value)
         fixtures.append(
@@ -103,7 +108,7 @@ def simulate_coa_vs_spot(
     # path — an approximation (index vol scaled onto the $/tonne conversion),
     # not a full Monte Carlo, but grounded in real historical volatility.
     spot_cost_std = float(
-        current_rate_usd_per_tonne * daily_vol * np.sqrt(interval_days) * cargo_tonnes_per_fixture * np.sqrt(num_fixtures)
+        current_rate_usd_per_tonne * daily_vol * np.sqrt(steps_per_interval) * cargo_tonnes_per_fixture * np.sqrt(num_fixtures)
     )
 
     savings = total_spot_cost - total_coa_cost
@@ -116,7 +121,7 @@ def simulate_coa_vs_spot(
 
     rationale = (
         f"Model forecasts {index_name} moving from {current_index_value:.0f} to "
-        f"~{fixtures[-1].forecast_index_value:.0f} over the next {horizon} days "
+        f"~{fixtures[-1].forecast_index_value:.0f} over the next {horizon} {unit} "
         f"({'up' if fixtures[-1].forecast_index_value > current_index_value else 'down'} "
         f"{abs(fixtures[-1].forecast_index_value / current_index_value - 1) * 100:.1f}%). "
         f"Locking today's rate ({coa_rate:.2f}/t) for all {num_fixtures} fixtures "

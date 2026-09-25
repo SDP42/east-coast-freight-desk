@@ -1,11 +1,11 @@
 # Problem statement check (19 Sept 2026)
 
-Each requirement of the SAIL problem statement, what the platform does about it, and what is still missing. Verified against the running system (59 endpoint checks, 51 unit tests).
+Each requirement of the SAIL problem statement, what the platform does about it, and what is still missing. Verified against the running system (about 100 routes, 66 automated backend tests). Last updated 25 Sept 2026.
 
 **Objective: move from many single spot contracts to short or medium-term multi-voyage contracts.**
 | | Status |
 |---|---|
-| COA versus spot for a run of voyages (rate, tonnes per voyage, number of voyages, interval) | Done: `Financial Tools`, `POST /financial/coa-vs-spot`; returns expected saving and a recommendation |
+| COA versus spot for a run of voyages (rate, tonnes per voyage, number of voyages, interval) | Done: `Financial Tools`, `POST /financial/coa-vs-spot`; returns expected saving and a recommendation. Fixture spacing corrected on 25 Sept 2026 (a 30-day interval had been counted as 30 monthly steps) |
 | A single "recommended contract length" (spot, 3, 6 or 12 months) | **Partial**: you set the number of voyages and interval and compare; the Verdict does not yet recommend a duration |
 
 **Expected solution**
@@ -30,3 +30,5 @@ Each requirement of the SAIL problem statement, what the platform does about it,
 | Ship availability | Done via broker lists (upload CSV or Excel, or paste an email); no free named-ship feed exists |
 
 **Mock or demo data:** none is shown in a deployment by default. Simulated vessels, anchorage queues and minute ticks are behind `SHOW_SIMULATED_FEEDS` (off). Demo accounts, the six sample ledger entries, the sample tonnage list and 20 synthetic vessels are removed by `scripts/prepare_production.py --apply`. Remaining illustrative inputs are labelled in every response: the landed-cost model, demurrage benchmarks, rail distances, Haldia's 35,000 t ceiling, the optimiser's plant demand, port capacity and origin caps, and the Verdict's weights.
+
+**Changes since 19 Sept 2026:** the nine market series now refresh themselves every six hours (row 74 of FEATURES.md), forecast bands are calibrated on 144 past months (row 75), and freight cost estimates follow the live USDA ocean rate against its five-year median (row 76). These improve the freshness and honesty of the inputs; they do not change any status above.

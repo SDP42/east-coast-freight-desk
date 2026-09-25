@@ -3,6 +3,8 @@ broker-style briefing with the numbers used. No free-text generation and no exte
 intent comes from the local classifier in app.ml.intent, the figures from the same services the
 dashboard uses."""
 
+import re
+
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -356,7 +358,40 @@ def _verdict(db: Session, e: Entities, a: list[str], user=None) -> Answer:
     return Answer("verdict", 0, [], {}, v["headline"], figs, [("Open the verdict", "/app/verdict")], a)
 
 
+PORT_CHOICE_RE = re.compile(r"\b(which|what|best|better|right)\b[^?]*\bport\b|\bport\b[^?]*\b(should i|to use|to choose|is best|is better)\b|\bwhere should (i|we) (discharge|unload|berth)")
+VERDICT_RE = re.compile(r"should (i|we) (buy|book|fix|charter|wait|hold|lock|act|order)|buy (coal )?now|book now|good time to|right time to|wait or (buy|book|act|fix)|act now or wait")
+FORECAST_RE = re.compile(r"\bforecast\b|\boutlook\b|\bpredict|what will .*(rate|freight|price)|freight (rate )?(trend|next)")
+OFF_MAP = re.compile(r"singapore|china|japan|korea|malaysia|thailand|vietnam|dubai|uae|south africa|canada|colombia|brazil|europe|germany|ukraine", re.I)
+
+
+def _port_choice(db: Session, e: Entities, a: list[str], user=None) -> Answer:
+    ports = db.query(Port).filter(Port.is_destination.is_(True)).all()
+    scope = port_scope(user) if user is not None else None
+    if scope is not None:
+        ports = [p for p in ports if p.name in scope]
+        if not ports:
+            raise AccessDenied("No ports are assigned to your account yet.")
+    classes = {vc.name: vc for vc in db.query(VesselClass).all()}
+    rows = []
+    for p in ports:
+        cong = _congestion_score(p, db)[0]
+        biggest = next((n for n in ("Capesize", "Panamax", "Supramax", "Handysize") if n in classes and check_compatibility(p, classes[n]).compatible), "none")
+        rank = {"Capesize": 0, "Panamax": 1, "Supramax": 2, "Handysize": 3, "none": 4}[biggest]
+        rows.append((rank, cong, p.name, biggest))
+    rows.sort()
+    best = rows[0]
+    days = f" within {e.horizon_days} days" if e.horizon_days else ""
+    text = (f"For coking coal{days}, {best[2]} is the strongest choice on physical fit: it takes a {best[3]} and its congestion score is {best[1]:.1f}/10. "
+            "Ranking (largest ship that berths, then least congestion): " + "; ".join(f"{r[2]} ({r[3]}, {r[1]:.1f}/10)" for r in rows) + ". "
+            "This ranks berth fit and queueing only; the Urgent Fixture Desk adds freight cost and on-time probability for a specific deadline.")
+    m = OFF_MAP.search(e.text)
+    if m:
+        a.append(f"{m.group(0).title()} is not one of the modelled coking-coal origins (Australia, United States, Mozambique, Russia, Indonesia), so I ranked ports without an origin.")
+    return Answer("port_choice", 0, [], {}, text, [(r[2], f"{r[3]}, {r[1]:.1f}") for r in rows[:4]], [("Urgent Fixture Desk", "/app/urgent"), ("Berth-fit checker", "/app/ports")], a)
+
+
 HANDLERS = {
+    "port_choice": _port_choice,
     "market_now": _market_now, "forecast": _forecast, "recommend_origin": _recommend, "port_fit": _port_fit, "risk": _risk, "congestion": _congestion,
     "haldia": _haldia, "coa_vs_spot": _coa, "ledger": _ledger, "alerts_mine": _alerts_mine, "my_access": _my_access, "users_admin": _users_admin, "what_if": _what_if, "urgent": _urgent, "verdict": _verdict, "demand": _demand, "data_sources": _sources, "help": _help,
 }
@@ -364,7 +399,7 @@ HANDLERS = {
 
 INTENT_PERMISSION = {
     "market_now": "market:read", "forecast": "market:read", "recommend_origin": "recommend:read", "port_fit": "ports:read", "risk": "risk:read",
-    "congestion": "ports:read", "haldia": None, "coa_vs_spot": "financial:read", "demand": "demand:read", "data_sources": None, "help": None,
+    "congestion": "ports:read", "port_choice": "ports:read", "haldia": None, "coa_vs_spot": "financial:read", "demand": "demand:read", "data_sources": None, "help": None,
     "what_if": "financial:read", "urgent": "financial:read", "verdict": "financial:read", "ledger": "ledger:read", "alerts_mine": "alerts:manage", "my_access": None, "users_admin": "admin:users",
 }
 
@@ -412,6 +447,16 @@ def ask(db: Session, question: str, user=None) -> Answer:
     q = question.strip()
     ranked = classify(q, top_k=3)
     intent, conf = ranked[0]
+    low = q.lower()
+    if VERDICT_RE.search(low) and intent != "verdict":
+        ranked = [("verdict", 0.9)] + [r for r in ranked if r[0] != "verdict"][:2]
+        intent, conf = ranked[0]
+    elif FORECAST_RE.search(low) and (conf < CONFIDENCE_FLOOR or intent in ("data_sources", "help", "market_now")) and not PORT_CHOICE_RE.search(low):
+        ranked = [("forecast", 0.9)] + [r for r in ranked if r[0] != "forecast"][:2]
+        intent, conf = ranked[0]
+    if PORT_CHOICE_RE.search(q.lower()) and intent not in ("urgent", "verdict", "port_fit", "congestion", "haldia", "risk"):
+        ranked = [("port_choice", 0.9)] + [r for r in ranked if r[0] != "port_choice"][:2]
+        intent, conf = ranked[0]
     ents = extract_entities(q)
     ent_dict = {k: v for k, v in ents.__dict__.items() if v is not None}
     if conf < CONFIDENCE_FLOOR:

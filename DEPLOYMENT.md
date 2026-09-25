@@ -146,6 +146,7 @@ Call it **the secret key**.
 | `JWT_SECRET_KEY` | **the secret key** from Step 3 |
 | `CORS_ORIGINS` | `["https://placeholder.vercel.app"]` (we fix this in Step 6) |
 | `PREWARM` | `false` |
+| `LIVE_REFRESH` | `true` (default). Pulls the newest public data on start and every `REFRESH_HOURS` (default `6`); set `false` to stop it |
 | `ALLOW_DEMO_LOGIN` | `true` |
 | `SHOW_SIMULATED_FEEDS` | `false` |
 | `LIVE_SHIP_FEED` | `false` |

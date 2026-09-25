@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     # Refit the forecast model in the background when drift is flagged. Off by default: on a small free server the refit starves
     # everything else. Retraining is still one click on the Model Monitor page.
     SCHEDULED_RETRAIN: bool = False
+    LIVE_REFRESH: bool = True  # pull the latest public series on start and then every REFRESH_HOURS
+    REFRESH_HOURS: float = 6.0
 
     # One-click sign-in for the seeded demo accounts (see scripts/seed_demo_users.py). Turn off for a real deployment.
     ALLOW_DEMO_LOGIN: bool = True

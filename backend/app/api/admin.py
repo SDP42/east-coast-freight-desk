@@ -92,3 +92,18 @@ def data_health(db: Session = Depends(get_db), _: User = Depends(require("admin:
 def analytics(days: int = Query(14, ge=1, le=90), db: Session = Depends(get_db), _: User = Depends(require("admin:users"))) -> dict:
     from app.services.insights import admin_analytics
     return admin_analytics(db, days)
+
+
+@router.get("/admin/refresh-status")
+def refresh_status(_: User = Depends(require("admin:users"))) -> dict:
+    from app.services import refresh
+
+    return refresh.status()
+
+
+@router.post("/admin/refresh-data")
+def refresh_data(db: Session = Depends(get_db), admin: User = Depends(require("admin:users"))) -> dict:
+    """Fetch the latest public observations now instead of waiting for the schedule."""
+    from app.services import refresh
+
+    return refresh.refresh_all(db)

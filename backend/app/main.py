@@ -25,7 +25,7 @@ from app.api.scenario import router as scenario_router
 from app.core.config import get_settings
 from app.core.error_handlers import register_error_handlers
 from app.core.logging_middleware import RequestLoggingMiddleware
-from app.core.scheduler import alert_loop, prewarm, prewarm_assistant
+from app.core.scheduler import alert_loop, prewarm, prewarm_assistant, refresh_loop
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -35,6 +35,8 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     tasks = [asyncio.create_task(alert_loop())]
+    if settings.LIVE_REFRESH:
+        tasks.append(asyncio.create_task(refresh_loop()))
     if settings.PREWARM:
         tasks.append(asyncio.create_task(prewarm()))
     if settings.PREWARM_ASSISTANT:

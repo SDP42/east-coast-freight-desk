@@ -80,3 +80,24 @@ async def prewarm_assistant() -> None:
         await asyncio.to_thread(_prewarm_assistant_once)
     except Exception:
         log.exception("assistant prewarm failed")
+
+
+def _refresh_once() -> None:
+    from app.services import refresh
+
+    db = SessionLocal()
+    try:
+        refresh.refresh_all(db)
+    finally:
+        db.close()
+
+
+async def refresh_loop() -> None:
+    """Pull fresh public data shortly after start (a sleeping free server wakes up stale) and then on a fixed interval."""
+    await asyncio.sleep(20)
+    while True:
+        try:
+            await asyncio.to_thread(_refresh_once)
+        except Exception:
+            log.exception("data refresh failed")
+        await asyncio.sleep(max(0.25, get_settings().REFRESH_HOURS) * 3600)

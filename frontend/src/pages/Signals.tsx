@@ -5,8 +5,9 @@ import SpotlightCard from "../components/SpotlightCard";
 import { Field, PageHeader, Stat, Tabs, btnCls, errText, inputCls, Fine } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
+import PortWeather from "../components/PortWeather";
 
-type Tab = "cyclone" | "demand" | "lightering" | "timing";
+type Tab = "cyclone" | "weather" | "demand" | "lightering" | "timing";
 const ALL_CYCLONE_PORTS = ["Paradip", "Visakhapatnam", "Gangavaram", "Dhamra", "Gopalpur", "Haldia", "Sagar / Sandheads"];
 
 interface Cyclone {
@@ -196,8 +197,9 @@ export default function Signals() {
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Port signals" subtitle="Cyclone risk, laycan timing and demand signals for the East Coast ports." />
-      <Tabs<Tab> tabs={[{ key: "cyclone", label: "Cyclone ETA risk" }, { key: "timing", label: "Timing coach" }, ...(!user?.port_scope || user.port_scope.includes("Haldia") ? [{ key: "lightering" as Tab, label: "Haldia lightering" }] : []), ...(can("demand:read") ? [{ key: "demand" as Tab, label: "Coal demand" }] : [])]} value={tab} onChange={setTab} />
+      <Tabs<Tab> tabs={[{ key: "cyclone", label: "Cyclone ETA risk" }, { key: "weather", label: "Live port weather" }, { key: "timing", label: "Timing coach" }, ...(!user?.port_scope || user.port_scope.includes("Haldia") ? [{ key: "lightering" as Tab, label: "Haldia lightering" }] : []), ...(can("demand:read") ? [{ key: "demand" as Tab, label: "Coal demand" }] : [])]} value={tab} onChange={setTab} />
       {tab === "cyclone" && <CycloneTool />}
+      {tab === "weather" && <PortWeather />}
       {tab === "demand" && <DemandTool />}
       {tab === "lightering" && <LighteringTool />}
       {tab === "timing" && <TimingCoach />}

@@ -22,6 +22,8 @@ from app.api.tonnage import router as tonnage_router
 from app.api.recommendation import router as recommendation_router
 from app.api.risk import router as risk_router
 from app.api.scenario import router as scenario_router
+from app.api.fx import router as fx_router
+from app.api.weather import router as weather_router
 from app.core.config import get_settings
 from app.core.error_handlers import register_error_handlers
 from app.core.logging_middleware import RequestLoggingMiddleware
@@ -83,6 +85,8 @@ app.include_router(recommendation_router, prefix="/api/v1")
 app.include_router(risk_router, prefix="/api/v1")
 app.include_router(financial_router, prefix="/api/v1")
 app.include_router(scenario_router, prefix="/api/v1")
+app.include_router(fx_router, prefix="/api/v1")
+app.include_router(weather_router, prefix="/api/v1")
 
 
 @app.get("/")

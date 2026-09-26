@@ -8,6 +8,7 @@ import { routeAllowed } from "../lib/personas";
 import Sidebar from "./Sidebar";
 import PageErrorBoundary from "./PageErrorBoundary";
 import TickerTape from "./TickerTape";
+import FxBar from "./FxBar";
 import OceanBackdrop from "./OceanBackdrop";
 import { useAuth } from "../lib/auth";
 import { useUiScale } from "../lib/scale";
@@ -50,6 +51,7 @@ export default function AppShell() {
         <main className="flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8" key={scale}>
           {routeAllowed(pathname.replace(/\/$/, ""), can) ? <PageErrorBoundary resetKey={pathname}><Outlet /></PageErrorBoundary> : <NoAccess />}
         </main>
+        <FxBar />
       </div>
     </div>
   );

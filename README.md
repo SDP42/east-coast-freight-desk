@@ -47,6 +47,7 @@ A working platform, not a slide: sign in, ask a question, get a number, and see 
 | **See** | Four vanilla three.js scenes: the Haldia dock on the landing page, a trade globe of sea lanes and chokepoints, a 3D Monte-Carlo forecast fan, and a market terrain. A layout that scales from phones to 4K projectors. | Landing, Trade Globe, Risk Lab, Market Terrain |
 | **Decide fast** | What-If Studio (eight levers, crisis playbooks, tornado, break-even, saved comparisons) and the Urgent Fixture Desk (what can arrive by the deadline, how likely, at what cost, and the walk-away price). Also askable in plain English. | What-If Studio, Urgent Fixture Desk, Ask the Desk |
 | **Optimise and plan** | A sourcing optimiser (linear program with shadow prices: cheapest origin, port and plant mix), and a track record for the verdict's rules. | Sourcing Optimiser, Weather Window, The Verdict |
+| **Live rate and weather** | Today's USD to INR rate with its date, a two-way converter (rupees and crore) and a 30-day trend in a bar at the bottom of every page, and live five-day wind, rain and wave outlook at each discharge port with a simple working-risk flag. | Bottom bar, Port signals → Live port weather |
 | **The verdict** | One plain call: when to rent a ship and which one (rent now, within a week, wait, split, or cannot meet the date), with the reasons and what would change it. Rule-based decision support, not a trained model. | The Verdict, Ask the Desk |
 | **Ship availability and claims** | Open Tonnage (import the position lists your brokers send; the desk matches ships to a cargo by size, berth fit, laycan and ETA), part-laden berth fit, laytime and demurrage claim calculator, Market Pulse of current public data, and Data Health for the administrator. | Open Tonnage, Laytime, Market Pulse, Data Health |
 | **Quantify risk** | Cost-at-risk Monte Carlo for a cargo (P50/P95 in INR crore), Haldia lightering planner (assumption-based), laycan timing coach, unusual-moves feed, a Live Desk of minute-by-minute simulated ticks. | Risk Lab, Port Signals, Markets, Live Desk |
@@ -122,7 +123,7 @@ The rule is **no licensed data**: every series is a US-government or Federal Res
 
 **Simulated, and labelled as such:** vessel positions and queues on the port map, minute ticks on the Live Desk, cost figures (illustrative, not quotes), the sample tonnage list (invented ships) and the six sample ledger entries.
 
-**Removed for licence reasons (Sept 2026):** the Baltic freight indices (a proprietary index), IMF PortWatch port and chokepoint traffic, SMP Kolkata Haldia reports, World Bank coal, IMF iron ore, Open-Meteo weather, the Newcastle ship feed and the S&P 500. The Baltic Dry Index was removed earlier for the same reason.
+**Removed for licence reasons (Sept 2026):** the Baltic freight indices (a proprietary index), IMF PortWatch port and chokepoint traffic, SMP Kolkata Haldia reports, World Bank coal, IMF iron ore, the Newcastle ship feed and the S&P 500. The Baltic Dry Index was removed earlier for the same reason. Two live services were added afterwards and are listed in LICENCES.md: the ECB reference USD to INR rate (via Frankfurter) and Open-Meteo port weather (non-commercial use, attribution shown).
 
 **Not available free:** a live freight index, real fixture or charter rates, AIS ship positions, and Indonesia or Russia price series.
 

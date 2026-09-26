@@ -17,6 +17,15 @@ A licence, even an open one with attribution, was treated as a reason to remove 
 
 Ship availability is **not** a downloaded dataset: it is the open-tonnage lists SAIL's own brokers send, uploaded by users. Ports, routes, distances and vessel classes are our own compilation of published specifications.
 
+## Live services called at request time (added 26 Sept 2026)
+
+| Service | Use | Licence and conditions |
+|---|---|---|
+| Frankfurter (frankfurter.dev), republishing European Central Bank euro foreign exchange reference rates | Today's USD to INR rate and the converter in the bottom bar | Free, no key. ECB reference rates are published once per business day; the page shows the date and source with every rate |
+| Open-Meteo forecast and marine APIs (open-meteo.com) | Live wind, rain and wave height at the discharge ports (Port signals, "Live port weather") | CC BY 4.0, **free for non-commercial use only**, attribution shown on the page. Reinstated for this non-commercial prototype after the earlier purge; a commercial deployment would need Open-Meteo's paid plan or another weather source |
+
+If either service is unreachable the page says so and, for the currency rate, falls back to the stored Federal Reserve rate with its own date. Nothing is stored from these calls beyond a 15 to 30 minute cache.
+
 ## Data removed in the licence purge (19 Sept 2026)
 
 | Removed | Why |
@@ -26,7 +35,6 @@ Ship availability is **not** a downloaded dataset: it is the open-tonnage lists 
 | IMF iron-ore price | IMF data terms |
 | World Bank coal prices (Pink Sheet) | CC BY 4.0 (attribution condition) |
 | SMP Kolkata daily Haldia vessel reports | No reuse licence stated |
-| Open-Meteo weather and marine forecast | CC BY 4.0, free for non-commercial use only |
 | Port Authority of NSW Newcastle vessel movements | Reuse terms could not be found |
 | S&P 500 series | S&P terms on FRED |
 | Baltic Dry Index | Removed earlier: no freely licensed daily source exists |

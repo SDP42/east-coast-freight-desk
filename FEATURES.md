@@ -1,6 +1,6 @@
 # Feature List — Baseline vs. Differentiating
 
-82 rows (76 live, 3 removed in the licence purge, 3 re-based; 10 baseline + 71 differentiating), split deliberately into two groups: things any competent
+82 rows (75 live, 4 removed in the licence purge, 3 re-based; 10 baseline + 71 differentiating), split deliberately into two groups: things any competent
 competing team (there are ~300 submissions per problem statement, and at least
 two public GitHub repos already attempting near-identical ideas) would also
 build, and things that are genuinely ours. This split is itself part of the
@@ -109,7 +109,7 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 77 | COA-versus-spot fixture spacing (fix) | ✅ | `services/financial.py::simulate_coa_vs_spot`: after the data moved to monthly, a 30-day interval was counted as 30 monthly steps, placing six fixtures in 2029 to 2041 and inflating the spread (about $951,000 instead of about $174,000). The interval now converts to months (30 days = 1 month), volatility is per month, and the rationale says months. Guarded by `tests/test_coa.py`. Found while preparing the submission documents |
 | 65 | Models retrained on current data | ✅ | `scripts/train_current.py`, `train_current_dl.py`, `services/current.py`, `GET /lab/current`: rate forecasts with walk-forward tests. The Baltic nowcast was removed with the Baltic data |
 | 66 | Sourcing allocation optimiser | ✅ | `services/optimiser.py`, `POST /sourcing/optimise`, `Optimiser.tsx`: a linear program (HiGHS) picks origin, port and plant for each tonne to minimise sea + port + rail cost within plant demand, port capacity and origin-share caps, and returns **shadow prices** (what one more kt of a port's capacity or an origin's cap is worth). Under assumed inputs it saves about 3% (₹11 crore a month) against the fixed current mix. Cost-only: coal quality and price differences are not modelled; every input is an assumption to replace |
-| 67 | Live port weather | ✅ | `services/weather.py`, `GET /weather/ports`, `PortWeather.tsx` (Port signals, "Live port weather"): Open-Meteo wind, rain and wave height for the next five days at each discharge port, with a simple working-risk rule (gusts 40/55 km/h, waves 1.5/2.5 m, limits returned with the answer). Reinstated for this non-commercial prototype; attribution on the page; a port officer sees only assigned ports; a failed marine call still returns wind and rain |
+| 67 | Weather-window planner | 🗑️ removed | Removed in the licence purge (Open-Meteo is CC BY, non-commercial); a later re-add was dropped again |
 | 68 | Verdict track record | ✅ | `services/verdict_eval.py`, `GET /verdict/evidence`, also inside every verdict: momentum tested on the USDA ocean rate (borderline edge, p = 0.04) and on Brent crude (none), so the signal carries a modest weight |
 | 69 | Hugging Face embeddings in the assistant | ✅ | `app/ml/embed.py`: BAAI/bge-small-en-v1.5 (MIT), run locally through fastembed, averaged with the TF-IDF model. Intent accuracy 73.5% to 86.9% (15 held-out folds, p = 0.0007). Falls back to TF-IDF automatically; `INTENT_EMBEDDINGS=0` switches it off |
 | 70 | Cross-checked feature honesty | ✅ | Every new feature ships with its limits: assumptions returned in the response, and negative results (GRU, deep-sea PPI, Capesize nowcast, momentum) kept in the documentation |
@@ -117,7 +117,7 @@ Legend: ✅ done & live in the UI · 🔧 partially built (backend exists, not f
 | 72 | Real port map | ✅ | `PortMap.tsx`: Natural Earth coastline and 331 real ports (public domain, drawn directly, no map tiles); amber rings show ships from uploaded broker lists; simulated vessels and queues are off unless `SHOW_SIMULATED_FEEDS` is set |
 | 73 | Broker email paste-in | ✅ | `POST /tonnage/parse-text`, `Tonnage.tsx`: paste position text, review the ships it read, save; unreadable lines are reported, never guessed |
 
-**Running total: 56 done, 1 partial, 0 not started** (of 57) at the last full recount, plus rows 74 to 78 added afterwards (live refresh, calibrated bands, market-linked cost, the COA spacing fix, live USD to INR rate), all done, and row 67 reinstated as live port weather. Backend tests: 73 passing, 1 skipped. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
+**Running total: 56 done, 1 partial, 0 not started** (of 57) at the last full recount, plus rows 74 to 78 added afterwards (live refresh, calibrated bands, market-linked cost, the COA spacing fix, live USD to INR rate), all done. Backend tests: 70 passing, 1 skipped. The one partial item is #14: in-app and webhook alerts work, but WhatsApp/SMS delivery needs a messaging-provider account. There is also an ROI calculator (live in `Financial.tsx`) from the original 20-feature plan that isn't separately numbered here.
 
 ## A. Baseline features (10) — expected of any serious attempt at this problem
 
@@ -258,5 +258,5 @@ Decision: **only public-domain data**, fetched free with no accounts, keys or cr
 What changed for users:
 - Forecasting now runs on the USDA monthly ocean rate (a dry-bulk proxy, not a coal rate); horizons are in months.
 - Ship availability comes from broker lists users upload (Open Tonnage), not from a scraped feed.
-- Removed features: berth-slot forecast, congestion transfer, chokepoint traffic, Haldia real-vessel statistics, the Baltic deep-learning study and Baltic nowcast. (The weather planner was later reinstated as Live port weather, row 67.)
+- Removed features: berth-slot forecast, congestion transfer, chokepoint traffic, Haldia real-vessel statistics, the Baltic deep-learning study and Baltic nowcast.
 - Re-based: forecast and ensemble, model lab, monitor (on Brent), risk lab, cost at risk, terrain, live desk, ledger benchmark, verdict, briefing, assistant.

@@ -4,10 +4,11 @@ import SpotlightCard from "./SpotlightCard";
 import Loading from "./Loading";
 import { Note, errText, tone } from "./ui";
 import { api } from "../lib/api";
+import { fetchPortWeather, type Coord, type Limits } from "../lib/weather";
 
 interface Day { date: string; gust_max_kmh: number | null; rain_mm: number | null; wave_max_m: number | null; summary: string; working_risk: string }
 interface P { port: string; now: { time: string | null; temperature_c: number | null; wind_kmh: number | null; gust_kmh: number | null; rain_mm: number | null; summary: string; working_risk: string }; days: Day[]; worst_day: Day | null }
-interface Res { available: boolean; ports: P[]; note?: string; source?: string; fetched_at?: string; limits?: Record<string, number> }
+interface Res { available: boolean; ports: P[]; note?: string; source?: string; fetched_at?: string; limits?: Limits; coords?: Coord[]; days?: number; direct?: boolean }
 
 const cls = (t: "up" | "down" | "warn") => (t === "up" ? "border-up/30 bg-up/10 text-up" : t === "down" ? "border-down/30 bg-down/10 text-down" : "border-warn/30 bg-warn/10 text-warn");
 const dayName = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric" });
@@ -16,7 +17,21 @@ const dayName = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-
 export default function PortWeather() {
   const [d, setD] = useState<Res | null>(null);
   const [err, setErr] = useState("");
-  useEffect(() => { api.get<Res>("/weather/ports").then((r) => setD(r.data)).catch((e) => setErr(errText(e))); }, []);
+  useEffect(() => {
+    api.get<Res>("/weather/ports").then(async (r) => {
+      const v = r.data;
+      // The server could not reach the weather service (a shared host can be rate-limited): ask it from this browser instead.
+      if (!v.available && v.coords?.length && v.limits) {
+        try {
+          const ports = await fetchPortWeather(v.coords, v.limits, v.days ?? 5);
+          setD({ available: true, ports: ports as P[], limits: v.limits, direct: true, source: "Open-Meteo (forecast and marine APIs), CC BY 4.0, fetched from your browser", fetched_at: new Date().toISOString(),
+            note: "Working risk is a simple rule on gusts and wave height, not an official forecast. Wave data is offshore, so it can overstate river ports." });
+          return;
+        } catch { /* fall through to the server's message */ }
+      }
+      setD(v);
+    }).catch((e) => setErr(errText(e)));
+  }, []);
   if (err) return <Note kind="warn">{err}</Note>;
   if (!d) return <Loading label="Fetching port weather" />;
   if (!d.available) return <Note kind="warn">{d.note}</Note>;
@@ -49,7 +64,7 @@ export default function PortWeather() {
           </SpotlightCard>
         ))}
       </div>
-      <p className="text-[11px] text-muted">{d.source}. {d.note} Fetched {d.fetched_at?.slice(11, 16)} UTC and cached for 30 minutes.</p>
+      <p className="text-[11px] text-muted">{d.source}. {d.note} Fetched {d.fetched_at?.slice(11, 16)} UTC{d.direct ? "." : " and cached for 30 minutes."}</p>
     </div>
   );
 }

@@ -92,3 +92,9 @@ def test_weather_still_answers_when_the_marine_service_fails(monkeypatch):
     monkeypatch.setattr(weather, "fetch_marine", down)
     p = weather.build([("Paradip", 20.26, 86.68)])["ports"][0]
     assert p["days"][0]["wave_max_m"] is None and p["now"]["working_risk"] == "Low"
+
+
+def test_unavailable_answer_carries_coordinates_for_the_browser_fallback():
+    r = weather._unavailable([("Haldia", 22.03, 88.07)], "down", "HTTPError: HTTP Error 429")
+    assert r["available"] is False and r["coords"] == [{"port": "Haldia", "latitude": 22.03, "longitude": 88.07}]
+    assert r["limits"] == weather.LIMITS and "429" in r["error"]

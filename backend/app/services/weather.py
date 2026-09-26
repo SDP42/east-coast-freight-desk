@@ -93,13 +93,23 @@ def build(ports: list[tuple[str, float, float]]) -> dict:
             "note": "Working risk is a simple rule on gusts and wave height (limits shown), not an official forecast. Wave data is offshore, so it can overstate river ports."}
 
 
+def _unavailable(ports: list[tuple[str, float, float]], why: str, error: str | None = None) -> dict:
+    """The server could not get weather. The port coordinates are returned so the browser can ask Open-Meteo directly from the user's own
+    connection: shared hosting addresses are sometimes rate-limited by free weather services (HTTP 429), ordinary connections are not."""
+    return {"available": False, "ports": [], "coords": [{"port": n, "latitude": a, "longitude": b} for n, a, b in ports], "limits": LIMITS,
+            "days": DAYS, "error": error, "note": why}
+
+
 def port_weather(db: Session, scope: list[str] | None) -> dict:
+    from app.core.config import get_settings
+
     rows = db.query(Port).filter(Port.is_destination.is_(True), Port.latitude.isnot(None), Port.longitude.isnot(None)).order_by(Port.name).all()
     ports = [(p.name, float(p.latitude), float(p.longitude)) for p in rows if scope is None or p.name in scope]
+    if not get_settings().WEATHER_SERVER_SIDE:
+        return _unavailable(ports, "Server-side weather is switched off; the browser fetches it directly.")
     key = "weather:" + ",".join(n for n, _, _ in ports)
     try:
         return cached(key, CACHE_SECONDS, lambda: build(ports))
     except Exception as e:
         log.warning("Weather unavailable: %s", e)
-        return {"available": False, "ports": [], "error": f"{type(e).__name__}: {str(e)[:160]}",
-                "note": "The weather service could not be reached just now. Try again in a minute."}
+        return _unavailable(ports, "The server could not reach the weather service just now.", f"{type(e).__name__}: {str(e)[:160]}")

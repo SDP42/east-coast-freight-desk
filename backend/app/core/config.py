@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     LIVE_SHIP_FEED: bool = False
     # Simulated demo feeds (moving dots and anchorage queues on the port map, minute ticks on the Live Desk). Off by default: no mock data in a deployment.
     SHOW_SIMULATED_FEEDS: bool = False
+    WEATHER_SERVER_SIDE: bool = True  # False = never call Open-Meteo from the server (some shared hosts are rate-limited); the browser fetches it instead
 
     @field_validator("DATABASE_URL")
     @classmethod

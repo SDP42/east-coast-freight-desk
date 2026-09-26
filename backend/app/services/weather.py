@@ -101,4 +101,5 @@ def port_weather(db: Session, scope: list[str] | None) -> dict:
         return cached(key, CACHE_SECONDS, lambda: build(ports))
     except Exception as e:
         log.warning("Weather unavailable: %s", e)
-        return {"available": False, "ports": [], "note": "The weather service could not be reached just now. Try again in a minute."}
+        return {"available": False, "ports": [], "error": f"{type(e).__name__}: {str(e)[:160]}",
+                "note": "The weather service could not be reached just now. Try again in a minute."}
